@@ -42,7 +42,7 @@ public class TicketTable extends RoutingTable {
     private List<Integer> seenOccupancy;
     private int seenNotFull = 0; 
     
-    public int available_requests = KademliaCommonConfig.ALPHA;
+    //public int available_requests = KademliaCommonConfig.ALPHA;
 
     
 	public TicketTable(int nBuckets, int k, int maxReplacements,Discv5TicketProtocol protocol,Topic t, int myPid, boolean refresh) {
@@ -124,7 +124,7 @@ public class TicketTable extends RoutingTable {
 		if(!pendingTickets.contains(node)&&!registeredNodes.contains(node)) {
 			if(super.addNeighbour(node)) {
 				pendingTickets.add(node);
-				//protocol.sendTicketRequest(node,t,myPid);
+				protocol.sendTicketRequest(node,t,myPid);
 				addRegisteredList(node);
 
 				return true;
@@ -140,7 +140,7 @@ public class TicketTable extends RoutingTable {
 		}
 	}
 	
-	public BigInteger getNeighbour() {
+	/*public BigInteger getNeighbour() {
 		BigInteger res = null;
 		
 		if(!shallContinueRegistration()) {
@@ -160,7 +160,7 @@ public class TicketTable extends RoutingTable {
 		System.out.println("returning neighbour " + triesWithinBucket + " from bucket " + lastAskedBucket);
 		return res;
 		//protocol.sendTicketRequest(node,t,myPid);
-	}
+	}*/
 	
 
 	public void addTicket(Message m,Ticket ticket) {

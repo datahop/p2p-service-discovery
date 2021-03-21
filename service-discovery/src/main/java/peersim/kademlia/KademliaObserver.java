@@ -267,7 +267,7 @@ public class KademliaObserver implements Control {
             } 
             else {
                 Integer num = activeRegistrationsByMalicious.get(t.getTopic());
-                num++;
+                num += 1;
                 activeRegistrationsByMalicious.put(t.getTopic(), num);
             }
         }
@@ -277,7 +277,7 @@ public class KademliaObserver implements Control {
             } 
             else {
                 Integer num = activeRegistrations.get(t.getTopic());
-                num++;
+                num += 1;
                 activeRegistrations.put(t.getTopic(), num);
             }
         }
@@ -375,27 +375,26 @@ public class KademliaObserver implements Control {
             String filename = this.logFolderName + "/" + "waiting_times.csv";
             File myFile = new File(filename);
             FileWriter writer;
+	        if (myFile.exists())myFile.delete();
+
             all_topics = (String []) waitingTimes.keySet().toArray(new String[waitingTimes.size()]);
             Arrays.sort(all_topics);
-            if (!myFile.exists()) {
-                myFile.createNewFile();
-                writer = new FileWriter(myFile, true);
-                String title = "time";
-                for (String topic: all_topics) {
-                    title += "," + topic + "_wait";
-                }
-                for (String topic: all_topics) {
-                    title += "," + topic + "_cumWait";
-                }
-                for (String topic: all_topics) {
-                    title += "," + topic + "_reject";
-                }
-                title += "\n";
-                writer.write(title);
+            myFile.createNewFile();
+            writer = new FileWriter(myFile, true);
+            String title = "time";
+            for (String topic: all_topics) {
+                title += "," + topic + "_wait";
             }
-            else {
-                writer = new FileWriter(myFile, true);
+            for (String topic: all_topics) {
+                title += "," + topic + "_cumWait";
             }
+            for (String topic: all_topics) {
+                title += "," + topic + "_reject";
+            }
+            title += "\n";
+            writer.write(title);
+            
+            
             writer.write("" + CommonState.getTime());
             for (String topic: all_topics) {
                 Long totalWaitTime = waitingTimes.get(topic);
@@ -441,21 +440,19 @@ public class KademliaObserver implements Control {
             String filename = this.logFolderName + "/" + "msg_stats.csv";
             File myFile = new File(filename);
             FileWriter writer;
-            if (!myFile.exists()) {
-                myFile.createNewFile();
-                writer = new FileWriter(myFile, true);
-                String title = "time";
-                for (int msgType=0; msgType<numMsgTypes; msgType++) {
-                    Message m = new Message(msgType);
-                    title += "," + m.messageTypetoString();
-                }
-                title+= ",regToGoodNodes" + ",regToEvilNodes";
-                title += "\n";
-                writer.write(title);
+	        if (myFile.exists())myFile.delete();
+
+            myFile.createNewFile();
+            writer = new FileWriter(myFile, true);
+            String title = "time";
+            for (int msgType=0; msgType<numMsgTypes; msgType++) {
+                Message m = new Message(msgType);
+                title += "," + m.messageTypetoString();
             }
-            else {
-                writer = new FileWriter(myFile, true);
-            }
+            title+= ",regToGoodNodes" + ",regToEvilNodes";
+            title += "\n";
+            writer.write(title);
+            
             writer.write("" + CommonState.getTime());
             for (int msgType=0; msgType<numMsgTypes; msgType++) {
                 Integer count = msgSentPerType.get(msgType);
@@ -590,20 +587,18 @@ public class KademliaObserver implements Control {
             String filename = this.logFolderName + "/" + "registration_stats.csv";
             File myFile = new File(filename);
             FileWriter writer;
-            if (!myFile.exists()) {
-                myFile.createNewFile();
-                writer = new FileWriter(myFile, true);
-                String title = "time";
-                for (String topic : activeRegistrations.keySet()) {
-                    title += "," + topic + "-normal";
-                    title += "," + topic + "-evil";
-                }
-                title += "\n";
-                writer.write(title);
+	        if (myFile.exists())myFile.delete();
+
+            myFile.createNewFile();
+            writer = new FileWriter(myFile, true);
+            String title = "time";
+            for (String topic : activeRegistrations.keySet()) {
+                title += "," + topic + "-normal";
+                title += "," + topic + "-evil";
             }
-            else {
-                writer = new FileWriter(myFile, true);
-            }
+            title += "\n";
+            writer.write(title);
+           
             writer.write("" + CommonState.getTime());
             for (String topic : activeRegistrations.keySet()) {
                 writer.write("," + activeRegistrations.get(topic));
@@ -629,18 +624,14 @@ public class KademliaObserver implements Control {
             String filename = this.logFolderName + "/" + "node_information.csv";
             File myFile = new File(filename);
             FileWriter writer;
-            if (!myFile.exists()) {
-                //if (nodeInfo.size() < Network.size())
-                //    return;
-                myFile.createNewFile();
-                writer = new FileWriter(myFile, true);
-                writer.write("nodeID,topicID,is_evil?,numInConnections,numOutConnections,numEvilOutConnections,numEvilInConnections\n");
-            }
-            else {
-                
-                writer = new FileWriter(myFile, true);
-            }
+	        if (myFile.exists())myFile.delete();
 
+            //if (nodeInfo.size() < Network.size())
+            //    return;
+            myFile.createNewFile();
+            writer = new FileWriter(myFile, true);
+            writer.write("nodeID,topicID,is_evil?,numInConnections,numOutConnections,numEvilOutConnections,numEvilInConnections\n");
+        
             for(int i = 0; i < Network.size(); i++) {
                 Node node = Network.get(i);
                 kadProtocol = node.getKademliaProtocol();
@@ -807,14 +798,12 @@ public class KademliaObserver implements Control {
             String filename = this.logFolderName + "/" + "eclipse_counts.csv";
             File myFile = new File(filename);
             FileWriter writer;
-            if (!myFile.exists()) {
-                myFile.createNewFile();
-                writer = new FileWriter(myFile, true);
-                writer.write("time,numberOfNodes,eclipsedNodes,UnEclipsedNodes,EvilNodes\n");
-            }
-            else {
-                writer = new FileWriter(myFile, true);
-            }
+	        if (myFile.exists())myFile.delete();
+
+            myFile.createNewFile();
+            writer = new FileWriter(myFile, true);
+            writer.write("time,numberOfNodes,eclipsedNodes,UnEclipsedNodes,EvilNodes\n");
+        
 
             for(int i = 0; i < Network.size(); i++) {
 				if( !(Network.get(i).isUp()) ) {
@@ -926,22 +915,21 @@ public class KademliaObserver implements Control {
             FileWriter writer;
             String[] keys = (String []) utilisations.keySet().toArray(new String[utilisations.size()]);
             Arrays.sort(keys);
-            if (!myFile.exists()) {
-                myFile.createNewFile();
-                writer = new FileWriter(myFile, true);
-                String title = "time";
-                for (String topic: keys) {
-                    title += "," + topic;
-                }
+            
+	        if (myFile.exists())myFile.delete();
 
-                title += ",overallUtil";
-                title += ",overallEvilUtil";
-                title += "\n";
-                writer.write(title);
+            myFile.createNewFile();
+            writer = new FileWriter(myFile, true);
+            String title = "time";
+            for (String topic: keys) {
+                title += "," + topic;
             }
-            else {
-                writer = new FileWriter(myFile, true);
-            }
+
+            title += ",overallUtil";
+            title += ",overallEvilUtil";
+            title += "\n";
+            writer.write(title);
+            
             writer.write("" + CommonState.getTime());
             for (String topic: keys) {
                 double util = utilisations.get(topic) / numUpGoodNodes;
