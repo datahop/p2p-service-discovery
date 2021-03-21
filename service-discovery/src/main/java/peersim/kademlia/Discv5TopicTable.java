@@ -111,15 +111,15 @@ public class Discv5TopicTable { // implements TopicTable {
     private int topicQueueOccupancy(Topic topic) {
     	ArrayDeque<TopicRegistration> topicQ = topicTable.get(topic);
     	if (topicQ != null) {
-    		System.out.println("topicQ: " + topicQ.size() + "/" + this.adsPerQueue);
+    		//System.out.println("topicQ: " + topicQ.size() + "/" + this.adsPerQueue);
     		return topicQ.size();
-    	}else {
+    	}/*else {
     		System.out.println("Topic queue is null");
     		for(Topic t: topicTable.keySet()) {
     			System.out.println(t);
     		}
     		
-    	}
+    	}*/
     	return 0;
     }
 

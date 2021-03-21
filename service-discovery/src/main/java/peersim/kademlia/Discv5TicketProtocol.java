@@ -299,7 +299,7 @@ public class Discv5TicketProtocol extends KademliaProtocol implements Cleanable{
     private void handleTicketResponse(Message m, int myPid) {
 		Message.TicketReplyBody body = (Message.TicketReplyBody) m.body;
         Ticket ticket = body.ticket;
-        logger.warning("Got response! Is topic queue full?" + ticket.topicOccupancy);
+        logger.warning("Got response! Is topic queue full?" + ticket.getTopicOccupancy());
         Topic topic = ticket.getTopic();
         TicketTable tt = ticketTables.get(topic.getTopicID());
         if(tt==null) {
