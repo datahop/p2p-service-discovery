@@ -255,7 +255,7 @@ public class Discv5TopicTable { // implements TopicTable {
     protected Ticket getTicket(Topic t, KademliaNode advertiser, long rtt_delay, long curr_time) {
         Topic topic = new Topic(t.topic);
         //topic.setHostID(this.hostID);
-        System.out.println("Get ticket "+topic.getTopic() + " " + this.hostID);
+        //System.out.println("Get ticket "+topic.getTopic() + " " + this.hostID);
         TopicRegistration reg = new TopicRegistration(advertiser, topic, curr_time);
 
         //update the topic table (remove expired advertisements)

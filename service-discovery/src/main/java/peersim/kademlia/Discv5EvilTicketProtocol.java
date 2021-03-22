@@ -123,9 +123,9 @@ public class Discv5EvilTicketProtocol extends Discv5TicketProtocol {
 
             //TicketTable rou = new TicketTable(KademliaCommonConfig.NBUCKETS,3,10,this,t,myPid);
             TicketTable rou;
-            if(KademliaCommonConfig.TICKET_BUCKET_SIZE==0)
-            	rou = new TicketTable(KademliaCommonConfig.NBUCKETS,this,t,myPid,KademliaCommonConfig.TICKET_REFRESH==1);
-            else
+            //if(KademliaCommonConfig.TICKET_BUCKET_SIZE==0)
+            //	rou = new TicketTable(KademliaCommonConfig.NBUCKETS,this,t,myPid,KademliaCommonConfig.TICKET_REFRESH==1);
+            //else
             	rou = new TicketTable(KademliaCommonConfig.NBUCKETS,16,KademliaCommonConfig.TICKET_TABLE_REPLACEMENTS,this,t,myPid,KademliaCommonConfig.TICKET_REFRESH==1);
             rou.setNodeId(t.getTopicID());
             ticketTables.put(t.getTopicID(),rou);

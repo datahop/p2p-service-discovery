@@ -35,7 +35,7 @@ public class TicketTable extends RoutingTable {
     
     private List<BigInteger> registeredNodes;
     
-    private int[]	 activeRegistrations;
+    private int[] activeRegistrations;
     
     private int lastAskedBucket;
     private int triesWithinBucket;
@@ -44,40 +44,12 @@ public class TicketTable extends RoutingTable {
     
     //public int available_requests = KademliaCommonConfig.ALPHA;
 
-    
+   
+
 	public TicketTable(int nBuckets, int k, int maxReplacements,Discv5TicketProtocol protocol,Topic t, int myPid, boolean refresh) {
 		
-		super(nBuckets,k,maxReplacements);
-		
-		pendingTickets = new ArrayList<BigInteger>();
-
-		this.protocol = protocol;
-		
-		this.t = t;
-		
-		this.nodeId = t.getTopicID();
-		
-		this.myPid = myPid;
-		
-		logger = Logger.getLogger(protocol.getNode().getId().toString());
-		
-		this.refresh = refresh;
-		
-		registeredPerDist = new HashMap<Integer, Integer>();
-
-		registeredNodes = new ArrayList<BigInteger>();
-				
-		activeRegistrations = new int[nBuckets];
-		lastAskedBucket = KademliaCommonConfig.BITS;
-		
-		seenOccupancy = new ArrayList<Integer>();
-		
-	}
-
-	public TicketTable(int nBuckets,Discv5TicketProtocol protocol,Topic t, int myPid, boolean refresh) {
-		
 		super(0, 0, 0);
-		k_buckets = new KBucket[nBuckets];
+		k_buckets = new TicketTableBucket[nBuckets];
 		this.nBuckets = nBuckets;
 		this.maxReplacements=0;
 		bucketMinDistance = KademliaCommonConfig.BITS - nBuckets;
@@ -85,7 +57,7 @@ public class TicketTable extends RoutingTable {
 		this.k=3;
 		
 		for (int i = 0; i < k_buckets.length; i++) {
-			k_buckets[i] = new KBucket(this,k,maxReplacements);
+			k_buckets[i] = new TicketTableBucket(this,k,maxReplacements);
 		}
 		
 		pendingTickets = new ArrayList<BigInteger>();
@@ -105,6 +77,9 @@ public class TicketTable extends RoutingTable {
 		registeredPerDist = new HashMap<Integer, Integer>();
 
 		registeredNodes = new ArrayList<BigInteger>();
+		
+		activeRegistrations = new int[nBuckets];
+		lastAskedBucket = KademliaCommonConfig.BITS;
 	}
 	
 	public boolean addNeighbour(BigInteger node) {
@@ -121,7 +96,10 @@ public class TicketTable extends RoutingTable {
 				return false;
 			}
 		}
-		if(!pendingTickets.contains(node)&&!registeredNodes.contains(node)) {
+		TicketTableBucket ttb = (TicketTableBucket)getBucket(node);
+		logger.info("Shall continue ?"+ttb.shallContinueRegistration());
+		if(!pendingTickets.contains(node)&&!registeredNodes.contains(node)&&ttb.shallContinueRegistration()) {
+			
 			if(super.addNeighbour(node)) {
 				pendingTickets.add(node);
 				protocol.sendTicketRequest(node,t,myPid);
@@ -297,7 +275,7 @@ public class TicketTable extends RoutingTable {
 		
 	}	
 	
-	public boolean shallContinueRegistration() {
+	/*public boolean shallContinueRegistration() {
 		int windowSize = Math.min(seenOccupancy.size(), KademliaCommonConfig.STOP_REGISTER_WINDOW_SIZE);
 		System.out.println("STOP_REGISTER_WINDOW_SISZE: " + KademliaCommonConfig.STOP_REGISTER_WINDOW_SIZE + " STOP_REGISTER_MIN_REGS: " + KademliaCommonConfig.STOP_REGISTER_MIN_REGS + " windowsSize:" + windowSize);
 		if(seenOccupancy.size() < KademliaCommonConfig.STOP_REGISTER_MIN_REGS || windowSize == 0) {
@@ -318,11 +296,12 @@ public class TicketTable extends RoutingTable {
 			return false;
 		}
 		return true;
-	}
+	}*/
 
 	public void reportResponse(Ticket ticket) {
 		
-		getBucket(ticket.getSrc().getId()).reportOccupancy(ticket.getTopicOccupancy())
+		TicketTableBucket ttb = (TicketTableBucket)getBucket(ticket.getSrc().getId());
+		ttb.reportOccupancy(ticket.getTopicOccupancy());
 		//seenOccupancy.add(ticket.getTopicOccupancy());
 	}
 

@@ -299,7 +299,7 @@ public class Discv5TicketProtocol extends KademliaProtocol implements Cleanable{
     private void handleTicketResponse(Message m, int myPid) {
 		Message.TicketReplyBody body = (Message.TicketReplyBody) m.body;
         Ticket ticket = body.ticket;
-        logger.warning("Got response! Is topic queue full?" + ticket.getTopicOccupancy());
+        logger.info("Got response! Is topic queue full?" + ticket.getTopicOccupancy());
         Topic topic = ticket.getTopic();
         TicketTable tt = ticketTables.get(topic.getTopicID());
         if(tt==null) {
@@ -514,11 +514,11 @@ public class Discv5TicketProtocol extends KademliaProtocol implements Cleanable{
     	//restore the IF statement
     	KademliaObserver.addTopicRegistration(t, this.node.getId());
 
-        TicketTable tt;
-        if(KademliaCommonConfig.TICKET_BUCKET_SIZE==0)
-        	tt = new TicketTable(KademliaCommonConfig.NBUCKETS,this,t,myPid,KademliaCommonConfig.TICKET_REFRESH==1);
-        else
-        	tt = new TicketTable(KademliaCommonConfig.NBUCKETS,KademliaCommonConfig.TICKET_BUCKET_SIZE,KademliaCommonConfig.TICKET_TABLE_REPLACEMENTS,this,t,myPid,KademliaCommonConfig.TICKET_REFRESH==1);
+        TicketTable tt = new TicketTable(KademliaCommonConfig.NBUCKETS,KademliaCommonConfig.TICKET_BUCKET_SIZE,KademliaCommonConfig.TICKET_TABLE_REPLACEMENTS,this,t,myPid,KademliaCommonConfig.TICKET_REFRESH==1);
+        //if(KademliaCommonConfig.TICKET_BUCKET_SIZE==0)
+        ///	tt = new TicketTable(KademliaCommonConfig.NBUCKETS,this,t,myPid,KademliaCommonConfig.TICKET_REFRESH==1);
+        //else
+        	//tt = new TicketTable(KademliaCommonConfig.NBUCKETS,KademliaCommonConfig.TICKET_BUCKET_SIZE,KademliaCommonConfig.TICKET_TABLE_REPLACEMENTS,this,t,myPid,KademliaCommonConfig.TICKET_REFRESH==1);
         tt.setNodeId(t.getTopicID());
         ticketTables.put(t.getTopicID(),tt);
         	
