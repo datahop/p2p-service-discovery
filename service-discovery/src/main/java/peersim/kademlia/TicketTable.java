@@ -97,8 +97,8 @@ public class TicketTable extends RoutingTable {
 			}
 		}
 		TicketTableBucket ttb = (TicketTableBucket)getBucket(node);
-		logger.info("Shall continue ?"+ttb.shallContinueRegistration());
-		if(!pendingTickets.contains(node)&&!registeredNodes.contains(node)&&ttb.shallContinueRegistration()) {
+		//logger.info("Shall continue ?"+ttb.shallContinueRegistrationWaitingTime());
+		if(!pendingTickets.contains(node)&&!registeredNodes.contains(node)&&ttb.shallContinueRegistrationOccupancy()) {
 			
 			if(super.addNeighbour(node)) {
 				pendingTickets.add(node);
@@ -299,10 +299,19 @@ public class TicketTable extends RoutingTable {
 	}*/
 
 	public void reportResponse(Ticket ticket) {
-		
 		TicketTableBucket ttb = (TicketTableBucket)getBucket(ticket.getSrc().getId());
+
 		ttb.reportOccupancy(ticket.getTopicOccupancy());
-		//seenOccupancy.add(ticket.getTopicOccupancy());
+
+	}
+	
+	public void reportWaitingTime(Ticket ticket) {
+		TicketTableBucket ttb = (TicketTableBucket)getBucket(ticket.getSrc().getId());
+
+		ttb.reportWaitingTime(ticket.getCumWaitTime());
+
+		//if(Util.logDistance(nodeId, ticket.getSrc().getId())<253)System.out.println("Bucket "+Util.logDistance(nodeId, ticket.getSrc().getId())+" "+ttb.shallContinueRegistrationWaitingTime());	
+		//ttb.reportWaitingTime(ticket.getCumWaitTime());
 	}
 
 

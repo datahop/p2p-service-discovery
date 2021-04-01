@@ -53,7 +53,8 @@ public class KademliaCommonConfig {
     
     public static int STOP_REGISTER_WINDOW_SIZE = 0;
     public static int STOP_REGISTER_MIN_REGS = 3;
-    
+    public static int WAITING_WINDOW_SIZE = 5;
+
     
     public static int REPORT_MSG_ACTIVATED = 0; 
     

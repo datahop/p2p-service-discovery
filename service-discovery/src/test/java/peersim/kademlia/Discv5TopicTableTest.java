@@ -33,7 +33,7 @@ public class Discv5TopicTableTest{
         table.setCapacity(10);
         table.setAdsPerQueue(1);
         table.setAdLifeTime(20);
-
+        
         long rtt_delay = 1;
         long curr_time = 0;
         Topic topic = new Topic(new BigInteger("0"), "topic"+0);
@@ -61,7 +61,10 @@ public class Discv5TopicTableTest{
             }
             System.out.println("Ticketing for topic: " + topic);
             KademliaNode advertiser = new KademliaNode(urg.generate(), "127.0.0.1", 0);
+            table.setHostID(advertiser.getId());
+
             Ticket ticket = table.getTicket(topic, advertiser, rtt_delay, curr_time);
+            
             System.out.println("Waiting time: " + ticket.getWaitTime());
             assert(ticket.getWaitTime() == 0);
             table.register_ticket(ticket, null, curr_time);

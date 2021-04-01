@@ -113,9 +113,17 @@ public class KademliaObserver implements Control {
 
     //Waiting times
     private static HashMap<String, Long> waitingTimes = new HashMap<String, Long>();
+    private static HashMap<String, HashMap<Integer,Long> > waitingTimesBucket = new HashMap<String, HashMap<Integer,Long> >();
+
     private static HashMap<String, Integer> numOfReportedWaitingTimes = new HashMap<String, Integer>();
+    private static HashMap<String, HashMap<Integer,Integer> > numOfReportedWaitingTimesBucket = new HashMap<String, HashMap<Integer,Integer> >();
+
     private static HashMap<String, Long> cumWaitingTimes = new HashMap<String, Long>();
+    private static HashMap<String, HashMap<Integer,Long> > cumWaitingTimesBucket = new HashMap<String, HashMap<Integer,Long> >();
+
     private static HashMap<String, Integer> numOfReportedCumWaitingTimes = new HashMap<String, Integer>();
+    private static HashMap<String, HashMap<Integer,Integer> > numOfReportedCumWaitingTimesBucket = new HashMap<String, HashMap<Integer,Integer> >();
+
     private static HashMap<String, Integer> numOfRejectedRegistrations = new HashMap<String, Integer> ();
     String [] all_topics;
     private static int ticket_request_to_evil_nodes = 0;
@@ -137,6 +145,9 @@ public class KademliaObserver implements Control {
 
     private static KademliaProtocol kadProtocol;
 
+    
+    private static final int MINIMUM_BUCKET = 250;
+    		
 	public KademliaObserver(String prefix) {
 		this.prefix = prefix;
         this.observerStep = Configuration.getInt(prefix + "." + PAR_STEP);
@@ -157,6 +168,7 @@ public class KademliaObserver implements Control {
             directory.mkdir();
         }
         
+        
 		try {
 			if(reportMsg==1) {
 				msgWriter = new FileWriter(this.logFolderName + "/" + "messages.csv");
@@ -174,6 +186,11 @@ public class KademliaObserver implements Control {
             File myFile = new File(filename);
             if(myFile.exists())myFile.delete();
             
+            filename = this.logFolderName + "/" + "waiting_times_bucket.csv";
+            myFile = new File(filename);
+            if(myFile.exists())myFile.delete();
+            
+            
             filename = this.logFolderName + "/" + "registration_stats.csv";
             myFile = new File(filename);
             if(myFile.exists())myFile.delete();
@@ -183,6 +200,10 @@ public class KademliaObserver implements Control {
             if(myFile.exists())myFile.delete();
             
             filename = this.logFolderName + "/" + "msg_stats.csv";
+            myFile = new File(filename);
+            if(myFile.exists())myFile.delete();
+            
+            filename = this.logFolderName + "/" + "waiting_cumulative_times_bucket.csv";
             myFile = new File(filename);
             if(myFile.exists())myFile.delete();
             
@@ -262,7 +283,7 @@ public class KademliaObserver implements Control {
             if (op instanceof LookupOperation || op instanceof LookupTicketOperation) { 
                 result += op.operationId + "," + op.getClass().getSimpleName() + ","  + op.srcNode +"," + op.destNode + "," + op.getUsedCount() + "," +op.getReturnedCount()+ ","+((LookupOperation) op).maliciousDiscoveredCount()   + "," + ((LookupOperation)op).discoveredCount() +","+ ((LookupOperation)op).discoveredToString() + "," + ((LookupOperation)op).topic.topic+ "," + ((LookupOperation)op).topic.topicID + "\n";
             } else if (op instanceof RegisterOperation) {
-            	System.out.println("register operation reported");
+            	//System.out.println("register operation reported");
             	System.exit(1);
                 result += op.operationId + "," + op.getClass().getSimpleName() + ","  + op.srcNode +"," + op.destNode + "," + op.getUsedCount() + "," +op.getReturnedCount() + "," + ","  + "," + "," + ((RegisterOperation)op).topic.topic + "," + ((LookupOperation)op).topic.topicID + "\n";
             } else {
@@ -301,21 +322,73 @@ public class KademliaObserver implements Control {
     }
 
     // Report the cumulative waiting time for accepted tickets
-    public static void reportCumulativeTime(Topic topic, long time) {
+    public static void reportCumulativeTime(Topic topic, long time, int bucket) {
+    	
+    	if(bucket<MINIMUM_BUCKET)bucket=MINIMUM_BUCKET;
+
         Long totalCumWaitTime = cumWaitingTimes.get(topic.getTopic());
+        
+        
         if (totalCumWaitTime == null)
             cumWaitingTimes.put(topic.getTopic(), time);
         else
             cumWaitingTimes.put(topic.getTopic(), totalCumWaitTime+time);
+        
 
         Integer count = numOfReportedCumWaitingTimes.get(topic.getTopic());
         if (count == null)
             numOfReportedCumWaitingTimes.put(topic.getTopic(), 1);
         else
             numOfReportedCumWaitingTimes.put(topic.getTopic(), count+1);
+        
+        
+        HashMap<Integer,Long> totalCumWaitTimeBucketMap = cumWaitingTimesBucket.get(topic.getTopic());
+        if(totalCumWaitTimeBucketMap!=null) {
+        	Long totalCumWaitTimeBucketTmp=totalCumWaitTimeBucketMap.get(bucket);
+        	if(totalCumWaitTimeBucketTmp!=null) {
+        		totalCumWaitTimeBucketMap.put(bucket,time+totalCumWaitTimeBucketTmp);
+        	} else {
+        		totalCumWaitTimeBucketMap.put(bucket,time);
+        	}
+        	cumWaitingTimesBucket.put(topic.getTopic(),totalCumWaitTimeBucketMap);
+        } else {
+    		totalCumWaitTimeBucketMap = new HashMap<Integer,Long>();
+        	for(int i=256;i>=MINIMUM_BUCKET;i--) {
+            	totalCumWaitTimeBucketMap.put(i,0L);
+            	cumWaitingTimesBucket.put(topic.getTopic(),totalCumWaitTimeBucketMap);
+        	}
+        	totalCumWaitTimeBucketMap.put(bucket,time);
+        	cumWaitingTimesBucket.put(topic.getTopic(),totalCumWaitTimeBucketMap);
+        }
+        
+        HashMap<Integer,Integer> countBucketCumMap = numOfReportedCumWaitingTimesBucket.get(topic.getTopic());
+        if(countBucketCumMap!=null) {
+        	Integer countBucketCumTmp=countBucketCumMap.get(bucket);
+        	if(countBucketCumTmp!=null) {
+        		countBucketCumMap.put(bucket,1+countBucketCumTmp);
+        	} else {
+        		countBucketCumMap.put(bucket,1);
+        	}
+        	numOfReportedCumWaitingTimesBucket.put(topic.getTopic(),countBucketCumMap);
+
+        } else {
+    		countBucketCumMap = new HashMap<Integer,Integer>();
+        	for(int i=256;i>=MINIMUM_BUCKET;i--) {
+        		//System.out.println("numOfReportedCumWaitingTimesBucket "+topic.getTopic()+" "+i);
+        		countBucketCumMap.put(i,0);
+        		numOfReportedCumWaitingTimesBucket.put(topic.getTopic(),countBucketCumMap);
+        	}
+
+        	countBucketCumMap.put(bucket,1);
+        	numOfReportedCumWaitingTimesBucket.put(topic.getTopic(),countBucketCumMap);
+        }
+   
+        
     }
 
-    public static void reportWaitingTime(Topic topic, long time) {
+    public static void reportWaitingTime(Topic topic, long time, int bucket) {
+    	//System.out.println("Insert Topic "+topic.getTopic()+" bucket:"+bucket+" "+time);
+    	if(bucket<MINIMUM_BUCKET)bucket=MINIMUM_BUCKET;
         if (time == -1)
         {
             Integer rejected = numOfRejectedRegistrations.get(topic.getTopic());
@@ -336,6 +409,52 @@ public class KademliaObserver implements Control {
             waitingTimes.put(topic.getTopic(), time+totalWaitTime);
             numOfReportedWaitingTimes.put(topic.getTopic(), count+1);
         }
+        
+        HashMap<Integer,Long> totalWaitTimeBucketMap = waitingTimesBucket.get(topic.getTopic());
+        if(totalWaitTimeBucketMap!=null) {
+        	Long totalWaitTimeBucketTmp=totalWaitTimeBucketMap.get(bucket);
+        	if(totalWaitTimeBucketTmp!=null) {
+        		totalWaitTimeBucketMap.put(bucket,time+totalWaitTimeBucketTmp);
+        	} else {
+        		totalWaitTimeBucketMap.put(bucket,time);
+        	}
+        	waitingTimesBucket.put(topic.getTopic(),totalWaitTimeBucketMap);
+        } else {
+    		totalWaitTimeBucketMap = new HashMap<Integer,Long>();
+        	for(int i=256;i>=MINIMUM_BUCKET;i--) {
+        		totalWaitTimeBucketMap.put(i,0L);
+            	cumWaitingTimesBucket.put(topic.getTopic(),totalWaitTimeBucketMap);
+        	}
+
+        	totalWaitTimeBucketMap.put(bucket,time);
+        	waitingTimesBucket.put(topic.getTopic(),totalWaitTimeBucketMap);
+        }
+        
+        HashMap<Integer,Integer> countBucketMap = numOfReportedWaitingTimesBucket.get(topic.getTopic());
+        if(countBucketMap!=null) {
+        	Integer countBucketTmp=countBucketMap.get(bucket);
+        	if(countBucketTmp!=null) {
+        		countBucketMap.put(bucket,1+countBucketTmp);
+        	} else {
+        		countBucketMap.put(bucket,1);
+        	}
+        	numOfReportedWaitingTimesBucket.put(topic.getTopic(),countBucketMap);
+
+        } else {
+    		countBucketMap = new HashMap<Integer,Integer>();
+        	for(int i=256;i>=MINIMUM_BUCKET;i--) {
+        		countBucketMap.put(i,0);
+        		numOfReportedWaitingTimesBucket.put(topic.getTopic(),countBucketMap);
+        	}
+        	countBucketMap.put(bucket,1);
+        	numOfReportedWaitingTimesBucket.put(topic.getTopic(),countBucketMap);
+        }
+	     
+		/*for(String t : waitingTimesBucket.keySet()) {
+			for(Integer b : waitingTimesBucket.get(t).keySet())
+				System.out.println("Topic "+t+" bucket:"+b+" "+waitingTimesBucket.get(t).get(b));
+		}*/
+        
     }
 
     public static void reportExpiredRegistration(Topic t, boolean is_evil) {
@@ -450,6 +569,109 @@ public class KademliaObserver implements Control {
         numOfRejectedRegistrations.clear();
         cumWaitingTimes.clear();
         numOfReportedCumWaitingTimes.clear();
+    }
+    
+    
+    private void write_waiting_times_bucket() {
+
+        if (waitingTimesBucket.size() == 0)
+        {
+        	System.out.println("Empty bucket waiting time");
+            return;
+        }
+        try {
+            String filename = this.logFolderName + "/" + "waiting_times_bucket.csv";
+            File myFile = new File(filename);
+            FileWriter writer;
+            String filenameCum = this.logFolderName + "/" + "waiting_cumulative_times_bucket.csv";
+            File myFileCum = new File(filenameCum);
+            FileWriter writerCum;
+            all_topics = (String []) waitingTimesBucket.keySet().toArray(new String[waitingTimes.size()]);
+            Arrays.sort(all_topics);
+            if (!myFile.exists()) {
+                myFile.createNewFile();
+                writer = new FileWriter(myFile, true);
+                String title = "time";
+                for (String topic: all_topics) {
+                    Integer [] all_buckets  = (Integer []) waitingTimesBucket.get(topic).keySet().toArray(new Integer[waitingTimesBucket.get(topic).size()]);
+                    Arrays.sort(all_buckets);
+                    for(Integer bucket: all_buckets) {
+                    	title += "," + topic+"-"+bucket;
+                    }
+                }
+
+                title += "\n";
+                writer.write(title);
+            }  else {
+                writer = new FileWriter(myFile, true);
+            }
+            if(!myFileCum.exists()) {
+            	myFileCum.createNewFile();
+                writerCum = new FileWriter(myFileCum, true);
+                String title = "time";
+                for (String topic: all_topics) {
+                    Integer [] all_buckets  = (Integer []) waitingTimesBucket.get(topic).keySet().toArray(new Integer[waitingTimesBucket.get(topic).size()]);
+                    Arrays.sort(all_buckets);
+                    for(Integer bucket: all_buckets)
+                    	title += "," + topic+"-"+bucket;
+                }
+
+                title += "\n";
+                writerCum.write(title);
+            } else {
+            	writerCum = new FileWriter(myFileCum,true);
+            }
+
+            writer.write("" + CommonState.getTime());
+            writerCum.write("" + CommonState.getTime());
+            
+            for (String topic: all_topics) {
+            	
+                HashMap<Integer,Long> totalWaitTime = waitingTimesBucket.get(topic);
+                HashMap<Integer,Integer>  numOfReported = numOfReportedWaitingTimesBucket.get(topic);
+                Integer [] all_buckets  = (Integer []) waitingTimesBucket.get(topic).keySet().toArray(new Integer[waitingTimesBucket.get(topic).size()]);
+                Arrays.sort(all_buckets);
+            	//System.out.println("Write Topic "+topic+" "+all_buckets.length);
+                for(Integer bucket: all_buckets) {
+                	Long totalWaitTimeBucket = totalWaitTime.get(bucket);
+                	Integer numOfReportedBucket = numOfReported.get(bucket);
+	                if (numOfReported == null || numOfReportedBucket.intValue() == 0)
+	                    writer.write(",0.0");   
+	                else
+	                    writer.write("," + totalWaitTimeBucket.doubleValue()/numOfReportedBucket.intValue());
+	                }
+            }
+            for (String topic: all_topics) {
+            	
+                HashMap<Integer,Long> totalWaitTime = cumWaitingTimesBucket.get(topic);
+                HashMap<Integer,Integer>  numOfReported = numOfReportedCumWaitingTimesBucket.get(topic);
+                Integer [] all_buckets  = (Integer []) cumWaitingTimesBucket.get(topic).keySet().toArray(new Integer[cumWaitingTimesBucket.get(topic).size()]);
+                Arrays.sort(all_buckets);
+            	//System.out.println("Write Topic "+topic+" "+all_buckets.length);
+                for(Integer bucket: all_buckets) {
+
+                	Long totalWaitTimeBucket = totalWaitTime.get(bucket);
+                	Integer numOfReportedBucket = numOfReported.get(bucket);
+                	//System.out.println("Write Topic "+topic+" "+bucket+" "+numOfReportedBucket.intValue());
+
+	                if (numOfReportedBucket.intValue() == 0)
+	                    writerCum.write(",0.0");   
+	                else
+	                	writerCum.write("," + totalWaitTimeBucket.doubleValue()/numOfReportedBucket.intValue());
+	                }
+            }
+            writer.write("\n");
+            writer.flush();
+            writerCum.write("\n");
+            writerCum.flush();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        
+        numOfReportedWaitingTimesBucket.clear();
+        waitingTimesBucket.clear();
+        cumWaitingTimesBucket.clear();
+        numOfReportedCumWaitingTimesBucket.clear();
     }
 
     private void write_exchanged_msg_stats_over_time() {
@@ -1094,6 +1316,7 @@ public class KademliaObserver implements Control {
         write_average_storage_utilisation_per_topic();
         write_exchanged_msg_stats_over_time();
         write_waiting_times();
+        write_waiting_times_bucket();
         if ( CommonState.getEndTime() <= (this.observerStep + CommonState.getTime()) ) {
             // Last execute cycle of the experiment 
             write_msg_received_by_nodes();

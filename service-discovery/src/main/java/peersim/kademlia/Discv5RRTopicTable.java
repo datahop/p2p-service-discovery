@@ -146,7 +146,7 @@ public class Discv5RRTopicTable extends Discv5TopicTable { // implements TopicTa
                 TopicRegistration reg = new TopicRegistration(ticket.getSrc(), ticket.getTopic(), curr_time);
                 reg.setTimestamp(curr_time);
                 first = false;
-                KademliaObserver.reportCumulativeTime(ticket.getTopic(), ticket.getCumWaitTime());
+                KademliaObserver.reportCumulativeTime(ticket.getTopic(), ticket.getCumWaitTime(),Util.logDistance(ticket.getTopic().getTopicID(),hostID));
                 ticket.setRegistrationComplete(true);
                 ticket.setWaitTime(0);
             }
@@ -156,7 +156,7 @@ public class Discv5RRTopicTable extends Discv5TopicTable { // implements TopicTa
                 ticket.setWaitTime(this.endOfRoundTime);
                 long waiting_time = this.endOfRoundTime - curr_time;
                 assert waiting_time > 0;
-                KademliaObserver.reportWaitingTime(ticket.getTopic(), waiting_time);
+                KademliaObserver.reportWaitingTime(ticket.getTopic(), waiting_time,Util.logDistance(ticket.getTopic().getTopicID(),hostID));
             }
         }
         Ticket [] tickets = (Ticket []) ticketList.toArray(new Ticket[ticketList.size()]);

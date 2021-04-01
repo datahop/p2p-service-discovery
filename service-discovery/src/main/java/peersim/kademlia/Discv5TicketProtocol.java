@@ -73,6 +73,7 @@ public class Discv5TicketProtocol extends KademliaProtocol implements Cleanable{
 	
 	final String PAR_STOP_REGISTER_WINDOW_SIZE = "STOP_REGISTER_WINDOW_SIZE";
 	final String PAR_STOP_REGISTER_MIN_REGS = "STOP_REGISTER_MIN_REGS";
+	final String PAR_WAITING_WINDOW_SIZE = "WAITING_WINDOW_SIZE";
 
 	boolean printSearchTable=false;
 
@@ -127,6 +128,7 @@ public class Discv5TicketProtocol extends KademliaProtocol implements Cleanable{
 		KademliaCommonConfig.MAX_REG_BUCKETS = Configuration.getInt(prefix + "." + PAR_MAX_REG_BUCKETS, KademliaCommonConfig.MAX_REG_BUCKETS);
 		KademliaCommonConfig.STOP_REGISTER_WINDOW_SIZE = Configuration.getInt(prefix + "." + PAR_STOP_REGISTER_WINDOW_SIZE, KademliaCommonConfig.STOP_REGISTER_WINDOW_SIZE);
 		KademliaCommonConfig.STOP_REGISTER_MIN_REGS = Configuration.getInt(prefix + "." + PAR_STOP_REGISTER_MIN_REGS, KademliaCommonConfig.STOP_REGISTER_MIN_REGS);
+		KademliaCommonConfig.WAITING_WINDOW_SIZE = Configuration.getInt(prefix + "." + PAR_WAITING_WINDOW_SIZE, KademliaCommonConfig.WAITING_WINDOW_SIZE);
 
 		super._init();
 	}
@@ -395,6 +397,8 @@ public class Discv5TicketProtocol extends KademliaProtocol implements Cleanable{
 
         	}
         	ticketTables.get(ticket.getTopic().getTopicID()).acceptedReg(m.src.getId());
+        	ticketTables.get(ticket.getTopic().getTopicID()).reportWaitingTime(ticket);
+
         	logger.info("Active registrations "+ticketTables.get(ticket.getTopic().getTopicID()).bucketWithRegs());
         }
         

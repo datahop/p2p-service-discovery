@@ -137,6 +137,9 @@ def analyzeMessages(dirs):
         except pd.errors.EmptyDataError:
             print("messages file empty")
             return
+        except FileNotFoundError:
+            print("messages file not found")
+            return
         #df['src'].value_counts().plot(ax=ax3, kind='line', xticks=[], title="Message sent by node", label=log_dir)
 
 
@@ -752,6 +755,86 @@ def analyzeWaitingTimes(dirs):
         ax3.set_xlabel('time (sec)')
         plt.savefig(OUTDIR + '/rejected_tickets_' + log_dir1 + '.png')
 
+# plot per-topic, average waiting times and number of rejected
+def analyzeWaitingTimesBucket(dirs):
+
+    for log_dir in dirs:
+        fig, ax1 = plt.subplots()
+        df = pd.read_csv(log_dir + '/waiting_times_bucket.csv')
+        topics = set()
+        for column_name in df.columns:
+            #print(column_name)
+            if column_name == "time":
+                continue
+            if 't1' in column_name:
+                parts = column_name
+                topics.add(parts)
+        ax1.set_title("Average waiting times over time")
+        for topic in topics:
+            df2 = df[df[topic] > 0.0]
+            ax1.plot(df2['time']/1000, df2[topic], label=topic)
+
+        ax1.legend()
+        ax1.set_ylabel('Waiting time in msec')
+        ax1.set_xlabel('time (sec)')
+        plt.savefig(OUTDIR + '/waiting_times_bucket.png')
+
+        fig, ax2 = plt.subplots()
+        df = pd.read_csv(log_dir + '/waiting_cumulative_times_bucket.csv')
+        topics = set()
+        for column_name in df.columns:
+            if column_name == "time":
+                continue
+            if 't1' in column_name:
+                parts = column_name
+                topics.add(parts)
+        ax2.set_title("Average cumulative waiting times over time")
+        for topic in topics:
+            df2 = df[df[topic] > 0.0]
+            ax2.plot(df2['time']/1000, df2[topic]/1000, label=topic)
+        ax2.legend()
+        ax2.set_ylabel('Cumulative waiting time in msec')
+        ax2.set_xlabel('time (sec)')
+        plt.savefig(OUTDIR + '/waiting_times_cumulative_bucket.png')
+
+        fig, ax3 = plt.subplots()
+        ax3.set_title("Average cumulative waiting times per topic")
+        topics = set()
+        buckets = set()
+        for column_name in df.columns:
+            if column_name == "time":
+                continue
+            parts = column_name.split('-')
+            topics.add(parts[0])
+            buckets.add(parts[1])
+
+        topics = sorted(topics)
+        buckets = sorted(buckets)
+        width=0.15
+        i=0
+        #print(buckets)
+        for topic in topics:
+            mean={}
+            margin=width*i
+            for bucket in buckets:
+                df2 = df[df[topic+"-"+bucket] > 0.0]
+                mean[bucket] = df2[topic+"-"+bucket].mean()
+
+            #print(np.arange(len(mean.keys()))+margin)
+            ax3.bar(np.arange(len(mean.keys()))+margin, mean.values(),width=width,label=topic)
+
+            i=i+1
+
+
+        ax3.legend()
+        ax3.set_ylabel('Cumulative waiting time in msec')
+        ax3.set_xlabel('time (sec)')
+        ax3.set_xticks(np.arange(len(buckets)))
+        ax3.set_xticklabels(buckets)
+        plt.savefig(OUTDIR + '/waiting_times_cumulative_bucket_avg.png')
+
+
+
 def analyzeNumberOfMessages(dirs):
 
     for log_dir in dirs:
@@ -1130,6 +1213,8 @@ analyzeActiveRegistrationsMalicious(sys.argv[1:])
 analyzeRegistrationTime(sys.argv[1:])
 analyzeStorageUtilisation(sys.argv[1:])
 analyzeWaitingTimes(sys.argv[1:])
+analyzeWaitingTimesBucket(sys.argv[1:])
+
 analyzeNumberOfMessages(sys.argv[1:])
 
 analyzeRegistrationOverhead(sys.argv[1:]) # G5 (overhead of registrations)
