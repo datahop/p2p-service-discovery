@@ -993,15 +993,15 @@ public class KademliaObserver implements Control {
                 int is_evil = kadProtocol.getNode().is_evil ? 1 : 0;
                 writer.write(id + "," + nodeInfo.get(id) + "," + is_evil + ",");
                 //FIXME
-                writer.write("0,");
-                writer.write("0,");
-                //writer.write(kadProtocol.getNode().getTotalIncomingConnections().size() + ",");
-                //writer.write(kadProtocol.getNode().getTotalOutgoingConnections().size() + ",");
+                //writer.write("0,");
+                //writer.write("0,");
+                writer.write(kadProtocol.getNode().getTotalIncomingConnections().size() + ",");
+                writer.write(kadProtocol.getNode().getTotalOutgoingConnections().size() + ",");
                 int numEvil = 0;
-                /*for(KademliaNode n : kadProtocol.getNode().getTotalIncomingConnections()) {
+                for(KademliaNode n : kadProtocol.getNode().getTotalIncomingConnections()) {
                     if (n.is_evil) 
                         numEvil++;
-                }*/
+                }
                 writer.write(numEvil + ",");
                 numEvil = 0;
                 //FIXME
@@ -1236,7 +1236,7 @@ public class KademliaObserver implements Control {
                 kadProtocol = node.getKademliaProtocol();
 
                 //FIXME: temporarily reporting everything as uneclipsed until we fix that
-                /*if (kadProtocol.getNode().isEclipsed()) {
+                if (kadProtocol.getNode().isEclipsed()) {
                         eclipsed_nodes.add(kadProtocol.getNode().getId());
                         for(String t : all_topics) {
                         	if(kadProtocol.getNode().isEclipsed(t)) {
@@ -1249,8 +1249,8 @@ public class KademliaObserver implements Control {
                 }
                 else {
                     uneclipsed_nodes.add(kadProtocol.getNode().getId());
-                }*/
-                uneclipsed_nodes.add(kadProtocol.getNode().getId());
+                }
+                //uneclipsed_nodes.add(kadProtocol.getNode().getId());
                 
             }
             writer.write(CommonState.getTime() + ",");

@@ -197,6 +197,26 @@ public class Turbulence implements Control {
 		remove.setFailState(Node.DEAD);
 
 		////FIXME We don't use connections anymore
+		KademliaNode kadNode = remove.getKademliaProtocol().getNode();
+		if(kadNode!=null) {
+			List<KademliaNode> incoming = kadNode.getTotalIncomingConnections();
+			List<KademliaNode> outgoing = kadNode.getTotalOutgoingConnections();
+			for(KademliaNode kad : incoming)
+			{
+				//Node n = Util.nodeIdtoNode(addr);
+				//KademliaNode kad = n.getKademliaProtocol().getNode();
+				kad.deleteOutgoingConnection(kadNode);
+				//System.out.println("Kad rm node "+((KademliaProtocol)(remove.getProtocol(kademliaid))).getNode().getId()+" conn "+kad.getId()+" at "+CommonState.getTime());
+			}
+
+			for(KademliaNode kad : outgoing)
+			{
+				//Node n = Util.nodeIdtoNode(addr);
+				//KademliaNode kad = n.getKademliaProtocol().getNode();
+				kad.deleteIncomingConnection(kadNode);
+				//System.out.println("Kad rm node "+((KademliaProtocol)(remove.getProtocol(kademliaid))).getNode().getId()+" conn "+kad.getId()+" at "+CommonState.getTime());
+			}
+		}
 				
 		return false;
 	}
