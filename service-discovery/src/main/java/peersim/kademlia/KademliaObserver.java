@@ -256,9 +256,12 @@ public class KademliaObserver implements Control {
                 registeredTopics.put(topic, set);
          }else{
         	 	HashMap<BigInteger,RegistrationLog> set = registeredTopics.get(topic);
-             	RegistrationLog reg = new RegistrationLog(registrant,CommonState.getTime());
-             	set.put(registrant, reg);
-                registeredTopics.put(topic,set);
+        	    if(!set.containsKey(registrant)) {
+             	    RegistrationLog reg = new RegistrationLog(registrant,CommonState.getTime());
+                 	set.put(registrant, reg);
+
+                }
+                //registeredTopics.put(topic,set);
                 //System.out.println("addTopicRegistration "+topic+" "+registeredTopics.get(topic).size());
          }
     	
@@ -1659,6 +1662,7 @@ public class KademliaObserver implements Control {
             write_registration_stats();
             write_waiting_times();
             write_average_storage_utilisation_per_topic();
+            write_registered_topics_timing();
         }
     	if(CommonState.getTime() > 3000000)
             write_node_info();
@@ -1667,7 +1671,6 @@ public class KademliaObserver implements Control {
             // Last execute cycle of the experiment 
             write_msg_received_by_nodes();
             write_register_overhead();
-            write_registered_topics_timing();
         }
     	if(CommonState.getTime() > 100000) write_topics();
     	write_competingtickets();
