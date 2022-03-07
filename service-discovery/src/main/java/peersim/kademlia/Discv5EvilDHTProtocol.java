@@ -226,7 +226,7 @@ public class Discv5EvilDHTProtocol extends Discv5DHTProtocol {
             for (int i = 0; i < result_len; i++) 
                 final_results[i] = registrations[CommonState.r.nextInt(registrations.length)];
             
-            BigInteger[] neighbours = this.evilRoutingTable.getNeighbours(Util.logDistance(t.getTopicID(), this.node.getId()));
+            BigInteger[] neighbours = this.evilRoutingTable.getNeighbours(Util.distance(t.getTopicID(), this.node.getId()));
 
             /*Message.TopicLookupBody body = new Message.TopicLookupBody(final_results, neighbours);
             Message response  = new Message(Message.MSG_TOPIC_QUERY_REPLY, body);
@@ -276,7 +276,7 @@ public class Discv5EvilDHTProtocol extends Discv5DHTProtocol {
 	 * @param myPid
 	 *            the sender Pid
 	 */
-	protected void handleFind(Message m, int myPid, int dist) {
+	protected void handleFind(Message m, int myPid, BigInteger dist) {
 		
 		
 		logger.warning("Handle find evil");

@@ -12,6 +12,9 @@ DEFAULT_TOPIC_NUM='5'
 
 EXPERIMENT='network_size'
 IN_CONFIGS='discv5dhtticket noattackdiscv4 discv5ticket discv5dhtnoticket'
+IN_CONFIGS='discv5dhtticket noattackdiscv4 discv5ticket'
+#IN_CONFIGS='noattackdiscv4'
+#IN_CONFIGS='discv5dhtticket'
 
 function run_sim(){
 
@@ -45,7 +48,8 @@ function run_sim(){
     mkdir -p "${LOG_FOLDER}"
     echo log file $LOG_FILE
     sed -i "s@control.3.rangeExperiment.*@control.3.rangeExperiment $LOG_FILE@g" $OUT_CONFIG
-    ./run.sh $OUT_CONFIG &> /dev/null
+    #./run.sh $OUT_CONFIG &> /dev/null
+    ./run.sh $OUT_CONFIG 
 }
 
 

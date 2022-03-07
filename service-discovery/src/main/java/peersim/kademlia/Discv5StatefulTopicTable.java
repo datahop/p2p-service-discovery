@@ -75,6 +75,7 @@ public class Discv5StatefulTopicTable extends Discv5GlobalTopicTable {
         }
 
         waiting_time = Math.min(waiting_time, adLifeTime);
+		//logger.info("Waiting time: " + waiting_time);
         assert allAds.size() != this.tableCapacity : "Table should not be full"; 
 
         return waiting_time;

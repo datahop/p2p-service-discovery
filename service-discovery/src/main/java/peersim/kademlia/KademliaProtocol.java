@@ -228,7 +228,7 @@ public class KademliaProtocol implements Cloneable, EDProtocol {
 						request = new Message(Message.MSG_FIND);
 						//request.body = Util.prefixLen(op.destNode, neighbour);
 						//System.out.println("Request body distance "+Util.prefixLen(op.destNode, neighbour)+" "+Util.logDistance(op.destNode, neighbour));
-						request.body = Util.logDistance(op.destNode, neighbour);
+						request.body = Util.distance(op.destNode, neighbour);
 					}else if(op.type == Message.MSG_REGISTER) {
 						request = new Message(Message.MSG_REGISTER);
 						request.body = op.body;
@@ -290,7 +290,7 @@ public class KademliaProtocol implements Cloneable, EDProtocol {
 	 *            the sender Pid
 	 */        
 
-	protected void handleFind(Message m, int myPid, int dist) {
+	protected void handleFind(Message m, int myPid, BigInteger dist) {
 		// get the ALPHA closest node to destNode
 		//need linked list to support removal later on
 		List<BigInteger> neighboursList = new LinkedList(Arrays.asList(this.routingTable.getNeighbours(dist)));
@@ -335,9 +335,8 @@ public class KademliaProtocol implements Cloneable, EDProtocol {
 		fop.destNode = (BigInteger) m.body;
 		operations.put(fop.operationId, fop);
 
-
 		//BigInteger[] neighbours = this.routingTable.getNeighbours((BigInteger) m.body, this.node.getId());	
-		BigInteger[] neighbours = this.routingTable.getNeighbours(Util.logDistance((BigInteger) m.body, this.node.getId()));
+		BigInteger[] neighbours = this.routingTable.getNeighbours(Util.distance((BigInteger) m.body, this.node.getId()));
 
 		fop.elaborateResponse(neighbours);
 		fop.available_requests = KademliaCommonConfig.ALPHA;
@@ -352,7 +351,7 @@ public class KademliaProtocol implements Cloneable, EDProtocol {
 			BigInteger nextNode = fop.getNeighbour();
 			if (nextNode != null) {
 				//m.body = Util.prefixLen(nextNode, fop.destNode);
-				m.body = Util.logDistance(nextNode, fop.destNode);
+				m.body = Util.distance(nextNode, fop.destNode);
 				m.dest = Util.nodeIdtoNode(nextNode).getKademliaProtocol().getNode();//new KademliaNode(nextNode);
 				//System.out.println("Send find message "+Util.logDistance(nextNode, fop.destNode));
 				sendMessage(m.copy(), nextNode, myPid);
@@ -452,7 +451,7 @@ public class KademliaProtocol implements Cloneable, EDProtocol {
 
 			case Message.MSG_FIND:
 				m = (Message) event;
-				handleFind(m, myPid, (int) m.body);
+				handleFind(m, myPid, (BigInteger) m.body);
 				break;
 			
 	

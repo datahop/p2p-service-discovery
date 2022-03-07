@@ -105,7 +105,7 @@ public class Discv4EvilProtocol extends Discv4Protocol  {
 	 * @param myPid
 	 *            the sender Pid
 	 */
-	protected void handleFind(Message m, int myPid, int dist) {
+	protected void handleFind(Message m, int myPid, BigInteger dist) {
 		// get the ALPHA closest node to destNode
 		
 		logger.warning("Discv4 evil handleFind");

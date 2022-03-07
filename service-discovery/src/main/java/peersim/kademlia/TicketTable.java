@@ -78,18 +78,28 @@ public class TicketTable extends RoutingTable {
 
 	
 	public boolean addNeighbour(BigInteger node) {
-		logger.info("Adding neighbour "+bucketWithRegs()+" "+KademliaCommonConfig.MAX_REG_BUCKETS+" "+Util.logDistance(nodeId, node)+" "+(Util.logDistance(nodeId, node) - bucketMinDistance - 1)+" "+(nBuckets-KademliaCommonConfig.MAX_REG_BUCKETS));
+		//logger.info("Adding neighbour " + bucketWithRegs() + " " + KademliaCommonConfig.MAX_REG_BUCKETS + " " + Util.distance(nodeId, node) + " " + (Util.logDistance(nodeId, node) - bucketMinDistance - 1) + " " + (nBuckets-KademliaCommonConfig.MAX_REG_BUCKETS));
 		if(bucketWithRegs()>=KademliaCommonConfig.MAX_REG_BUCKETS&&KademliaCommonConfig.MAX_REG_BUCKETS>0) {
-			int dist = Util.logDistance(nodeId, node);
+			BigInteger distance = Util.distance(nodeId, node);
+            int dist;
+            if (KademliaCommonConfig.DISTANCE_METRIC == KademliaCommonConfig.LOG_DISTANCE) {
+                dist = distance.intValue();
+            }
+            else { //XOR
+                dist = Util.prefixLenFromXORDistance(distance);
+            }
 			int bucket;
-			if(dist<=bucketMinDistance)bucket = 0;
-			else bucket = dist - bucketMinDistance - 1;
-			if(bucket<(nBuckets-KademliaCommonConfig.MAX_REG_BUCKETS)) {
+			if(dist <= bucketMinDistance)
+                bucket = 0;
+			else { 
+                bucket = dist - bucketMinDistance - 1;
+            }
+			if(bucket < (nBuckets-KademliaCommonConfig.MAX_REG_BUCKETS)) {
 				logger.info("Return false");
 				return false;
 			}
 		}
-		if(!pendingTickets.contains(node)&&!registeredNodes.contains(node)) {
+		if(!pendingTickets.contains(node) && !registeredNodes.contains(node)) {
 			if(super.addNeighbour(node)) {
 				pendingTickets.add(node);
 				if(KademliaCommonConfig.PARALLELREGISTRATIONS==1)protocol.sendTicketRequest(node,t,myPid);
@@ -141,7 +151,15 @@ public class TicketTable extends RoutingTable {
 		    register.operationId = m.operationId;
 			protocol.scheduleSendMessage(register, m.src.getId(), myPid, ticket.getWaitTime());
 			
-			int dist = Util.logDistance(nodeId,  m.src.getId());
+			BigInteger distance = Util.distance(nodeId,  m.src.getId());
+            int dist;
+            if (KademliaCommonConfig.DISTANCE_METRIC == KademliaCommonConfig.LOG_DISTANCE) {
+                dist = distance.intValue();
+            }
+            else { //XOR
+                dist = Util.prefixLenFromXORDistance(distance);
+            }
+
 			if(!registeredPerDist.containsKey(dist)){
 				registeredPerDist.put(dist, 1);
 			}else {
@@ -156,7 +174,16 @@ public class TicketTable extends RoutingTable {
 		pendingTickets.remove(node);
 		getBucket(node).removeNeighbour(node);
 		
-		int i = Util.logDistance(nodeId, node) - bucketMinDistance - 1;
+        BigInteger distance = Util.distance(nodeId, node);
+        int dist;
+        if (KademliaCommonConfig.DISTANCE_METRIC == KademliaCommonConfig.LOG_DISTANCE) {
+            dist = distance.intValue();
+        }
+        else { //XOR
+            dist = Util.prefixLenFromXORDistance(distance);
+        }
+        
+		int i = dist - bucketMinDistance - 1;
 		BigInteger randomNode = generateRandomNode(i);
 		protocol.refreshBucket(this, randomNode,i);
 	}		
@@ -216,7 +243,7 @@ public class TicketTable extends RoutingTable {
 	public void print() {
 		logger.warning("Ticket table topic "+t.getTopic()+" :");
 		int sum = 0;
-		for(int dist = 256; dist > bucketMinDistance ; dist-- ) {
+		for(int dist = KademliaCommonConfig.BITS; dist > bucketMinDistance ; dist-- ) {
 			int removed = 0;
 			if(registeredPerDist.containsKey(dist))
 				removed = registeredPerDist.get(dist);
@@ -232,18 +259,34 @@ public class TicketTable extends RoutingTable {
 	}
 	
 	public void acceptedReg(BigInteger node) {
+	    BigInteger distance = Util.distance(nodeId, node);
+        int dist;
+        if (KademliaCommonConfig.DISTANCE_METRIC == KademliaCommonConfig.LOG_DISTANCE) {
+            dist = distance.intValue();
+        }
+        else { //XOR
+            dist = Util.prefixLenFromXORDistance(distance);
+        }
 		
-		int dist = Util.logDistance(nodeId, node);
 		int bucket;
-		if(dist<=bucketMinDistance)bucket = 0;
-		else bucket = dist - bucketMinDistance - 1;
+		if (dist <= bucketMinDistance)
+            bucket = 0;
+		else 
+            bucket = dist - bucketMinDistance - 1;
+
 		activeRegistrations[bucket]++;
-		
 	}
 	
 	public void expiredReg(BigInteger node) {
+	    BigInteger distance = Util.distance(nodeId, node);
+        int dist;
+        if (KademliaCommonConfig.DISTANCE_METRIC == KademliaCommonConfig.LOG_DISTANCE) {
+            dist = distance.intValue();
+        }
+        else { //XOR
+            dist = Util.prefixLenFromXORDistance(distance);
+        }
 		
-		int dist = Util.logDistance(nodeId, node);
 		int bucket;
 		if(dist<=bucketMinDistance)bucket = 0;
 		else bucket = dist - bucketMinDistance - 1;

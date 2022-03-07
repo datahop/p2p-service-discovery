@@ -32,18 +32,19 @@ public class LookupTicketOperation extends LookupOperation {
 	private ArrayList<BigInteger> getRandomBucketNeighbours(){
 		ArrayList<BigInteger> neighbours = new ArrayList<BigInteger>();
 		int tries=0;
-		while((neighbours.size() == 0)&&(tries<sTable.getnBuckets())) {
-			int distance = KademliaCommonConfig.BITS - CommonState.r.nextInt(sTable.getnBuckets());
+		while((neighbours.size() == 0) && (tries<sTable.getNumBuckets())) {
+			int distance = KademliaCommonConfig.BITS - CommonState.r.nextInt(sTable.getNumBuckets());
+            int bucket = sTable.getBucketIndexFromDistance(distance);
 			tries++;
-			Collections.addAll(neighbours, sTable.getNeighbours(distance));
+			Collections.addAll(neighbours, sTable.getNeighboursAtBucket(bucket));
 		}
 		return neighbours;
 	}
 	
 	private ArrayList<BigInteger> getMinBucketNeighbours(){
 		ArrayList<BigInteger> neighbours = new ArrayList<BigInteger>();
-		for(int dist = sTable.getbucketMinDistance(); dist <= KademliaCommonConfig.BITS; dist++) {
-			Collections.addAll(neighbours, sTable.getNeighbours(dist));
+		for(int bucket = 0; bucket <= sTable.getNumBuckets(); bucket++) {
+			Collections.addAll(neighbours, sTable.getNeighboursAtBucket(bucket));
 			if(neighbours.size() != 0)
 				break;
 		}
@@ -53,11 +54,12 @@ public class LookupTicketOperation extends LookupOperation {
 	private ArrayList<BigInteger> getAllBucketNeighbours(){
 		ArrayList<BigInteger> neighbours = new ArrayList<BigInteger>();
 		int tries = 0;
-		for(; tries<sTable.getnBuckets(); lastAskedBucket--, tries++) {
+		for(; tries<sTable.getNumBuckets(); lastAskedBucket--, tries++) {
 			if(neighbours.size() != 0) break;
-			if(lastAskedBucket < (KademliaCommonConfig.BITS - sTable.getnBuckets())) lastAskedBucket = KademliaCommonConfig.BITS;
+			if(lastAskedBucket < (KademliaCommonConfig.BITS - sTable.getNumBuckets())) 
+                lastAskedBucket = KademliaCommonConfig.BITS;
 			
-			Collections.addAll(neighbours, sTable.getNeighbours(lastAskedBucket));
+			Collections.addAll(neighbours, sTable.getNeighboursAtBucket(sTable.getBucketIndexFromDistance(lastAskedBucket)));
 		}
 		return neighbours;
 	}
@@ -67,9 +69,11 @@ public class LookupTicketOperation extends LookupOperation {
 
 		int tries = 0;
 
-		for(; tries<sTable.getnBuckets(); lastAskedBucket--, tries++) {
+		for(; tries<sTable.getNumBuckets(); lastAskedBucket--, tries++) {
+			if(lastAskedBucket < (KademliaCommonConfig.BITS - sTable.getNumBuckets())) 
+                lastAskedBucket = KademliaCommonConfig.BITS;
 
-			Collections.addAll(neighbours, sTable.getNeighbours(lastAskedBucket));
+			Collections.addAll(neighbours, sTable.getNeighboursAtBucket(sTable.getBucketIndexFromDistance(lastAskedBucket)));
 		}
 		return neighbours;
 	}

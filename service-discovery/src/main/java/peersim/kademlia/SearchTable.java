@@ -80,7 +80,15 @@ public class SearchTable extends RoutingTable {
 
 		getBucket(node).removeNeighbour(node);
 
-		int dist = Util.logDistance(nodeId, node);
+	    BigInteger distance = Util.distance(nodeId, node);
+        int dist;
+        if (KademliaCommonConfig.DISTANCE_METRIC == KademliaCommonConfig.LOG_DISTANCE) {
+            dist = distance.intValue();
+        }
+        else { //XOR
+            dist = Util.prefixLenFromXORDistance(distance);
+        }
+
 		if (!removedPerDist.containsKey(dist)) {
 			removedPerDist.put(dist, 1);
 		} else {
@@ -111,14 +119,10 @@ public class SearchTable extends RoutingTable {
 
 	}
 
-	public int getnBuckets() {
-		return nBuckets;
-	}
-
 	public void print() {
 		logger.warning("Search table topic " + t.getTopic() + ":");
 		int sum = 0;
-		for (int dist = 256; dist > bucketMinDistance; dist--) {
+		for (int dist = KademliaCommonConfig.BITS; dist > bucketMinDistance; dist--) {
 			int removed = 0;
 			if (removedPerDist.containsKey(dist))
 				removed = removedPerDist.get(dist);
@@ -133,7 +137,7 @@ public class SearchTable extends RoutingTable {
 	public void dump() {
 		logger.warning("Search table topic " + t.getTopic() + ":");
 		int sum = 0;
-		for (int dist = 256; dist > bucketMinDistance; dist--) {
+		for (int dist = KademliaCommonConfig.BITS; dist > bucketMinDistance; dist--) {
 
 			logger.warning("search " + t.getTopic() + " b[" + dist + "]: " + super.bucketAtDistance(dist).neighbours);
 			logger.warning("\tb_r[" + dist + "]: " + super.bucketAtDistance(dist).replacements);

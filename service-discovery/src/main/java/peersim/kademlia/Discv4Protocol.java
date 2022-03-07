@@ -221,7 +221,7 @@ public class Discv4Protocol extends KademliaProtocol implements Cleanable  {
 					Message request = null;
 					if(op.type == Message.MSG_FIND) {
 						request = new Message(Message.MSG_FIND);
-						request.body = Util.logDistance(op.destNode, neighbour);
+						request.body = Util.distance(op.destNode, neighbour);
 					}else if(op.type == Message.MSG_REGISTER) {
 						request = new Message(Message.MSG_REGISTER);
 						request.body = op.body;

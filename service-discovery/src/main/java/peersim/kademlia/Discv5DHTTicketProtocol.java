@@ -180,17 +180,19 @@ public class Discv5DHTTicketProtocol extends Discv5Protocol {
 		lop.type = Message.MSG_TOPIC_QUERY;
 		operations.put(lop.operationId, lop);
 	
-		int distToTopic = Util.logDistance((BigInteger) t.getTopicID(), this.node.getId());
+		BigInteger distToTopic = Util.distance((BigInteger) t.getTopicID(), this.node.getId());
 		BigInteger[] neighbours = this.routingTable.getNeighbours(distToTopic);
 		
 		logger.warning("Dist to topic "+distToTopic+" "+neighbours.length);
 		
+        // FIXME: remove the loop below
 		for(BigInteger id : neighbours) {
 			logger.warning("Asking malicious "+Util.nodeIdtoNode(id).getKademliaProtocol().getNode().is_evil);
 		}
 		
-		if(neighbours.length<KademliaCommonConfig.ALPHA)
-			neighbours = this.routingTable.getKClosestNeighbours(KademliaCommonConfig.ALPHA, distToTopic);
+		if(neighbours.length<KademliaCommonConfig.ALPHA) {
+			neighbours = this.routingTable.getKClosestNeighbours(t.getTopicID(), this.node.getId());
+        }
 		
 		lop.elaborateResponse(neighbours);
 		lop.available_requests = KademliaCommonConfig.ALPHA;
@@ -350,8 +352,8 @@ public class Discv5DHTTicketProtocol extends Discv5Protocol {
 					if(op.type == Message.MSG_FIND) {
 						request = new Message(Message.MSG_FIND);
 						//request.body = Util.prefixLen(op.destNode, neighbour);
-						//System.out.println("Request body distance "+Util.prefixLen(op.destNode, neighbour)+" "+Util.logDistance(op.destNode, neighbour));
-						request.body = Util.logDistance(op.destNode, neighbour);
+						//System.out.println("Request body distance "+Util.prefixLen(op.destNode, neighbour)+" "+Util.distance(op.destNode, neighbour));
+						request.body = Util.distance(op.destNode, neighbour);
 					}else if(op.type == Message.MSG_REGISTER) {
 						request = new Message(Message.MSG_REGISTER);
 						request.body = op.body;
@@ -401,11 +403,12 @@ public class Discv5DHTTicketProtocol extends Discv5Protocol {
 	private void startRegistration(RegisterOperation rop, int myPid) {
 		
 		
-		int distToTopic = Util.logDistance((BigInteger) rop.getTopic().getTopicID(), this.node.getId());
+		BigInteger distToTopic = Util.distance((BigInteger) rop.getTopic().getTopicID(), this.node.getId());
+		//BigInteger[] neighbours = this.routingTable.getNeighbours(distToTopic);
 		BigInteger[] neighbours = this.routingTable.getNeighbours(distToTopic);
 		
-		if(neighbours.length < KademliaCommonConfig.ALPHA)
-			neighbours = this.routingTable.getKClosestNeighbours(KademliaCommonConfig.ALPHA, distToTopic);
+		//if(neighbours.length < KademliaCommonConfig.ALPHA)
+		//	neighbours = this.routingTable.getKClosestNeighbours(KademliaCommonConfig.ALPHA, distToTopic);
 
 		rop.elaborateResponse(neighbours);
 		rop.available_requests = KademliaCommonConfig.ALPHA;
@@ -414,7 +417,6 @@ public class Discv5DHTTicketProtocol extends Discv5Protocol {
 		message.operationId = rop.operationId;
 		message.type = Message.MSG_REGISTER;
 		message.src = this.node;*/
-		
 	
 		// send ALPHA messages
 		for (int i = 0; i < KademliaCommonConfig.N; i++) {
@@ -469,7 +471,7 @@ public class Discv5DHTTicketProtocol extends Discv5Protocol {
 		Ticket ticket = ((Discv5StatefulTopicTable)topicTable).getTicket(topic, advertiser, rtt_delay, curr_time);
 		// Send a response message with a ticket back to advertiser
 		BigInteger[] neighbours = this.routingTable
-				.getNeighbours(Util.logDistance(topic.getTopicID(), this.node.getId()));
+				.getNeighbours(Util.distance(topic.getTopicID(), this.node.getId()));
 
 		Message.TicketReplyBody body = new Message.TicketReplyBody(ticket, neighbours);
 		Message response = new Message(Message.MSG_TICKET_RESPONSE, body);
@@ -636,7 +638,7 @@ public class Discv5DHTTicketProtocol extends Discv5Protocol {
 
 		} else {
 			logger.warning("Registration succesful for topic " + ticket.getTopic().topic + " at node " + m.src.getId()
-					+ " at dist " + Util.logDistance(m.src.getId(), ticket.getTopic().getTopicID()) + " "
+					+ " at dist " + Util.distance(m.src.getId(), ticket.getTopic().getTopicID()) + " "
 					+ ticket.getCumWaitTime());
 			KademliaObserver.addAcceptedRegistration(t, this.node.getId(), m.src.getId(), ticket.getCumWaitTime());
 			KademliaObserver.reportActiveRegistration(ticket.getTopic(), this.node.is_evil);
@@ -664,7 +666,7 @@ public class Discv5DHTTicketProtocol extends Discv5Protocol {
 		
 		Topic t = (Topic) m.body;
 		TopicRegistration[] registrations = this.topicTable.getRegistration(t);
-		BigInteger[] neighbours = this.routingTable.getNeighbours(Util.logDistance(t.getTopicID(), this.node.getId()));
+		BigInteger[] neighbours = this.routingTable.getNeighbours(Util.distance(t.getTopicID(), this.node.getId()));
 	
 		logger.info("Topic query received at node "+this.node.getId()+" "+registrations.length+" "+neighbours.length);
 

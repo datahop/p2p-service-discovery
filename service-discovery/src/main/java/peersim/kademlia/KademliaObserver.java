@@ -232,6 +232,9 @@ public class KademliaObserver implements Control {
             myFile = new File(filename);
             if(myFile.exists())myFile.delete();
             
+            filename = this.logFolderName + "/" + "registeredTopicsTime.csv";
+            myFile = new File(filename);
+            if(myFile.exists())myFile.delete();
             
         } catch (IOException e) {
             e.printStackTrace();
@@ -646,10 +649,20 @@ public class KademliaObserver implements Control {
 	                result += ((Topic) m.body).topic +",,," ;
 	            }
 	            else if(m.getType() == Message.MSG_REGISTER && m.body instanceof Ticket) {
-	            	int dist = Util.logDistance(((Ticket) m.body).getTopic().getTopicID(), m.dest.getId());
+	                BigInteger distance = Util.distance(((Ticket) m.body).getTopic().getTopicID(), m.dest.getId());
+
+                    int dist;
+                    if (KademliaCommonConfig.DISTANCE_METRIC == KademliaCommonConfig.LOG_DISTANCE) {
+                        dist = distance.intValue();
+                    }
+                    else { //XOR
+                        dist = Util.prefixLenFromXORDistance(distance);
+                    }
+
 	            	if (dist<240)dist=240;
 	                result += ((Ticket) m.body).getTopic() + ","+dist+",,";
-	            }else if(m.getType() == Message.MSG_REGISTER_RESPONSE && m.body instanceof Ticket){
+	            }
+                else if(m.getType() == Message.MSG_REGISTER_RESPONSE && m.body instanceof Ticket){
 	            	Ticket ticket = (Ticket) m.body;
 	            	if(ticket.isRegistrationComplete())
 	            		result += ticket.getTopic() + ",,"+"-1"+",";
@@ -1027,10 +1040,14 @@ public class KademliaObserver implements Control {
 	        String filename = this.logFolderName + "/" + "registeredTopicsTime.csv";
 	        File myFile = new File(filename);
 	        FileWriter writer;
-	        if (myFile.exists())myFile.delete();
-	        myFile.createNewFile();
-	        writer = new FileWriter(myFile, true);
-	        writer.write("topic,registrant,times_registered,min_registration_time,average_registration_time,min_discovery_time,times_discovered\n");
+	        if (!myFile.exists()) {
+	            myFile.createNewFile();
+	            writer = new FileWriter(myFile, true);
+	            writer.write("topic,registrant,times_registered,min_registration_time,average_registration_time,min_discovery_time,times_discovered\n");
+            }
+            else {
+	            writer = new FileWriter(myFile, true);
+            }
 	        for(String t : registeredTopics.keySet()) {
             	for(RegistrationLog reg : registeredTopics.get(t).values()) {
             		writer.write(t);
@@ -1143,7 +1160,14 @@ public class KademliaObserver implements Control {
 		        		writer.write(String.valueOf(t));
 			        	writer.write(",");
 			        	Topic topic = new Topic(t); 
-		            	int dist = Util.logDistance(topic.getTopicID(), n);
+		            	BigInteger distance = Util.distance(topic.getTopicID(), n);
+                        int dist;
+                        if (KademliaCommonConfig.DISTANCE_METRIC == KademliaCommonConfig.LOG_DISTANCE) {
+                            dist = distance.intValue();
+                        }
+                        else { //XOR
+                            dist = Util.prefixLenFromXORDistance(distance);
+                        }
 			        	writer.write(String.valueOf(n));
 			        	writer.write(",");
 			        	writer.write(String.valueOf(dist));
@@ -1638,12 +1662,12 @@ public class KademliaObserver implements Control {
         }
     	if(CommonState.getTime() > 3000000)
             write_node_info();
-        write_registered_topics_timing();
         write_exchanged_msg_stats_over_time();
         if ( CommonState.getEndTime() <= (this.observerStep + CommonState.getTime()) ) {
             // Last execute cycle of the experiment 
             write_msg_received_by_nodes();
             write_register_overhead();
+            write_registered_topics_timing();
         }
     	if(CommonState.getTime() > 100000) write_topics();
     	write_competingtickets();

@@ -1,6 +1,6 @@
 #!/bin/bash
 
-SYBIL_SIZES='1 5 10 20'
+SYBIL_SIZES='1 10 50'
 #SYBIL_SIZES='10 50 100 500' 
 EVIL_PERCENTS='0.05 0.1 0.2'
 
@@ -17,7 +17,7 @@ function run_sim(){
     LOG_FILE="logs_randomspam_sybilSize${SYBIL_SIZE}_attackPercent${PERCENT_EVIL}"
     echo log file $LOG_FILE
     sed -i "s/^control.3.rangeExperiment .*$/control.3.rangeExperiment $LOG_FILE/g" $OUT_CONFIG
-    ./run.sh $OUT_CONFIG &> /dev/null
+    #./run.sh $OUT_CONFIG &> /dev/null
 }
 
 for SYBIL_SIZE in $SYBIL_SIZES

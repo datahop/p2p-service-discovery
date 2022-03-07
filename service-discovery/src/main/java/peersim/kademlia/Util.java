@@ -9,6 +9,8 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Set;
 
+import peersim.kademlia.KademliaCommonConfig;
+
 /**
  * Some utility and mathematical function to work with BigInteger numbers and strings.
  * 
@@ -41,6 +43,31 @@ public class Util {
 		return i;
 	}	
 
+    /* Given an XOR distance, obtain the prefix length by counting the leading 0's 
+     * in the distance
+     *
+     * @param a 
+     *          BigInteger
+     * @return int          
+     */
+    public static final int prefixLenFromXORDistance(BigInteger a) {
+
+        //FIXME better alternative: 
+        //
+        // s = a.toString(2)
+        // KademliaCommonConfig.BITS - s.length()
+        
+		String s = Util.put0(a);
+        int i = 0;
+        for (i=0; i < s.length(); i++) {
+            if(s.charAt(i) == '1') {
+                return i;
+            }
+        }
+
+        return i;
+    }
+
 	/**
 	 * return the distance between two number wich is defined as (a XOR b)
 	 * 
@@ -50,7 +77,7 @@ public class Util {
 	 *            BigInteger
 	 * @return BigInteger
 	 */
-	public static final BigInteger distance(BigInteger a, BigInteger b) {
+	private static final BigInteger xorDistance(BigInteger a, BigInteger b) {
 		return a.xor(b);
 	}
 
@@ -83,7 +110,27 @@ public class Util {
 	{
 		return Math.log10(x.doubleValue())/Math.log10(2);
 	}
-	
+
+	/**
+	 * calculate the distance value based on configured metric
+	 * 
+	 * @param BigInteger values
+	 * 
+	 * @return BigInteger result
+	 */
+    public static BigInteger distance(BigInteger a, BigInteger b) 
+    {
+        BigInteger dist;
+        if (KademliaCommonConfig.DISTANCE_METRIC == KademliaCommonConfig.XOR_DISTANCE) {
+            dist = xorDistance(a, b);
+        }
+        else {
+            dist = logDistance(a, b);
+        }
+
+        return dist;
+	}
+
 	/**
 	 * calculate the log base 2 of a BigInteger value
 	 * 
@@ -91,7 +138,7 @@ public class Util {
 	 * 
 	 * @return double result
 	 */
-	public static int logDistance(BigInteger a,BigInteger b)
+	private static BigInteger logDistance(BigInteger a,BigInteger b)
 	{
 		int lz = 0;
 		
@@ -124,7 +171,7 @@ public class Util {
 				break;
 			}
 		}
-		return abyte.length*8 - lz;
+		return BigInteger.valueOf(abyte.length*8 - lz);
 	}
 	
 	

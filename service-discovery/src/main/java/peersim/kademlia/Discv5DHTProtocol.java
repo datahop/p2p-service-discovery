@@ -28,6 +28,7 @@ public class Discv5DHTProtocol extends Discv5Protocol  {
 	final String PAR_N = "N_REGS";
 	final String PAR_REG_REFRESH = "REG_REFRESH";
 	final String PAR_REGTIMEOUT = "REG_TIMEOUT";
+	final String PAR_DISTANCE = "DISTANCE_METRIC";
 
 	private HashMap<Long,Long> registrationMap;
 
@@ -71,6 +72,8 @@ public class Discv5DHTProtocol extends Discv5Protocol  {
 		
 		KademliaCommonConfig.REG_TIMEOUT = Configuration.getInt(prefix + "." + PAR_REGTIMEOUT,
 				KademliaCommonConfig.REG_TIMEOUT);
+		
+        KademliaCommonConfig.DISTANCE_METRIC = Configuration.getInt(prefix + "." + PAR_DISTANCE, KademliaCommonConfig.LOG_DISTANCE);
 		
 		super._init();
 	}
@@ -176,17 +179,15 @@ public class Discv5DHTProtocol extends Discv5Protocol  {
 		lop.body = m.body;
 		lop.type = Message.MSG_TOPIC_QUERY;
 		operations.put(lop.operationId, lop);
-	
-		int distToTopic = Util.logDistance((BigInteger) t.getTopicID(), this.node.getId());
+	    
+		BigInteger distToTopic = Util.distance((BigInteger) t.getTopicID(), this.node.getId());
+        BigInteger [] neighbours = this.routingTable.getNeighbours(distToTopic);
+        logger.warning("Send init lookup for topic " + this.node.getId() + " " + t.getTopic()+" "+distToTopic);
 		
-		logger.warning("Send init lookup for topic " + this.node.getId() + " " + t.getTopic()+" "+distToTopic);
+		if(neighbours.length<KademliaCommonConfig.ALPHA) {
+			neighbours = this.routingTable.getKClosestNeighbours(t.getTopicID(), this.node.getId());
+        }
 
-		BigInteger[] neighbours = this.routingTable.getNeighbours(distToTopic);
-		
-		
-		if(neighbours.length<KademliaCommonConfig.ALPHA)
-			neighbours = this.routingTable.getKClosestNeighbours(KademliaCommonConfig.ALPHA, distToTopic);
-		
 		lop.elaborateResponse(neighbours);
 		lop.available_requests = KademliaCommonConfig.ALPHA;
 	
@@ -318,7 +319,7 @@ public class Discv5DHTProtocol extends Discv5Protocol  {
 		for(BigInteger neighbour: neighbours) {
 			if(registrationMap.get(op.operationId)!=null) {
 				RegisterOperation rop = (RegisterOperation) operations.get(registrationMap.get(op.operationId));
-				int distToTopic = Util.logDistance((BigInteger) rop.getTopic().getTopicID(), this.node.getId());
+				BigInteger distToTopic = Util.distance((BigInteger) rop.getTopic().getTopicID(), this.node.getId());
 	
 				logger.warning("Found neigbour "+neighbour+" "+distToTopic+" "+Util.nodeIdtoNode(neighbour).getKademliaProtocol().getNode().is_evil);
 				
@@ -355,8 +356,8 @@ public class Discv5DHTProtocol extends Discv5Protocol  {
 					if(op.type == Message.MSG_FIND) {
 						request = new Message(Message.MSG_FIND);
 						//request.body = Util.prefixLen(op.destNode, neighbour);
-						//System.out.println("Request body distance "+Util.prefixLen(op.destNode, neighbour)+" "+Util.logDistance(op.destNode, neighbour));
-						request.body = Util.logDistance(op.destNode, neighbour);
+						//System.out.println("Request body distance "+Util.prefixLen(op.destNode, neighbour)+" "+Util.distance(op.destNode, neighbour));
+						request.body = Util.distance(op.destNode, neighbour);
 					}else if(op.type == Message.MSG_REGISTER) {
 						request = new Message(Message.MSG_REGISTER);
 						request.body = op.body;
@@ -425,16 +426,14 @@ public class Discv5DHTProtocol extends Discv5Protocol  {
 	
 	private void startRegistration(RegisterOperation rop, int myPid) {
 
-	
-
-			int distToTopic = Util.logDistance((BigInteger) rop.getTopic().getTopicID(), this.node.getId());
+			BigInteger distToTopic = Util.distance((BigInteger) rop.getTopic().getTopicID(), this.node.getId());
 			BigInteger[]  neighbours = this.routingTable.getNeighbours(distToTopic);
 			
 			/*for (BigInteger id :neighbours) {
-				logger.warning("start reg neighbour "+id+" "+Util.logDistance(rop.getTopic().getTopicID(), id));
+				logger.warning("start reg neighbour "+id+" "+Util.distance(rop.getTopic().getTopicID(), id));
 			}*/
 			if(neighbours.length < KademliaCommonConfig.ALPHA)
-				neighbours = this.routingTable.getKClosestNeighbours(KademliaCommonConfig.ALPHA, distToTopic);
+				neighbours = this.routingTable.getKClosestNeighbours(rop.getTopic().getTopicID(), this.node.getId());
 
 			rop.elaborateResponse(neighbours);
 			rop.available_requests = KademliaCommonConfig.ALPHA;
@@ -529,7 +528,7 @@ public class Discv5DHTProtocol extends Discv5Protocol  {
             sendMessage(response, m.src.getId(), myPid);
 		}
 
-		handleFind(m, myPid, Util.logDistance(t.getTopicID(), this.node.getId()));
+		handleFind(m, myPid, Util.distance(t.getTopicID(), this.node.getId()));
     }
 
      /**
@@ -574,7 +573,7 @@ public class Discv5DHTProtocol extends Discv5Protocol  {
 		
 		Topic t = (Topic) m.body;
 		TopicRegistration[] registrations = this.topicTable.getRegistration(t);
-		BigInteger[] neighbours = this.routingTable.getNeighbours(Util.logDistance(t.getTopicID(), this.node.getId()));
+		BigInteger[] neighbours = this.routingTable.getNeighbours(Util.distance(t.getTopicID(), this.node.getId()));
 	
 		logger.info("Topic query received at node "+this.node.getId()+" "+registrations.length+" "+neighbours.length);
 

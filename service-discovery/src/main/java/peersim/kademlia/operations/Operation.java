@@ -126,16 +126,17 @@ public class Operation {
 				if (!closestSet.containsKey(n)) {
 					if (closestSet.size() < max) { // add directly
 						closestSet.put(n, false);
-					} else { // find in the closest set if there are nodes whit less distance
-						int newdist = Util.logDistance(n, destNode);
+					} else { // find in the closest set if there are nodes with less distance
+
+						BigInteger newdist = Util.distance(n, destNode);
 
 						// find the node with max distance
-						int maxdist = newdist;
+						BigInteger maxdist = newdist;
 						BigInteger nodemaxdist = n;
 						for (BigInteger i : closestSet.keySet()) {
-							int dist = Util.logDistance(i, destNode);
+							BigInteger dist = Util.distance(i, destNode);
 
-							if (dist > maxdist) {
+							if (dist.compareTo(maxdist) > 0) {
 								maxdist = dist;
 								nodemaxdist = i;
 							}
@@ -169,16 +170,13 @@ public class Operation {
 		for (BigInteger n : closestSet.keySet()) {
 			if (n != null && closestSet.get(n) == false) {
 				if (res == null) {
-					//System.out.println("Res = "+n);
 					res = n;
-				} else if (Util.logDistance(n, destNode) < Util.logDistance(res, destNode)) {
-					res = n;
-					//System.out.println("Res = "+n);
-				}
-			} else {
-				//System.out.println("Res = "+n+" alreaady queried");
+				//} else if (Util.distance(n, destNode) < Util.distance(res, destNode)) {
+				} else if ( Util.distance(n, destNode).compareTo(Util.distance(res, destNode)) < 0) {
 
-			}
+					res = n;
+				}
+			} 
 		}
 
 		// Has been found a valid neighbour

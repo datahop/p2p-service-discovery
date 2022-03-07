@@ -60,14 +60,20 @@ public class KademliaCommonConfig {
 
     //TODO show the distribution of nodes discovered (do everyone discover the same? Or different?)
     // Settings for CustomDistribution (id distribution setting for nodes)
-    public static String NON_UNIFORM_ID_DISTRIBUTION = "nonUniform";
-    public static String UNIFORM_ID_DISTRIBUTION = "uniform";
+    public static final String NON_UNIFORM_ID_DISTRIBUTION = "nonUniform";
+    public static final String UNIFORM_ID_DISTRIBUTION = "uniform";
     
     public static final int RANDOM_BUCKET_ORDER = 0;
     public static final int CLOSEST_BUCKET_ORDER = 1;
     public static final int ALL_BUCKET_ORDER = 2;
     public static final int COMPLETE_WALK = 3;
 
+    // DHT distance metric
+    public static final int LOG_DISTANCE = 0;
+    public static final int XOR_DISTANCE = 1;
+    public static int DISTANCE_METRIC=LOG_DISTANCE;
+    public static final String LOG_DIST_STR = "log_distance";
+    public static final String XOR_DIST_STR = "xor_distance";
     
     //public static final int MAX_ADDRESSES_TABLE = 10;
     public static int LOOKUP_BUCKET_ORDER = 0;

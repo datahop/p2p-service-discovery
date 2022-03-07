@@ -228,7 +228,7 @@ public class Discv5EvilDHTTicketProtocol extends Discv5TicketProtocol {
             for (int i = 0; i < result_len; i++) 
                 final_results[i] = registrations[CommonState.r.nextInt(registrations.length)];
             
-            BigInteger[] neighbours = this.evilRoutingTable.getNeighbours(Util.logDistance(t.getTopicID(), this.node.getId()));
+            BigInteger[] neighbours = this.evilRoutingTable.getNeighbours(Util.distance(t.getTopicID(), this.node.getId()));
 
             Message.TopicLookupBody body = new Message.TopicLookupBody(final_results, neighbours);
             Message response  = new Message(Message.MSG_TOPIC_QUERY_REPLY, body);
@@ -264,8 +264,8 @@ public class Discv5EvilDHTTicketProtocol extends Discv5TicketProtocol {
         long rtt_delay = 2*transport.getLatency(Util.nodeIdtoNode(m.src.getId()), Util.nodeIdtoNode(m.dest.getId()));
         Ticket ticket = ((Discv5GlobalTopicTable)this.topicTable).getTicket(topic, advertiser, rtt_delay, curr_time);
         // Send a response message with a ticket back to advertiser
-		BigInteger[] neighbours = this.evilRoutingTable.getNeighbours(Util.logDistance(topic.getTopicID(), this.node.getId()));
-		//BigInteger[] neighbours = this.routingTable.getNeighbours(Util.logDistance(topic.getTopicID(), this.node.getId()));
+		BigInteger[] neighbours = this.evilRoutingTable.getNeighbours(Util.distance(topic.getTopicID(), this.node.getId()));
+		//BigInteger[] neighbours = this.routingTable.getNeighbours(Util.distance(topic.getTopicID(), this.node.getId()));
 
     	Message.TicketReplyBody body = new Message.TicketReplyBody(ticket, neighbours);
     	
@@ -291,7 +291,7 @@ public class Discv5EvilDHTTicketProtocol extends Discv5TicketProtocol {
         ticket.setMsg(m);
 
         // Send a response message with a ticket back to advertiser
-		BigInteger[] neighbours = this.evilRoutingTable.getNeighbours(Util.logDistance(topic.getTopicID(), this.node.getId()));
+		BigInteger[] neighbours = this.evilRoutingTable.getNeighbours(Util.distance(topic.getTopicID(), this.node.getId()));
 
     	Message.TicketRequestBody body = new Message.TicketRequestBody(ticket, neighbours);
 		Message response  = new Message(Message.MSG_TICKET_RESPONSE, body);
@@ -410,9 +410,9 @@ public class Discv5EvilDHTTicketProtocol extends Discv5TicketProtocol {
 	 * @param myPid
 	 *            the sender Pid
 	 */
-	protected void handleFind(Message m, int myPid, int dist) {
+	protected void handleFind(Message m, int myPid, BigInteger dist) {
 		
-    	if(this.attackType.equals(KademliaCommonConfig.ATTACK_TYPE_TOPIC_SPAM)||this.attackType.equals(KademliaCommonConfig.ATTACK_TYPE_DOS)||this.attackType.equals(KademliaCommonConfig.ATTACK_TYPE_WAITING_TIME_SPAM)) {
+    	if(this.attackType.equals(KademliaCommonConfig.ATTACK_TYPE_TOPIC_SPAM) || this.attackType.equals(KademliaCommonConfig.ATTACK_TYPE_DOS) || this.attackType.equals(KademliaCommonConfig.ATTACK_TYPE_WAITING_TIME_SPAM)) {
             super.handleFind(m, myPid,dist);
             return;
     	}

@@ -151,7 +151,7 @@ public class Discv5ZipfTrafficGenerator implements Control {
 		for(int i = 0; i < Network.size(); i++) {
 			Node node = Network.get(i);
             BigInteger nId = node.getKademliaProtocol().getNode().getId();
-			if(closestId == null || (Util.logDistance(id, closestId) > (Util.logDistance(id, nId)))) {
+			if(closestId == null || (Util.distance(id, closestId).compareTo(Util.distance(id, nId)) > 0 )) {
 				closestId = nId;
 			}
 		}

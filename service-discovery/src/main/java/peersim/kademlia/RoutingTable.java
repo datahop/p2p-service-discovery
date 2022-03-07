@@ -10,6 +10,7 @@ import peersim.core.CommonState;
 import java.util.Map;
 //import java.util.Random;
 import java.util.Set;
+import peersim.kademlia.KademliaCommonConfig;
 
 /**
  * Gives an implementation for the routing table component of a kademlia node
@@ -69,37 +70,97 @@ public class RoutingTable implements Cloneable {
 	public boolean addNeighbour(BigInteger node) {
 		// get the lenght of the longest common prefix (correspond to the correct k-bucket)
 		if(node.compareTo(nodeId)==0) return false;
-			
-		KademliaNode kadNode = Util.nodeIdtoNode(node).getKademliaProtocol().getNode();
-		//if(countAddresses(kadNode.getAddr())>maxAddresses) return false;
-		if(compareAddresses(kadNode.getAddr()))return false;
-		return getBucket(node).addNeighbour(node);
+		    
+        KademliaNode kadNode = Util.nodeIdtoNode(node).getKademliaProtocol().getNode();
+        // FIXME is the below check necessary?
+	    if(compareAddresses(kadNode.getAddr()))
+            return false;
+            
+        return getBucket(node).addNeighbour(node);
 	}
 
 	// remove a neighbour from the correct k-bucket
 	public void removeNeighbour(BigInteger node) {
-		// get the lenght of the longest common prefix (correspond to the correct k-bucket)
+
 		getBucket(node).removeNeighbour(node);
 	}
 	
+	// return neighbors 
+	public BigInteger[] getNeighbours (final BigInteger dist) {
 
-	// return the neighbours with a specific common prefix len
-	public BigInteger[] getNeighbours (final int dist) {
 		BigInteger[] result = new BigInteger[0];
 		ArrayList<BigInteger> resultList = new ArrayList<BigInteger>();
 		resultList.addAll(bucketAtDistance(dist).neighbours);
+        
+        int bucket = getBucketIndexFromDistance(dist);
+		if( (resultList.size() < k) && ( (bucket-1)>=0) ) {
+			resultList.addAll(bucketAtDistance(bucket-1).neighbours);
+			while(resultList.size()>k)
+                resultList.remove(resultList.size()-1);
+		}
+        
+		if( (resultList.size() < k) && ( (bucket + 1) < this.getNumBuckets()) ) {
+			resultList.addAll(bucketAtDistance(bucket + 1).neighbours);
+			while(resultList.size()>k)
+                resultList.remove(resultList.size()-1);
+		}
 
-		if(resultList.size()<k && (dist+1)<=256) {
-			resultList.addAll(bucketAtDistance(dist+1).neighbours);
-			while(resultList.size()>k)resultList.remove(resultList.size()-1);
-		}
-		if(resultList.size()<k& (dist-1)>=0) {
-			resultList.addAll(bucketAtDistance(dist-1).neighbours);
-			while(resultList.size()>k)resultList.remove(resultList.size()-1);
-		}
 		return resultList.toArray(result);
 	}
 	
+    // return neighbors 
+	public BigInteger[] getNeighboursAtBucket (final int bucket) {
+
+		BigInteger[] result = new BigInteger[0];
+		ArrayList<BigInteger> resultList = new ArrayList<BigInteger>();
+		resultList.addAll(k_buckets[bucket].neighbours);
+        
+		return resultList.toArray(result);
+	}
+	
+    // return the closest neighbour to a key from the correct k-bucket
+	public BigInteger[] getKClosestNeighbours(final BigInteger key, final BigInteger src) {
+		// resulting neighbours
+		BigInteger[] result = new BigInteger[k];
+		ArrayList<BigInteger> resultList = new ArrayList<BigInteger>();
+
+		// neighbour candidates
+		ArrayList<BigInteger> neighbour_candidates = new ArrayList<BigInteger>();
+
+		// return the k-bucket if is full
+		if (bucketOfDestination(key).neighbours.size() >= k) {
+			return bucketOfDestination(key).neighbours.toArray(result);
+		}
+		
+        // else get k closest node from all k-buckets
+		int bucket = getBucketIndexOfDestination(key);
+
+		while (bucket >= 0) {
+			neighbour_candidates.addAll(k_buckets[bucket].neighbours);
+			bucket--;
+		}
+	    // remove source id
+        neighbour_candidates.remove(src);
+
+		// create a map (distance, node)
+		TreeMap<BigInteger, BigInteger> distance_map = new TreeMap<BigInteger, BigInteger>();
+
+		for (BigInteger node : neighbour_candidates) {
+			distance_map.put(Util.distance(node, key), node);
+		}
+
+		int i = 0;
+		for (BigInteger iii : distance_map.keySet()) {
+			if (i < k) {
+				result[i] = distance_map.get(iii);
+				i++;
+			}
+		}
+
+		return result;
+	}
+	
+    /*
 	public BigInteger[] getKClosestNeighbours (final int k, int dist) {
 		BigInteger[] result = new BigInteger[k];
 		ArrayList<BigInteger> resultList = new ArrayList<BigInteger>();
@@ -110,7 +171,7 @@ public class RoutingTable implements Cloneable {
 		
 		return resultList.toArray(result);
 
-	}
+	}*/
 
 
 
@@ -163,27 +224,130 @@ public class RoutingTable implements Cloneable {
 	}
 	
 	
-	
+	/**
+	 * return the bucket for a given node
+	 * 
+	 * @param node
+	 *            BigInteger 
+	 *            
+	 * @return KBucket
+     *            
+	 */
 	public KBucket getBucket(BigInteger node) {
-		return bucketAtDistance(Util.logDistance(nodeId, node));
+
+        return bucketAtDistance(Util.distance(nodeId, node));
 	}
 
-	public int getBucketNum(BigInteger node) {
-		int dist = Util.logDistance(nodeId, node);
+	/**
+	 * return the KBucket for a given bucket index
+	 * 
+	 * @param bucketIndex
+	 *            int 
+	 *            
+	 * @return KBucket
+     *            
+	 */
+    public KBucket bucketFromIndex(int bucketIndex) {
+        return k_buckets[bucketIndex];
+    }
+
+	/**
+	 * return the bucket index from an integer bucket distance 
+	 * 
+	 * @param dist
+	 *            an integer between 0 .. KademliaCommonConfig.BITS
+	 *            
+	 * @return bucket index   
+     *            an integer from 0 .. getNumBuckets()-1
+	 */
+    public int getBucketIndexFromDistance(int dist) {
+
 		if (dist <= bucketMinDistance) {
 			return 0;
 		}
 		return dist - bucketMinDistance - 1;
+    }
+    
+	/**
+	 * return the bucket index from a BigInteger distance (output of Util.distance())
+	 * 
+	 * @param distance
+	 *            a BigInteger (e.g., XOR output or log distance)
+	 *            
+	 * @return bucket index   
+     *            an integer from 0 .. getNumBuckets()-1
+	 */
+    public int getBucketIndexFromDistance(BigInteger distance) {
+        int dist;
+        if (KademliaCommonConfig.DISTANCE_METRIC == KademliaCommonConfig.LOG_DISTANCE) {
+		    dist = distance.intValue();
+        }
+        else { //XOR distance
+            dist = Util.prefixLenFromXORDistance(distance);       
+        }
+        return getBucketIndexFromDistance(dist);
+    }
+
+	/**
+	 * return the bucket index of a destination node
+	 * 
+	 * @param destintation
+	 *            a destination node
+	 *            
+	 * @return bucket index   
+     *            an integer from 0 to getNumBuckets()-1
+	 */
+	public int getBucketIndexOfDestination(BigInteger destination) {
+        BigInteger distance = Util.distance(nodeId, destination);
+
+        int bucketIndex = getBucketIndexFromDistance(distance);
+
+        return bucketIndex;
 	}
 	
-	protected KBucket bucketAtDistance(int distance) {
+	/**
+	 * return the KBucket at the given distance 
+	 * 
+	 * @param dist 
+	 *            an int in the range 0 .. KademliaCommonConfig.BITS
+	 *            
+	 * @return KBucket 
+     *            the KBucket for a given distance
+	 */
+    protected KBucket bucketAtDistance(int dist) {
 		
-		if (distance <= bucketMinDistance) {
-			return k_buckets[0];
-		}
-		
-		return k_buckets[distance - bucketMinDistance - 1];
+		return k_buckets[getBucketIndexFromDistance(dist)];
+    }
+	
+	/**
+	 * return the KBucket at the given distance 
+	 * 
+	 * @param dist 
+	 *            an int in the range 0 .. KademliaCommonConfig.BITS
+	 *            
+	 * @return KBucket 
+     *            the KBucket for a given distance
+	 */
+	protected KBucket bucketAtDistance(BigInteger distance) {
+        int bucketIndex = getBucketIndexFromDistance(distance);
+
+		return k_buckets[bucketIndex]; 
 	}
+
+	/**
+	 * return the KBucket of a destination
+	 * 
+	 * @param dest
+	 *            BigInteger
+	 *            
+	 * @return KBucket 
+     *            the KBucket of a given destination
+	 */
+    public KBucket bucketOfDestination(BigInteger dest) {
+        int bucketIndex = getBucketIndexOfDestination(dest);
+
+        return k_buckets[bucketIndex];
+    }
 	
 	public void setNodeId(BigInteger id){
 		this.nodeId = id;
@@ -231,6 +395,10 @@ public class RoutingTable implements Cloneable {
 	public int getbucketMinDistance() {
 		return bucketMinDistance;
 	}
+
+    public int getNumBuckets() {
+        return nBuckets;
+    }
 	
 
 	// ______________________________________________________________________________________________

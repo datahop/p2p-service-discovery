@@ -37,6 +37,8 @@ public class CustomDistribution implements peersim.core.Control {
     private final static String PAR_TOPICNUM = "topicnum";
     // Zipf exponent to generate topic IDs in requsts by honest nodes
     private final static String PAR_ZIPF = "zipf";
+    // Distance metric 
+    private final static String PAR_DISTANCE_METRIC = "distanceMetric";
     
     private int protocolID;
     private int evilProtocolID;
@@ -51,6 +53,7 @@ public class CustomDistribution implements peersim.core.Control {
     private String attackType;
     private int ipPoolSize;
     private int idPoolSize;
+    private String distanceMetric; 
 
 
     public CustomDistribution(String prefix) {
@@ -65,6 +68,16 @@ public class CustomDistribution implements peersim.core.Control {
         attackType = Configuration.getString(prefix + "." + PAR_ATTACK_TYPE, KademliaCommonConfig.ATTACK_TYPE_TOPIC_SPAM);
         ipPoolSize = Configuration.getInt(prefix + "." + PAR_IP_POOL_SIZE, 0);
         idPoolSize = Configuration.getInt(prefix + "." + PAR_ID_POOL_SIZE, 0);
+        distanceMetric = Configuration.getString(prefix + "." + PAR_DISTANCE_METRIC, "LOG_DISTANCE");
+        System.out.println("Distance metric read from config: " + distanceMetric); 
+        if (distanceMetric.equals(KademliaCommonConfig.LOG_DIST_STR)) {
+            KademliaCommonConfig.DISTANCE_METRIC = KademliaCommonConfig.LOG_DISTANCE;
+            System.out.println("LOG DISTANCE is used");
+        }
+        else if (distanceMetric.equals(KademliaCommonConfig.XOR_DIST_STR)) {
+            KademliaCommonConfig.DISTANCE_METRIC = KademliaCommonConfig.XOR_DISTANCE;
+            System.out.println("XOR DISTANCE is used");
+        }
 
         if (exp != -1)
             zipf = new ZipfDistribution(topicNum,exp);
@@ -84,7 +97,7 @@ public class CustomDistribution implements peersim.core.Control {
 
         if (idDist.equals(KademliaCommonConfig.NON_UNIFORM_ID_DISTRIBUTION)) {
             id = generate_non_uniform_id(topicNo, t);
-            System.out.println("Generated nonuniform id: " + id+" for topic "+t.getTopicID()+" "+Util.logDistance(t.getTopicID(),id));
+            System.out.println("Generated nonuniform id: " + id+" for topic "+t.getTopicID()+" "+Util.distance(t.getTopicID(),id));
         }
         else {
             id = urg.generate();
