@@ -85,7 +85,6 @@ public class Discv5DHTTicketProtocol extends Discv5Protocol {
 		if(m.src.is_evil)malicious_queried++;
 		total_queried++;
 		
-		logger.warning("Topic reply "+malicious_queried+" "+total_queried);
 		
 		BigInteger[] neighbours = ((Message.TopicLookupBody) m.body).neighbours;
 		TopicRegistration[] registrations = ((Message.TopicLookupBody) m.body).registrations;
@@ -93,6 +92,8 @@ public class Discv5DHTTicketProtocol extends Discv5Protocol {
 		for(BigInteger neighbour: neighbours)
 			routingTable.addNeighbour(neighbour);
 		
+		logger.info("Topic reply "+registrations.length);
+
 
 		for(TopicRegistration r: registrations) {
 			//KademliaObserver.addDiscovered(lop.topic, this.node.getId(), r.getNode().getId());
@@ -150,7 +151,7 @@ public class Discv5DHTTicketProtocol extends Discv5Protocol {
 				// search operation finished
 				operations.remove(lop.operationId);
 				//lop.visualize();
-				logger.warning("reporting operation " + lop.operationId);
+				logger.warning("reporting operation " + lop.getDiscovered().size());
 				KademliaObserver.reportOperation(lop);
 				//lop.visualize(); uncomment if you want to see visualization of the operation
 				if(!lop.finished) { 
@@ -207,7 +208,7 @@ public class Discv5DHTTicketProtocol extends Discv5Protocol {
 			BigInteger nextNode = lop.getNeighbour();
 			if (nextNode != null) {
 				m.dest = new KademliaNode(nextNode);
-				logger.warning("Sending topic lookup to "+nextNode);
+				logger.info("Sending topic lookup to "+nextNode);
 				sendMessage(m.copy(), nextNode, myPid);
 				lop.nrHops++;
 			}
@@ -669,7 +670,7 @@ public class Discv5DHTTicketProtocol extends Discv5Protocol {
 		TopicRegistration[] registrations = this.topicTable.getRegistration(t);
 		BigInteger[] neighbours = this.routingTable.getNeighbours(Util.logDistance(t.getTopicID(), this.node.getId()));
 	
-		logger.warning("Topic query received at node "+this.node.getId()+" "+registrations.length+" "+neighbours.length);
+		logger.info("Topic query received at node "+this.node.getId()+" "+registrations.length+" "+neighbours.length);
 
 		Message.TopicLookupBody body = new Message.TopicLookupBody(registrations, neighbours);
 		Message response  = new Message(Message.MSG_TOPIC_QUERY_REPLY, body);
