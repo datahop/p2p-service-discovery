@@ -1,6 +1,6 @@
 # Discv5 Specification
 
-This document explains the design of the algorithms and data structures used by the service discovery protocol for Ethereum 2 (Disv5) designed and analysed in this research project.
+This document explains the design of the algorithms and data structures used by the service discovery protocol for Ethereum 2 (Discv5) designed and analysed in this research project.
 
 The new Ethereum node discovery version 5 (Discv5) is a system and the associated protocols for finding participants in a peer-to-peer (P2P) network. Different from the previous version of the discovery protocol (version 4), the new discovery system allows nodes to associate themselves with a set of tags, i.e., **topics**, and enable searching of peers that advertise themselves as associated with particular topics. Topics can be used to identify different things such as an application or a service, a certain functionality of a node, or any other attribute by which the node may wish to belong to a connected service-specific “subnetwork” of the Ethereum network. In this document, we focus on the application of Discv5 for the discovery of service-specific peers. 
 
