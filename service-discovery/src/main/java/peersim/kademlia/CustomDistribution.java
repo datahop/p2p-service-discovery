@@ -1,5 +1,7 @@
 package peersim.kademlia;
 
+import java.util.Arrays;
+
 import java.math.BigInteger;
 
 import peersim.config.Configuration;
@@ -51,7 +53,7 @@ public class CustomDistribution implements peersim.core.Control {
     private String attackType;
     private int ipPoolSize;
     private int idPoolSize;
-
+    private int num_evil_nodes;
 
     public CustomDistribution(String prefix) {
         protocolID = Configuration.getPid(prefix + "." + PAR_PROT);
@@ -77,6 +79,8 @@ public class CustomDistribution implements peersim.core.Control {
                 System.exit(1);
             }
         }
+        
+        num_evil_nodes = calculateEvil(attackTopicNo,topicNum,percentEvil,exp);
     }
 
     private BigInteger generate_id(String idDist, int topicNo, Topic t) {
@@ -123,7 +127,7 @@ public class CustomDistribution implements peersim.core.Control {
     public boolean execute() {
         
         Random r = new Random(5);
-        int num_evil_nodes = (int) (Network.size()*percentEvil);
+        //int num_evil_nodes = (int) (Network.size()*percentEvil);
         System.out.println("Number of evil nodes: " + num_evil_nodes);
 
         // ID pool used by Sybil nodes
@@ -155,12 +159,12 @@ public class CustomDistribution implements peersim.core.Control {
                 }
                 else if (this.attackType.equals(KademliaCommonConfig.ATTACK_TYPE_TOPIC_SPAM)||this.attackType.equals(KademliaCommonConfig.ATTACK_TYPE_HYBRID)) {
                     if (this.attackTopicNo != -1)
-                        topicNo = this.attackTopicNo;
+                        topicNo = this.attackTopicNo-1;
                     else 
-                        topicNo = zipf.sample();
+                        topicNo = zipf.sample()-1;
                 }
                 else {
-                    topicNo = zipf.sample();
+                    topicNo = zipf.sample()-1;
                 } 
                 String topic = new String("t"+topicNo);
                 Topic t = new Topic(topic);
@@ -208,6 +212,41 @@ public class CustomDistribution implements peersim.core.Control {
         }
 
         return false;
+    }
+    
+    private int calculateEvil(int targetTopic, int topicNum, double percentEvil, double exp) {
+    	
+    	ZipfDistribution zipf = new ZipfDistribution(topicNum,exp);
+    	
+    	Integer [] topicsCounts = new Integer[topicNum];
+	    Arrays.fill(topicsCounts,  Integer.valueOf(0));
+
+	    //int targetNodes = 0;
+	    //int count=0;
+        for (int i = 0; i < Network.size(); ++i) {
+        	int topicIndex = zipf.sample() - 1;
+        	/*if(topicIndex==targetTopic-1) {
+        		count++;
+        		if(count*percentEvil>=1) {
+	        		i++;
+	        		targetNodes++;
+	        		count=0;
+	            	topicsCounts[topicIndex]++;
+	            	//continue;
+        		}
+        	}*/
+        	topicsCounts[topicIndex]++;
+        }
+        
+        //for (int i = 0;i<topicNum;i++)
+        //	System.out.println("Topic "+i+" "+topicsCounts[i]);
+        
+    	System.out.println("Topic evil "+(topicsCounts[targetTopic-1]-(topicsCounts[targetTopic-1]/(1+percentEvil))));
+
+        
+        return (int) (topicsCounts[targetTopic-1]-(topicsCounts[targetTopic-1]/(1+percentEvil)));
+
+    	
     }
 
 }
