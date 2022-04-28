@@ -15,6 +15,10 @@ def run_sim(config_file):
     result = os.system("java -Xmx200000m -cp ./lib/djep-1.0.0.jar:lib/jep-2.3.0.jar:target/service-discovery-1.0-SNAPSHOT.jar:lib/gs-core-2.0.jar:lib/pherd-1.0.jar:lib/mbox2-1.0.jar:lib/gs-ui-swing-2.0.jar -ea peersim.Simulator " + config_file + "> /dev/null 2> /dev/null")
     assert(result == 0)
 
+def run_sim_par(config_file):
+    result = os.system("java -Xmx200000m -cp ./lib/djep-1.0.0.jar:lib/jep-2.3.0.jar:target/service-discovery-1.0-SNAPSHOT.jar:lib/gs-core-2.0.jar:lib/pherd-1.0.jar:lib/mbox2-1.0.jar:lib/gs-ui-swing-2.0.jar -ea peersim.Simulator " + config_file + "> /dev/null 2> /dev/null &")
+    assert(result == 0)
+
 #turn a running config into a folder name
 def params_to_dir(params, type):
     result = ""
@@ -36,6 +40,8 @@ def set_params(config_file, out_dir, params):
 def main() -> int:
     os.system('rm -rf ' + result_dir)
 
+    max_run = 10
+    run = 1
     for protocol in config_files.keys():
         print("Running ", protocol)
         in_config = config_files[protocol]
@@ -73,6 +79,13 @@ def main() -> int:
                     out_config = out_dir + 'config.txt'
                     os.system('cp ' + in_config + " " + out_config)
                     set_params(out_config, out_dir, params)
+
+                    if run < max_run:
+                        run_sim_par(out_config)
+                        run = run + 1
+                    else:
+                        run_sim(out_config)
+                        run = 0
                     #run_sim(out_config)
 
 if __name__ == '__main__':

@@ -92,7 +92,7 @@ public class Discv4EvilProtocol extends Discv4Protocol  {
                 this.evilRoutingTable.addNeighbour(prot.getNode().getId());   
             }
         }
-        //spamNodes(generateFindNodeMessage(),myPid);
+        spamNodes(generateFindNodeMessage(),myPid);
         super.handleInitRegister(m, myPid);
 
     }
@@ -117,9 +117,9 @@ public class Discv4EvilProtocol extends Discv4Protocol  {
 		
     }
     
-	/*protected void handleResponse(Message m, int myPid) {
+	protected void handleResponse(Message m, int myPid) {
 		//Do nothing
-	}*/
+	}
     
 	/**
 	 * Response to a route request.<br>
