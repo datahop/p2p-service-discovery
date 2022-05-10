@@ -31,6 +31,14 @@ class GraphType(Enum):
 
 #csv.field_size_limit(sys.maxsize)
 
+def human_format(num):
+    num = float('{:.3g}'.format(num))
+    magnitude = 0
+    while abs(num) >= 1000:
+        magnitude += 1
+        num /= 1000.0
+    return '{}{}'.format('{:f}'.format(num).rstrip('0').rstrip('.'), ['', 'K', 'M', 'B', 'T'][magnitude])
+
 def getProtocolFromPath(path):
     return  path.split('/')[0]
 
@@ -210,7 +218,7 @@ def plotPerNodeStats(OUTDIR, simulation_type, graphType = GraphType.violin):
                 continue
             if(secondary_feature != feature):
                 df = df[df[secondary_feature] == defaults[secondary_feature]]
-                #for attack scenarios take into account uniquely results from nodes involved in the same topic
+                #for attack scenarios take into account uniquely results from nodes involved in the attacked topic
                 if(secondary_feature == "attackTopic"):
                     df = df[df['nodeTopic'] == defaults['attackTopic']]
         
@@ -221,15 +229,17 @@ def plotPerNodeStats(OUTDIR, simulation_type, graphType = GraphType.violin):
         else:
             y_vals = attack_y_vals
 
-
+        #df.to_csv("dupa.csv")
+        
 
         for graph in y_vals:
             fig, ax = plt.subplots(figsize=(10, 4))
             print("Plotting y-axis:", graph, "x-axis", feature)
+            #quit(1)
             ax.spines['right'].set_visible(False)
             ax.spines['top'].set_visible(False)
             if(graphType == GraphType.violin):
-                sns.violinplot(ax = ax,
+                violin = sns.violinplot(ax = ax,
                                 data = df,
                                 x = feature,
                                 y = graph,
@@ -240,10 +250,37 @@ def plotPerNodeStats(OUTDIR, simulation_type, graphType = GraphType.violin):
                                 cut = 0, #cut = 0 limits the violin range within the range of the observed data 
                                 palette='colorblind'
                                 ) 
-                #the below set the y_lim from header.py to make graphs more readible
                 
-                if(graphType.name + "_" + feature + "_" + graph in y_lims):
-                    ax.set_ylim(0, y_lims[graphType.name + "_" + feature + "_" + graph])
+                #the below set the y_lim from header.py to make graphs more readible
+                #it also prints a max value as an annotation is its above the set y_lim
+                lim_key = graphType.name + "_" + feature + "_" + graph
+                protocol_xpos = {'discv4' : -0.35,
+                                 'discv5' : -0.15,
+                                 'dht'    : 0.15,
+                                 'dhtTicket': 0.35
+                                }
+                if(lim_key in y_lims):
+                    y_lim = y_lims[lim_key]
+                    ax.set_ylim(0, y_lim)
+                    #indicate the maximum values                    
+                    groups = df.groupby('protocol')
+                    max_vals = {}
+                    
+                    for protocol, group in groups:
+                        if(protocol not in max_vals):
+                            max_vals[protocol] = {}
+                        i = 0
+                        for x_val in features[feature]['vals']:
+                            assert(x_val not in max_vals[protocol])
+                            local_df = group[group[feature] == x_val]
+                            max_val = local_df[graph].max()
+                            max_vals[protocol][x_val] = max_val
+                            if(max_val > y_lim):
+                                violin.annotate("max:" + human_format(max_val), xy = (protocol_xpos[protocol]+i, 0.7*y_lim), horizontalalignment = 'center', color='red', rotation=90)
+                            i += 1
+
+
+                    
 
             else:
                 groups = df.groupby('protocol')
@@ -292,6 +329,7 @@ def plotPerNodeStats(OUTDIR, simulation_type, graphType = GraphType.violin):
             ax.set_ylabel(titlePrettyText[graph])
             #ax.set_title(titlePrettyText[graph])
             fig.savefig(OUTDIR + '/' + graphType.name + "_" + feature + "_" + graph)
+            #quit()
 
 def plotPerLookupOperation():
     pd.set_option('display.max_rows', None)
