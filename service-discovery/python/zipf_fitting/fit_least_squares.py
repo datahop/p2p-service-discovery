@@ -56,4 +56,5 @@ print(result.fit_report())
 
 # make a stacked plot of residual and data + fit
 result.plot()
+#plt.semilogy()
 plt.show()

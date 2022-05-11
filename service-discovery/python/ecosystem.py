@@ -5,7 +5,10 @@ from matplotlib import pyplot as plt
 from matplotlib.ticker import StrMethodFormatter
 from numpy import arange
 import numpy as np
-from matplotlib import mlab
+import matplotlib.pyplot as plt
+from scipy.special import zetac
+from scipy.optimize import curve_fit
+
 
 font = {'family' : 'normal',
         'weight' : 'bold',
@@ -16,72 +19,66 @@ matplotlib.rcParams['pdf.fonttype'] = 42
 matplotlib.rcParams['ps.fonttype'] = 42
 
 
+def f(x, a):
+    return (x**-a)/zetac(a)
 
-#protocols = list(reversed(['Eth Mainnet', 'Eth Ropsten', 'Eth Rinkeby', 'Swarm', 'Musicoin', 'Pirl', 'LES', 'Eth Classic', 'Ubiq', 'Other']))
-protocols = {'Eth Mainnet':173000, 'Eth Ropsten':14958, 'Eth Rinkeby':14944, 'Swarm':6579, 'Musicoin':5235, 'Pirl':4976, 'LES':4431, 'Eth Classic':3974, 'Ubiq':3685, 'Other':10446}
-#counts = [173, 14.958, 14.944, 6.579, 5.235, 4.976, 4.431, 3.974, 3.685, 10.446]
-#counts = [17, 14.958, 14.944, 6.579, 5.235, 4.976, 4.431, 3.974, 3.685, 10.446]
-#counts = [1, 1, 1, 1, 2, 3, 3, 4, 5, 6, 7, 8, 9, 10]
+
+
+def func_powerlaw(x, m, c, c0):
+    return c0 + x**m * c
+
+def zipf(x, a, c0):
+    top = c0*(x**-a)
+    bot  = zetac(a)
+    print("top:", top, "| bot:", bot)
+    return top/bot
+
+
+a = 0.99999703
+a=1.1
+c0 = -2.0463e+09
+n = 20000
+
+#s = np.random.zipf(a, n)
+
+
+lines = []
+with open('./zipf_fitting/data.txt') as file:
+    lines = file.readlines()
+    lines = [line.rstrip() for line in lines]
+
 counts = []
-
-for protocol in protocols.keys():
-    counts.append([protocol]*protocols[protocol])
-
-np.random.seed(0)
-
-mu = 200
-sigma = 25
-n_bins = 400
+for line in lines:
+    count = int(line.split(':')[1])
+    if count > 1:
+        counts.append(count)
 
 
+k = np.arange(1, 50)#len(counts))
+print("k:", k)
 
-fig, ax = plt.subplots(figsize=(8, 4))
+counts = counts[::-1]
+print("countS:", counts)
 
-counts = [0.1, 0.1, 0.1, 0.1]
-print("sorted:", sorted(counts))
-# plot the cumulative histogram
-n, bins, patches = ax.hist(counts, n_bins, density=True, histtype='step',
-                           cumulative=True, label='Empirical')
+result = curve_fit(func_powerlaw, k, counts[0:len(k)], maxfev=10000)
 
-
-# tidy up the figure
-ax.grid(True)
-ax.legend(loc='right')
-ax.set_title('Cumulative step histograms')
-ax.set_xlabel('Annual rainfall (mm)')
-ax.set_ylabel('Likelihood of occurrence')
-
-plt.show()
+print(result)
 
 
+plt.bar(k, counts[0:len(k)], alpha=0.5, label='sample count')
+
+plt.plot(k, func_powerlaw(k, *result), 'r-', label='fit: a=%5.3f, c0=%5.3f' % tuple(result))
 
 
-plt.show()
-exit(1)
+#plt.plot(k, y, 'k.-', alpha=0.5,
+#         label='expected count')   
 
-df = pd.DataFrame({"Protocol": protocols,"Count": counts})
-ax = df.plot(kind='barh', x='Protocol', y='Count', figsize=(10, 4), width=0.8, color='0.6')
+plt.semilogy()
 
-# Despine
-ax.spines['right'].set_visible(False)
-ax.spines['top'].set_visible(False)
-ax.spines['left'].set_visible(False)
-#ax.spines['bottom'].set_visible(False)
-ax.get_legend().remove()
+plt.grid(alpha=0.4)
 
-# Switch off ticks
-#ax.tick_params(axis="both", which="both", bottom="off", top="off", labelbottom="on", left="off", right="off", labelleft="on")
+plt.legend()
 
-# Draw vertical axis lines
-vals = ax.get_xticks()
-for tick in vals:
-    ax.axvline(x=tick, linestyle='dashed', alpha=0.4, color='#eeeeee', zorder=1)
+plt.title(f'Zipf sample, a={a}, size={n}')
 
-# Set x-axis label
-ax.set_xlabel("#Nodes (thousands)")#, labelpad=20, weight='bold', size=12)
-
-# Set y-axis label
-#ax.set_ylabel("Start Station", labelpad=20, weight='bold', size=12)
-#Format y-axis label
-ax.xaxis.set_major_formatter(StrMethodFormatter('{x:,g}'))
 plt.show()

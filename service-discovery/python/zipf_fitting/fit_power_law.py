@@ -5,7 +5,19 @@ from scipy.optimize import curve_fit
 from scipy.special import zetac
 import numpy.random as random
 from scipy.stats import zipf
+import matplotlib
 
+font = {'family' : 'normal',
+        'weight' : 'bold',
+        'size'   : 16}
+
+matplotlib.rc('font', **font)
+matplotlib.rcParams['pdf.fonttype'] = 42
+matplotlib.rcParams['ps.fonttype'] = 42
+
+
+def f (x, a, b, c):
+    return 1/(x) + c
 
 def zipf1(x, a, c0):
     return c0*(x**-a)/zetac(a)
@@ -24,9 +36,11 @@ with open('data.txt') as file:
 counts = []
 for line in lines:
     count = int(line.split(':')[1])
-    if count > 7:
-        counts.append(count)
+    #if count > 7:
+    counts.append(count)
     #counts.append(int(line.split(':')[1]))
+
+labels = ['mainnet', 'ropsten', 'rinkeby', 'goerly', 'binance', '', '', '', 'musicoin', '', '', '', 'pirl']
 
 counts.reverse()
 topics = list(range(1, len(counts)+1))
@@ -43,12 +57,21 @@ target_func = zipf1
 X = df['x']
 y = df['y']
 
-popt, pcov = curve_fit(target_func, X, y, maxfev=10000)
+popt, pcov = curve_fit(target_func, X, y, maxfev=1000000)
 
 print('popt: ', popt, ' pcov: ', pcov)
 
+#fig, ax = 
 plt.figure(figsize=(10, 5))
-plt.plot(X, target_func(X, *popt), '--')
-plt.plot(X, y, 'ro')
+plt.plot(X, target_func(X, *popt), '--', color='black', label = 'zipf distribution')
+plt.plot(X, y, 'ro', color='tab:blue', label = 'Ethereum subnetworks')
 plt.legend()
+plt.ylabel('#Nodes')
+plt.semilogy()
+for i in range(0, len(labels)):
+    x_pos = X[i] + 5
+    y_pos = y[i]
+    if(labels[i] == 'goerly'):
+        y_pos -= 100
+    plt.annotate(labels[i] , xy = (x_pos, y_pos), horizontalalignment = 'left', color='black')
 plt.show()
