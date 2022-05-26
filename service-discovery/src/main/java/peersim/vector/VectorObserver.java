@@ -15,66 +15,62 @@
  * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  *
  */
-		
+
 package peersim.vector;
 
 import peersim.core.*;
 import peersim.util.*;
 
 /**
- * This class computes and reports statistics information about a vector.
- * Provided statistics include average, max, min, variance,
- * etc. Values are printed according to the string format of {@link 
- * IncrementalStats#toString}.
+ * This class computes and reports statistics information about a vector. Provided statistics
+ * include average, max, min, variance, etc. Values are printed according to the string format of
+ * {@link IncrementalStats#toString}.
+ *
  * @see VectControl
  * @see peersim.vector
  */
 public class VectorObserver extends VectControl {
 
+  /** The name of this observer in the configuration */
+  private final String prefix;
 
-/** The name of this observer in the configuration */
-private final String prefix;
+  // --------------------------------------------------------------------------
+  // Initialization
+  // --------------------------------------------------------------------------
 
+  /**
+   * Standard constructor that reads the configuration parameters. Invoked by the simulation engine.
+   *
+   * @param prefix the configuration prefix for this class
+   */
+  public VectorObserver(String prefix) {
 
-//--------------------------------------------------------------------------
-//Initialization
-//--------------------------------------------------------------------------
+    super(prefix);
+    this.prefix = prefix;
+  }
 
-/**
- * Standard constructor that reads the configuration parameters.
- * Invoked by the simulation engine.
- * @param prefix the configuration prefix for this class
- */
-public VectorObserver(String prefix) {
+  // --------------------------------------------------------------------------
+  // Methods
+  // --------------------------------------------------------------------------
 
-	super(prefix);
-	this.prefix = prefix;
-}
+  /**
+   * Prints statistics information about a vector. Provided statistics include average, max, min,
+   * variance, etc. Values are printed according to the string format of {@link
+   * IncrementalStats#toString}.
+   *
+   * @return always false
+   */
+  public boolean execute() {
 
-//--------------------------------------------------------------------------
-// Methods
-//--------------------------------------------------------------------------
+    IncrementalStats stats = new IncrementalStats();
 
-/**
- * Prints statistics information about a vector.
- * Provided statistics include average, max, min, variance,
- * etc. Values are printed according to the string format of {@link 
- * IncrementalStats#toString}.
- * @return always false
- */
-public boolean execute() {
+    for (int j = 0; j < Network.size(); j++) {
+      Number v = getter.get(j);
+      stats.add(v.doubleValue());
+    }
 
-	IncrementalStats stats = new IncrementalStats();
+    System.out.println(prefix + ": " + stats);
 
-	for (int j = 0; j < Network.size(); j++)
-	{
-		Number v = getter.get(j);
-		stats.add( v.doubleValue() );
-	}
-	
-	System.out.println(prefix+": "+stats);	
-
-	return false;
-}
-
+    return false;
+  }
 }

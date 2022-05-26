@@ -18,109 +18,97 @@
 
 package peersim.dynamics;
 
-import peersim.graph.Graph;
 import peersim.config.*;
 import peersim.core.*;
+import peersim.graph.Graph;
 
 /**
- * Wires a scale free graph using a method described in
- * <a href="http://xxx.lanl.gov/abs/cond-mat/0106144">this paper</a>.
- * It is an incremental technique, where the new nodes are connected to
- * the two ends of an edge that is already in the network.
- * This model always wires undirected links.
+ * Wires a scale free graph using a method described in <a
+ * href="http://xxx.lanl.gov/abs/cond-mat/0106144">this paper</a>. It is an incremental technique,
+ * where the new nodes are connected to the two ends of an edge that is already in the network. This
+ * model always wires undirected links.
  */
 public class WireScaleFreeDM extends WireGraph {
 
+  // --------------------------------------------------------------------------
+  // Constants
+  // --------------------------------------------------------------------------
 
-//--------------------------------------------------------------------------
-// Constants
-//--------------------------------------------------------------------------
+  /**
+   * The number of edges added to each new node (apart from those forming the initial network) is
+   * twice this value.
+   *
+   * @config
+   */
+  private static final String PAR_EDGES = "k";
 
-/** 
- * The number of edges added to each new
- * node (apart from those forming the initial network) is twice this
- * value.
- * @config
- */
-private static final String PAR_EDGES = "k";
+  // --------------------------------------------------------------------------
+  // Fields
+  // --------------------------------------------------------------------------
 
+  /** The number of edges created for a new node is 2*k. */
+  private final int k;
 
-//--------------------------------------------------------------------------
-// Fields
-//--------------------------------------------------------------------------
+  // --------------------------------------------------------------------------
+  // Constructor
+  // --------------------------------------------------------------------------
 
+  /**
+   * Standard constructor that reads the configuration parameters. Invoked by the simulation engine.
+   *
+   * @param prefix the configuration prefix for this class
+   */
+  public WireScaleFreeDM(String prefix) {
+    super(prefix);
+    k = Configuration.getInt(prefix + "." + PAR_EDGES);
+  }
 
-/** The number of edges created for a new node is 2*k. */	
-private final int k;
+  // --------------------------------------------------------------------------
+  // Methods
+  // --------------------------------------------------------------------------
 
+  /**
+   * Wires a scale free graph using a method described in <a
+   * href="http://xxx.lanl.gov/abs/cond-mat/0106144">this paper</a>. It is an incremental technique,
+   * where the new nodes are connected to the two ends of an edge that is already in the network.
+   * This model always wires undirected links.
+   */
+  public void wire(Graph g) {
 
-//--------------------------------------------------------------------------
-// Constructor
-//--------------------------------------------------------------------------
+    int nodes = g.size();
+    int[] links = new int[4 * k * nodes];
 
-/**
- * Standard constructor that reads the configuration parameters.
- * Invoked by the simulation engine.
- * @param prefix the configuration prefix for this class
- */
-public WireScaleFreeDM(String prefix)
-{
-	super(prefix);
-	k = Configuration.getInt(prefix + "." + PAR_EDGES);
-}
+    // Initial number of nodes connected as a clique
+    int clique = (k > 3 ? k : 3);
 
+    // Add initial edges, to form a clique
+    int len = 0;
+    for (int i = 0; i < clique; i++)
+      for (int j = 0; j < clique; j++) {
+        if (i != j) {
+          g.setEdge(i, j);
+          g.setEdge(j, i);
+          links[len * 2] = i;
+          links[len * 2 + 1] = j;
+          len++;
+        }
+      }
 
-//--------------------------------------------------------------------------
-// Methods
-//--------------------------------------------------------------------------
-
-/**
- * Wires a scale free graph using a method described in
- * <a href="http://xxx.lanl.gov/abs/cond-mat/0106144">this paper</a>.
- * It is an incremental technique, where the new nodes are connected to
- * the two ends of an edge that is already in the network.
- * This model always wires undirected links.
-*/
-public void wire(Graph g) {
-
-	int nodes=g.size();
-	int[] links = new int[4*k*nodes];
-
-	// Initial number of nodes connected as a clique
-	int clique = (k > 3 ? k : 3);
-
-	// Add initial edges, to form a clique
-	int len=0;
-	for (int i=0; i < clique; i++)
-	for (int j=0; j < clique; j++)
-	{
-		if (i != j)
-		{
-			g.setEdge(i,j);
-			g.setEdge(j,i);
-			links[len*2] = i;
-			links[len*2+1] = j;
-			len++;
-		}
-	}
-
-	for (int i=clique; i < nodes; i++)
-	for (int l=0; l < k; l++)
-	{
-		int edge = CommonState.r.nextInt(len);
-		int m = links[edge*2];
-		int j = links[edge*2+1];
-		g.setEdge(i, m);
-		g.setEdge(m, i);
-		g.setEdge(j, m);
-		g.setEdge(m, j);
-		links[len*2] = i;
-		links[len*2+1] = m;
-		len++;
-		links[len*2] = j;
-		links[len*2+1] = m;
-		len++;
-	}
-}
-		
+    for (int i = clique; i < nodes; i++)
+      for (int l = 0; l < k; l++) {
+        int edge = CommonState.r.nextInt(len);
+        int m = links[edge * 2];
+        int j = links[edge * 2 + 1];
+        g.setEdge(i, m);
+        g.setEdge(m, i);
+        g.setEdge(j, m);
+        g.setEdge(m, j);
+        links[len * 2] = i;
+        links[len * 2 + 1] = m;
+        len++;
+        links[len * 2] = j;
+        links[len * 2 + 1] = m;
+        len++;
+      }
+  }
 }

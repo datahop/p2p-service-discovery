@@ -21,69 +21,58 @@ package peersim.edsim;
 import peersim.core.Control;
 import peersim.core.Scheduler;
 
-
 /**
  * Wrapper for {@link Control}s to be executed in an event driven simulation.
  *
  * @author Alberto Montresor
  * @version $Revision: 1.5 $
  */
-class ControlEvent
-{
+class ControlEvent {
 
-//---------------------------------------------------------------------
-//Fields
-//---------------------------------------------------------------------
+  // ---------------------------------------------------------------------
+  // Fields
+  // ---------------------------------------------------------------------
 
-/** 
- * The reference to the dynamics to be executed; null if this cycle event
- * refers to an observer.
- */
-private Control control;
+  /**
+   * The reference to the dynamics to be executed; null if this cycle event refers to an observer.
+   */
+  private Control control;
 
-/** Order index used to maintain order between cycle-based events */
-private int order;
+  /** Order index used to maintain order between cycle-based events */
+  private int order;
 
+  // ---------------------------------------------------------------------
+  // Initialization
+  // ---------------------------------------------------------------------
 
-//---------------------------------------------------------------------
-//Initialization
-//---------------------------------------------------------------------
+  /** Scheduler object to obtain the next schedule time of this event */
+  private Scheduler scheduler;
 
-/** 
- * Scheduler object to obtain the next schedule time of this event 
- */
-private Scheduler scheduler;
+  /**
+   * Creates a cycle event for a control object. It also schedules the object for the first
+   * execution adding it to the priority queue of the event driven simulation.
+   */
+  public ControlEvent(Control control, Scheduler scheduler, int order) {
+    this.control = control;
+    this.order = order;
+    this.scheduler = scheduler;
+    long next = scheduler.getNext();
+    if (next >= 0) EDSimulator.addControlEvent(next, order, this);
+  }
 
-/**
- * Creates a cycle event for a control object. It also schedules the object
- * for the first execution adding it to the priority queue of the event driven
- * simulation.
- */
-public ControlEvent(Control control, Scheduler scheduler, int order)
-{
-	this.control = control;
-	this.order = order;
-	this.scheduler = scheduler;
-	long next = scheduler.getNext();
-	if( next>=0 ) EDSimulator.addControlEvent(next, order, this);
+  // ---------------------------------------------------------------------
+  // Methods
+  // ---------------------------------------------------------------------
+
+  /**
+   * Executes the control object, and schedules the object for the next execution adding it to the
+   * priority queue of the event driven simulation.
+   */
+  public boolean execute() {
+
+    boolean ret = control.execute();
+    long next = scheduler.getNext();
+    if (next >= 0) EDSimulator.addControlEvent(next, order, this);
+    return ret;
+  }
 }
-
-//---------------------------------------------------------------------
-//Methods
-//---------------------------------------------------------------------
-
-/**
-* Executes the control object, and schedules the object for the next execution
-* adding it to the priority queue of the event driven simulation.
-*/
-public boolean execute() {
-
-	boolean ret = control.execute();
-	long next = scheduler.getNext();
-	if( next>=0 ) EDSimulator.addControlEvent(next, order, this);
-	return ret;
-}
-
-}
-
-

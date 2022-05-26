@@ -22,92 +22,89 @@ import peersim.core.*;
 import peersim.dynamics.*;
 
 /**
- * Sets values in a protocol vector by copying the values of another 
- * protocol vector.
- * The source is defined by {@value #PAR_SOURCE},
- * and getter method {@value peersim.vector.VectControl#PAR_GETTER}.
- * <p>
- * This dynamics class can copy any primitive field in the source
- * protocol to any primitive field in the destination protocol,
- * provided that the former field is associated with a getter method,
+ * Sets values in a protocol vector by copying the values of another protocol vector. The source is
+ * defined by {@value #PAR_SOURCE}, and getter method {@value
+ * peersim.vector.VectControl#PAR_GETTER}.
+ *
+ * <p>This dynamics class can copy any primitive field in the source protocol to any primitive field
+ * in the destination protocol, provided that the former field is associated with a getter method,
  * while the latter is associated with a setter method.
+ *
  * @see VectControl
  * @see peersim.vector
  */
-public class VectCopy extends VectControl implements  NodeInitializer {
+public class VectCopy extends VectControl implements NodeInitializer {
 
+  // --------------------------------------------------------------------------
+  // Parameters
+  // --------------------------------------------------------------------------
 
-//--------------------------------------------------------------------------
-//Parameters
-//--------------------------------------------------------------------------
+  /**
+   * The identifier of the protocol to be copied. The vector values are copied from this vector.
+   *
+   * @config
+   */
+  private static final String PAR_SOURCE = "source";
 
-/**
- * The identifier of the protocol to be copied.
- * The vector values are copied from this vector.
- * @config
- */
-private static final String PAR_SOURCE = "source";
+  // --------------------------------------------------------------------------
+  // Variables
+  // --------------------------------------------------------------------------
 
+  /** Source getter */
+  private final Getter source;
 
-// --------------------------------------------------------------------------
-// Variables
-// --------------------------------------------------------------------------
+  // --------------------------------------------------------------------------
+  // Initialization
+  // --------------------------------------------------------------------------
 
-/** Source getter */
-private final Getter source;
+  /**
+   * Standard constructor that reads the configuration parameters. Invoked by the simulation engine.
+   *
+   * @param prefix the configuration prefix for this class
+   */
+  public VectCopy(String prefix) {
+    super(prefix);
+    source = new Getter(prefix, PAR_SOURCE, PAR_GETTER);
+  }
 
-//--------------------------------------------------------------------------
-//Initialization
-//--------------------------------------------------------------------------
+  // --------------------------------------------------------------------------
+  // Method
+  // --------------------------------------------------------------------------
 
-/**
- * Standard constructor that reads the configuration parameters.
- * Invoked by the simulation engine.
- * @param prefix the configuration prefix for this class
- */
-public VectCopy(String prefix)
-{
-	super(prefix);
-	source = new Getter(prefix,PAR_SOURCE,PAR_GETTER);
-}
+  /**
+   * Sets values in a protocol vector by copying the values of another protocol vector. The source
+   * is defined by {@value #PAR_SOURCE}, and getter method {@value
+   * peersim.vector.VectControl#PAR_GETTER}.
+   *
+   * @return always false
+   */
+  public boolean execute() {
 
-//--------------------------------------------------------------------------
-//Method
-//--------------------------------------------------------------------------
+    int size = Network.size();
+    for (int i = 0; i < size; i++) {
+      Number ret = source.get(i);
+      if (setter.isInteger()) setter.set(i, ret.longValue());
+      else setter.set(i, ret.doubleValue());
+    }
 
-/**
- * Sets values in a protocol vector by copying the values of another 
- * protocol vector. The source is defined by {@value #PAR_SOURCE},
- * and getter method {@value peersim.vector.VectControl#PAR_GETTER}.
- * @return always false
- */
-public boolean execute() {
+    return false;
+  }
 
-	int size = Network.size();
-	for (int i = 0; i < size; i++) {
-		Number ret = source.get(i);
-		if(setter.isInteger()) setter.set(i,ret.longValue());
-		else setter.set(i,ret.doubleValue());
-	}
+  // --------------------------------------------------------------------------
 
-	return false;
-}
+  /**
+   * Sets the value by copying the value of another protocol. The source is defined by {@value
+   * #PAR_SOURCE}, and getter method {@value peersim.vector.VectControl#PAR_GETTER}.
+   *
+   * @param n the node to initialize
+   */
+  public void initialize(Node n) {
 
-//--------------------------------------------------------------------------
+    Number ret = source.get(n);
+    if (setter.isInteger()) setter.set(n, ret.longValue());
+    else setter.set(n, ret.doubleValue());
+  }
 
-/**
- * Sets the value by copying the value of another 
- * protocol. The source is  defined by {@value #PAR_SOURCE},
- * and getter method {@value peersim.vector.VectControl#PAR_GETTER}.
- * @param n the node to initialize
- */
-public void initialize(Node n) {
-
-	Number ret = source.get(n);
-	if(setter.isInteger()) setter.set(n,ret.longValue());
-	else setter.set(n,ret.doubleValue());
-}
-
-//--------------------------------------------------------------------------
+  // --------------------------------------------------------------------------
 
 }

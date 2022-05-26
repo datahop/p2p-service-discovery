@@ -19,22 +19,13 @@
 package peersim.vector;
 
 /**
-* The implementor class has a single parameter. This interface
-* provides access to that parameter.
-*/
+ * The implementor class has a single parameter. This interface provides access to that parameter.
+ */
 public interface SingleValue {
 
-/**
- * Returns the value of the parameter hold by the implementor
- * of this interface. 
- */
-public double getValue();
+  /** Returns the value of the parameter hold by the implementor of this interface. */
+  public double getValue();
 
-/**
- * Modifies the value of the parameter hold by the implementor
- * of this interface. 
- */
-public void setValue(double value);
-
+  /** Modifies the value of the parameter hold by the implementor of this interface. */
+  public void setValue(double value);
 }
-

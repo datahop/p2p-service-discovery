@@ -21,75 +21,64 @@ package peersim.vector;
 import peersim.core.*;
 
 /**
- * The task of this protocol is to store a single double value and make it
- * available through the {@link SingleValue} interface.
+ * The task of this protocol is to store a single double value and make it available through the
+ * {@link SingleValue} interface.
  *
  * @author Alberto Montresor
  * @version $Revision: 1.6 $
  */
-public class SingleValueHolder 
-implements SingleValue, Protocol
-{
+public class SingleValueHolder implements SingleValue, Protocol {
 
-//--------------------------------------------------------------------------
-//Fields
-//--------------------------------------------------------------------------
-	
-/** Value held by this protocol */
-protected double value;
-	
+  // --------------------------------------------------------------------------
+  // Fields
+  // --------------------------------------------------------------------------
 
-//--------------------------------------------------------------------------
-//Initialization
-//--------------------------------------------------------------------------
+  /** Value held by this protocol */
+  protected double value;
 
-/**
- * Does nothing.
- */
-public SingleValueHolder(String prefix)
-{
-}
+  // --------------------------------------------------------------------------
+  // Initialization
+  // --------------------------------------------------------------------------
 
-//--------------------------------------------------------------------------
+  /** Does nothing. */
+  public SingleValueHolder(String prefix) {}
 
-/**
- * Clones the value holder.
- */
-public Object clone()
-{
-	SingleValueHolder svh=null;
-	try { svh=(SingleValueHolder)super.clone(); }
-	catch( CloneNotSupportedException e ) {} // never happens
-	return svh;
-}
+  // --------------------------------------------------------------------------
 
-//--------------------------------------------------------------------------
-//methods
-//--------------------------------------------------------------------------
+  /** Clones the value holder. */
+  public Object clone() {
+    SingleValueHolder svh = null;
+    try {
+      svh = (SingleValueHolder) super.clone();
+    } catch (CloneNotSupportedException e) {
+    } // never happens
+    return svh;
+  }
 
-/**
- * @inheritDoc
- */
-public double getValue()
-{
-	return value;
-}
+  // --------------------------------------------------------------------------
+  // methods
+  // --------------------------------------------------------------------------
 
-//--------------------------------------------------------------------------
+  /**
+   * @inheritDoc
+   */
+  public double getValue() {
+    return value;
+  }
 
-/**
- * @inheritDoc
- */
-public void setValue(double value)
-{
-	this.value = value;
-}
+  // --------------------------------------------------------------------------
 
-//--------------------------------------------------------------------------
+  /**
+   * @inheritDoc
+   */
+  public void setValue(double value) {
+    this.value = value;
+  }
 
-/**
- * Returns the value as a string.
- */
-public String toString() { return ""+value; }
+  // --------------------------------------------------------------------------
 
+  /** Returns the value as a string. */
+  public String toString() {
+    return "" + value;
+  }
 }

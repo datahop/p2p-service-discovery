@@ -24,8 +24,4 @@ package peersim.core;
  * @author Alberto Montresor
  * @version $Revision: 1.2 $
  */
-public interface MaliciousProtocol 
-extends Protocol 
-{
-}
-
+public interface MaliciousProtocol extends Protocol {}

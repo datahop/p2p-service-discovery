@@ -19,18 +19,16 @@
 package peersim.core;
 
 /**
- * Generic interface for classes that are responsible for observing or modifying
- * the ongoing simulation. It is designed to allow maximal flexibility therefore
- * poses virtually no restrictions on the implementation.
+ * Generic interface for classes that are responsible for observing or modifying the ongoing
+ * simulation. It is designed to allow maximal flexibility therefore poses virtually no restrictions
+ * on the implementation.
  */
-public interface Control
-{
+public interface Control {
 
-/**
- * Performs arbitrary modifications or reports arbitrary information over the
- * components.
- * @return true if the simulation has to be stopped, false otherwise.
- */
-public boolean execute();
-
+  /**
+   * Performs arbitrary modifications or reports arbitrary information over the components.
+   *
+   * @return true if the simulation has to be stopped, false otherwise.
+   */
+  public boolean execute();
 }

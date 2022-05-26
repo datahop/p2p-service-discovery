@@ -20,49 +20,38 @@ package peersim.edsim;
 
 import peersim.core.*;
 
-
 /**
-* Implements random delay between calling the nextCycle method of the protocol.
-* @see #nextDelay
-*/
+ * Implements random delay between calling the nextCycle method of the protocol.
+ *
+ * @see #nextDelay
+ */
 public class RandNextCycle extends NextCycleEvent {
 
+  // =============================== initialization ======================
+  // =====================================================================
 
-// =============================== initialization ======================
-// =====================================================================
+  /** Calls super constructor. */
+  public RandNextCycle(String n) {
+    super(n);
+  }
 
+  // --------------------------------------------------------------------
 
-/**
-* Calls super constructor.
-*/
-public RandNextCycle(String n) { super(n); }
+  /** Calls super.clone(). */
+  public Object clone() throws CloneNotSupportedException {
 
-// --------------------------------------------------------------------
+    return super.clone();
+  }
 
-/**
-* Calls super.clone().
-*/
-public Object clone() throws CloneNotSupportedException {
-	
-	return super.clone();
+  // ========================== methods ==================================
+  // =====================================================================
+
+  /**
+   * Returns a random delay with uniform distribution between 1 (inclusive) and 2*<code>step</code>
+   * (exclusive) (expected value is therefore <code>step</code>).
+   */
+  protected long nextDelay(long step) {
+
+    return 1 + CommonState.r.nextLong((step << 1) - 1);
+  }
 }
-
-
-// ========================== methods ==================================
-// =====================================================================
-
-
-/**
-* Returns a random delay with uniform distribution between 1 (inclusive) and
-* 2*<code>step</code> (exclusive)
-* (expected value is therefore <code>step</code>).
-*/
-protected long nextDelay(long step) {
-	
-	return 1+CommonState.r.nextLong((step<<1)-1);
-}
-
-
-}
-
-

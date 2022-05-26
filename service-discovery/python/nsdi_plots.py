@@ -121,12 +121,17 @@ def createPerNodeStats(dir):
                     reg_cols = ['MSG_REGISTER', 'MSG_TICKET_REQUEST', 'MSG_TICKET_RESPONSE', 'MSG_REGISTER_RESPONSE']
                     df['registrationMsgs'] = df[reg_cols].sum(axis=1)
                     look_cols = ['MSG_FIND', 'MSG_RESPONSE', 'MSG_TOPIC_QUERY', 'MSG_TOPIC_QUERY_REPLY']
-                    df['lookupMsgs'] = df[look_cols].sum(axis=1)             
+                    df['lookupMsgs'] = df[look_cols].sum(axis=1)    
+                    msg_cols=['MSG_FIND', 'MSG_RESPONSE', 'MSG_TOPIC_QUERY', 'MSG_TOPIC_QUERY_REPLY','MSG_REGISTER', 'MSG_TICKET_REQUEST', 'MSG_TICKET_RESPONSE', 'MSG_REGISTER_RESPONSE']
+                    df['totalMsg'] = df[msg_cols].sum(axis=1)    
+
                 else:
                     reg_cols = ['MSG_REGISTER', 'MSG_TICKET_REQUEST', 'MSG_TICKET_RESPONSE', 'MSG_REGISTER_RESPONSE', 'MSG_FIND', 'MSG_RESPONSE']
                     df['registrationMsgs'] = df[reg_cols].sum(axis=1)
                     look_cols = ['MSG_TOPIC_QUERY', 'MSG_TOPIC_QUERY_REPLY']
-                    df['lookupMsgs'] = df[look_cols].sum(axis=1)  
+                    df['lookupMsgs'] = df[look_cols].sum(axis=1) 
+                    msg_cols=['MSG_REGISTER', 'MSG_TICKET_REQUEST', 'MSG_TICKET_RESPONSE', 'MSG_REGISTER_RESPONSE', 'MSG_FIND', 'MSG_RESPONSE','MSG_TOPIC_QUERY', 'MSG_TOPIC_QUERY_REPLY']
+                    df['totalMsg'] = df[msg_cols].sum(axis=1)    
 
                 df_list.append(df)
                 df.to_csv(path + 'df.csv')
@@ -236,6 +241,10 @@ def plotPerNodeStats(OUTDIR, simulation_type, graphType = GraphType.violin):
             fig, ax = plt.subplots(figsize=(10, 4))
             print("Plotting y-axis:", graph, "x-axis", feature)
             #quit(1)
+            if "Eclipsed" in graph:
+                graphType = GraphType.bar
+            else:
+                graphType = GraphType.violin
             ax.spines['right'].set_visible(False)
             ax.spines['top'].set_visible(False)
             if(graphType == GraphType.violin):
@@ -254,9 +263,9 @@ def plotPerNodeStats(OUTDIR, simulation_type, graphType = GraphType.violin):
                 #the below set the y_lim from header.py to make graphs more readible
                 #it also prints a max value as an annotation is its above the set y_lim
                 lim_key = graphType.name + "_" + feature + "_" + graph
-                protocol_xpos = {'discv4' : -0.35,
-                                 'discv5' : -0.15,
-                                 'dht'    : 0.15,
+                protocol_xpos = {'discv5' : -0.35,
+                                 'dht' : -0.15,
+                                 'discv4'    : 0.15,
                                  'dhtTicket': 0.35
                                 }
                 if(lim_key in y_lims):
@@ -313,7 +322,7 @@ def plotPerNodeStats(OUTDIR, simulation_type, graphType = GraphType.violin):
                         #print("x:", x)
                         #print("avg:", avg)
                         plt.bar(x, avg, width, label=protocolPrettyText[protocol])
-                        ax.legend()
+                     #   ax.legend(loc=9)
                         ticks = avg.index
                         ax.set_xticks(range(len(ticks)))
                         ax.set_xticklabels(ticks)
@@ -327,8 +336,17 @@ def plotPerNodeStats(OUTDIR, simulation_type, graphType = GraphType.violin):
                         ax.set_xticklabels(list(avg.index))
             ax.set_xlabel(feature)
             ax.set_ylabel(titlePrettyText[graph])
+            ax.spines['top'].set_visible(True)
+            ax.spines['right'].set_visible(True)
+            ax.spines['bottom'].set_visible(True)
+            ax.spines['left'].set_visible(True)
+            ax.legend(bbox_to_anchor=(0.5, 1.1), loc='upper center', ncol=4)
+            fig.set_size_inches(9, 6.5)
+
             #ax.set_title(titlePrettyText[graph])
-            fig.savefig(OUTDIR + '/' + graphType.name + "_" + feature + "_" + graph)
+            fig.tight_layout()
+            fig.savefig(OUTDIR + '/' + graphType.name + "_" + feature + "_" + graph,format='eps')
+
             #quit()
 
 def plotPerLookupOperation():

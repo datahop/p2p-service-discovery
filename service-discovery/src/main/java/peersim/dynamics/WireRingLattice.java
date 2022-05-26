@@ -18,63 +18,60 @@
 
 package peersim.dynamics;
 
-import peersim.graph.*;
 import peersim.config.Configuration;
+import peersim.graph.*;
 
 /**
- * Takes a {@link peersim.core.Linkable} protocol and adds edges that
- * define a ring lattice.
- * Note that no connections are removed, they are only added. So it can be used
- * in combination with other initializers.
- * @see  GraphFactory#wireRingLattice
+ * Takes a {@link peersim.core.Linkable} protocol and adds edges that define a ring lattice. Note
+ * that no connections are removed, they are only added. So it can be used in combination with other
+ * initializers.
+ *
+ * @see GraphFactory#wireRingLattice
  */
 public class WireRingLattice extends WireGraph {
 
-// --------------------------------------------------------------------------
-// Parameters
-// --------------------------------------------------------------------------
+  // --------------------------------------------------------------------------
+  // Parameters
+  // --------------------------------------------------------------------------
 
-/**
- * The "lattice parameter" of the graph. The out-degree of the graph is equal to
- * 2k. See {@link GraphFactory#wireRingLattice} (to which this parameter is
- * passed) for further details.
- * @config
- */
-private static final String PAR_K = "k";
+  /**
+   * The "lattice parameter" of the graph. The out-degree of the graph is equal to 2k. See {@link
+   * GraphFactory#wireRingLattice} (to which this parameter is passed) for further details.
+   *
+   * @config
+   */
+  private static final String PAR_K = "k";
 
-// --------------------------------------------------------------------------
-// Fields
-// --------------------------------------------------------------------------
+  // --------------------------------------------------------------------------
+  // Fields
+  // --------------------------------------------------------------------------
 
-/**
- */
-private final int k;
+  /** */
+  private final int k;
 
-// --------------------------------------------------------------------------
-// Initialization
-// --------------------------------------------------------------------------
+  // --------------------------------------------------------------------------
+  // Initialization
+  // --------------------------------------------------------------------------
 
-/**
- * Standard constructor that reads the configuration parameters.
- * Invoked by the simulation engine.
- * @param prefix the configuration prefix for this class
- */
-public WireRingLattice(String prefix)
-{
-	super(prefix);
-	k = Configuration.getInt(prefix + "." + PAR_K);
-}
+  /**
+   * Standard constructor that reads the configuration parameters. Invoked by the simulation engine.
+   *
+   * @param prefix the configuration prefix for this class
+   */
+  public WireRingLattice(String prefix) {
+    super(prefix);
+    k = Configuration.getInt(prefix + "." + PAR_K);
+  }
 
-//--------------------------------------------------------------------------
-//Public methods
-//--------------------------------------------------------------------------
+  // --------------------------------------------------------------------------
+  // Public methods
+  // --------------------------------------------------------------------------
 
-/** calls {@link GraphFactory#wireRingLattice}. */
-public void wire(Graph g)
-{
-	GraphFactory.wireRingLattice(g, k);
-}
+  /** calls {@link GraphFactory#wireRingLattice}. */
+  public void wire(Graph g) {
+    GraphFactory.wireRingLattice(g, k);
+  }
 
-//--------------------------------------------------------------------------
+  // --------------------------------------------------------------------------
 
 }

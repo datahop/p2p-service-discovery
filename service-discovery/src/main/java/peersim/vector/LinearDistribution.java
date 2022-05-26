@@ -22,102 +22,92 @@ import peersim.config.*;
 import peersim.core.*;
 
 /**
- * Initializes a protocol vector with values in the range [{@value #PAR_MIN}, 
- * {@value #PAR_MAX}] (inclusive both ends), linearly increasing.
+ * Initializes a protocol vector with values in the range [{@value #PAR_MIN}, {@value #PAR_MAX}]
+ * (inclusive both ends), linearly increasing.
+ *
  * @see VectControl
  * @see peersim.vector
  */
-public class LinearDistribution extends VectControl
-{
+public class LinearDistribution extends VectControl {
 
-//--------------------------------------------------------------------------
-//Parameters
-//--------------------------------------------------------------------------
+  // --------------------------------------------------------------------------
+  // Parameters
+  // --------------------------------------------------------------------------
 
-/**
- * Upper end of the interval..
- * @config
- */
-private static final String PAR_MAX = "max";
+  /**
+   * Upper end of the interval..
+   *
+   * @config
+   */
+  private static final String PAR_MAX = "max";
 
-/**
- * Lower end of the interval. Defaults to -{@value #PAR_MAX}.
- * @config
- */
-private static final String PAR_MIN = "min";
+  /**
+   * Lower end of the interval. Defaults to -{@value #PAR_MAX}.
+   *
+   * @config
+   */
+  private static final String PAR_MIN = "min";
 
-// --------------------------------------------------------------------------
-// Fields
-// --------------------------------------------------------------------------
+  // --------------------------------------------------------------------------
+  // Fields
+  // --------------------------------------------------------------------------
 
-/** Minimum value */
-private final Number min;
+  /** Minimum value */
+  private final Number min;
 
-/** Maximum value */
-private final Number max;
+  /** Maximum value */
+  private final Number max;
 
-/** Step value */
-private final double step;
+  /** Step value */
+  private final double step;
 
-// --------------------------------------------------------------------------
-// Initialization
-// --------------------------------------------------------------------------
+  // --------------------------------------------------------------------------
+  // Initialization
+  // --------------------------------------------------------------------------
 
-/**
- * Standard constructor that reads the configuration parameters.
- * Invoked by the simulation engine.
- * @param prefix the configuration prefix for this class
- */
-public LinearDistribution(String prefix)
-{
-	super(prefix);
-	
-	// Read parameters based on type
-	if (setter.isInteger()) {
-		max=Long.valueOf(Configuration.getLong(prefix + "." + PAR_MAX));
-		min=Long.valueOf(Configuration.getLong(prefix + "." + PAR_MIN, 
-				-max.longValue()));
-		step= (max.longValue()-min.longValue())/
-			((double)(Network.size()-1));
-	} else { // we know it's double or float
-		max = new Double(Configuration.getDouble(prefix+"."+PAR_MAX));
-		min = new Double(Configuration.getDouble(prefix+"."+PAR_MIN, 
-				-max.doubleValue()));
-		step= (max.doubleValue()-min.doubleValue())/(Network.size()-1);
-	}
+  /**
+   * Standard constructor that reads the configuration parameters. Invoked by the simulation engine.
+   *
+   * @param prefix the configuration prefix for this class
+   */
+  public LinearDistribution(String prefix) {
+    super(prefix);
+
+    // Read parameters based on type
+    if (setter.isInteger()) {
+      max = Long.valueOf(Configuration.getLong(prefix + "." + PAR_MAX));
+      min = Long.valueOf(Configuration.getLong(prefix + "." + PAR_MIN, -max.longValue()));
+      step = (max.longValue() - min.longValue()) / ((double) (Network.size() - 1));
+    } else { // we know it's double or float
+      max = new Double(Configuration.getDouble(prefix + "." + PAR_MAX));
+      min = new Double(Configuration.getDouble(prefix + "." + PAR_MIN, -max.doubleValue()));
+      step = (max.doubleValue() - min.doubleValue()) / (Network.size() - 1);
+    }
+  }
+
+  // --------------------------------------------------------------------------
+  // Methods
+  // --------------------------------------------------------------------------
+
+  /**
+   * Initializes a protocol vector with values in the range [{@value #PAR_MIN}, {@value #PAR_MAX}]
+   * (inclusive both ends), linearly increasing.
+   *
+   * @return always false
+   */
+  public boolean execute() {
+
+    if (setter.isInteger()) {
+      for (int i = 0; i < Network.size(); ++i) {
+        // we avoid the entire expression being cast to double
+        setter.set(i, Math.round(i * step) + min.longValue());
+      }
+    } else {
+      for (int i = 0; i < Network.size(); ++i) {
+        setter.set(i, i * step + min.doubleValue());
+      }
+    }
+
+    return false;
+  }
 }
-
-// --------------------------------------------------------------------------
-// Methods
-// --------------------------------------------------------------------------
-
-/**
- * Initializes a protocol vector with values in the range [{@value #PAR_MIN}, 
- * {@value #PAR_MAX}] (inclusive both ends), linearly increasing.
- * @return always false
- */
-public boolean execute() {
-	
-	if ( setter.isInteger() )
-	{
-		for(int i=0; i<Network.size(); ++i)
-		{
-			// we avoid the entire expression being cast to double
-			setter.set(i,Math.round(i*step)+min.longValue());
-		}
-	}
-	else
-	{
-		for(int i=0; i<Network.size(); ++i)
-		{
-			setter.set(i,i*step+min.doubleValue());
-		}
-	}
-
-	return false;
-}
-
-
-}
-
-

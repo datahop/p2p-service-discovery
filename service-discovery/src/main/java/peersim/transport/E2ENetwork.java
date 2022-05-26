@@ -18,127 +18,106 @@
 
 package peersim.transport;
 
-
 /**
- * This static singleton emulates an underlying router network
- * of fixed size, and stores the latency measurements for all pairs
- * of routers.
+ * This static singleton emulates an underlying router network of fixed size, and stores the latency
+ * measurements for all pairs of routers.
  *
  * @author Alberto Montresor
  * @version $Revision: 1.6 $
  */
-public class E2ENetwork
-{
+public class E2ENetwork {
 
-//---------------------------------------------------------------------
-//Fields
-//---------------------------------------------------------------------
+  // ---------------------------------------------------------------------
+  // Fields
+  // ---------------------------------------------------------------------
 
-/**
- * True if latency between nodes is considered symmetric. False otherwise.
- */
-private static boolean symm;	
-	
-/**
- * Size of the router network. 
- */
-private static int size;
+  /** True if latency between nodes is considered symmetric. False otherwise. */
+  private static boolean symm;
 
-/**
- * Latency distances between nodes.
- */
-private static int[][] array;
-	
-//---------------------------------------------------------------------
-//Initialization
-//---------------------------------------------------------------------
+  /** Size of the router network. */
+  private static int size;
 
-/** Disable instance construction */
-private E2ENetwork() {}
+  /** Latency distances between nodes. */
+  private static int[][] array;
 
-//---------------------------------------------------------------------
-//Methods
-//---------------------------------------------------------------------
+  // ---------------------------------------------------------------------
+  // Initialization
+  // ---------------------------------------------------------------------
 
-/**
- * Resets the network, by creating a triangular (if symm is true) or
- * a rectangular (if symm is false) array of integers. Initially all
- * latencies between any pairs are set to be 0.
- * @param size the number or routers
- * @param symm if latency is symmetric between all pairs of routers
- */
-public static void reset(int size, boolean symm)
-{
-	E2ENetwork.symm = symm;
-	E2ENetwork.size = size;
-	array = new int[size][];
-	for (int i=0; i < size; i++) {
-		if (symm)
-			array[i] = new int[i];
-		else
-			array[i] = new int[size];
-	}
-}
-	
-//---------------------------------------------------------------------
+  /** Disable instance construction */
+  private E2ENetwork() {}
 
-/**
- * Returns the latency associated to the specified (sender, receiver)
- * pair. Routers are indexed from 0.
- * 
- * @param sender the index of the sender
- * @param receiver the index of the receiver
- * @return the latency associated to the specified (sender, receiver)
- * pair.
- */
-public static int getLatency(int sender, int receiver) 
-{
-	if (sender == receiver)
-		return 0;
-	// XXX There should be the possibility to fix the delay.
-	if (symm) {
-		// Symmetric network
-		if (sender < receiver) {
-			int tmp = sender;
-			sender = receiver;
-			receiver = tmp;
-		}
-	} 
-	return array[sender][receiver];
-}
+  // ---------------------------------------------------------------------
+  // Methods
+  // ---------------------------------------------------------------------
 
-//---------------------------------------------------------------------
+  /**
+   * Resets the network, by creating a triangular (if symm is true) or a rectangular (if symm is
+   * false) array of integers. Initially all latencies between any pairs are set to be 0.
+   *
+   * @param size the number or routers
+   * @param symm if latency is symmetric between all pairs of routers
+   */
+  public static void reset(int size, boolean symm) {
+    E2ENetwork.symm = symm;
+    E2ENetwork.size = size;
+    array = new int[size][];
+    for (int i = 0; i < size; i++) {
+      if (symm) array[i] = new int[i];
+      else array[i] = new int[size];
+    }
+  }
 
-/**
- * Sets the latency associated to the specified (sender, receiver)
- * pair. Routers are indexed from 0.
- * 
- * @param sender the index of the sender
- * @param receiver the index of the receiver
- * @param latency the latency to be set
- */
-public static void setLatency(int sender, int receiver, int latency) 
-{
-	if (symm) {
-		// Symmetric network
-		if (sender < receiver) {
-			int tmp = sender;
-			sender = receiver;
-			receiver = tmp;
-		}
-	} 
- 	array[sender][receiver] = latency;
-}
+  // ---------------------------------------------------------------------
 
-//---------------------------------------------------------------------
+  /**
+   * Returns the latency associated to the specified (sender, receiver) pair. Routers are indexed
+   * from 0.
+   *
+   * @param sender the index of the sender
+   * @param receiver the index of the receiver
+   * @return the latency associated to the specified (sender, receiver) pair.
+   */
+  public static int getLatency(int sender, int receiver) {
+    if (sender == receiver) return 0;
+    // XXX There should be the possibility to fix the delay.
+    if (symm) {
+      // Symmetric network
+      if (sender < receiver) {
+        int tmp = sender;
+        sender = receiver;
+        receiver = tmp;
+      }
+    }
+    return array[sender][receiver];
+  }
 
-/**
- * Returns the current size of the underlying network (i.e., the number of
- * routers).
- */
-public static int getSize()
-{
-	return size;
-}
+  // ---------------------------------------------------------------------
 
+  /**
+   * Sets the latency associated to the specified (sender, receiver) pair. Routers are indexed from
+   * 0.
+   *
+   * @param sender the index of the sender
+   * @param receiver the index of the receiver
+   * @param latency the latency to be set
+   */
+  public static void setLatency(int sender, int receiver, int latency) {
+    if (symm) {
+      // Symmetric network
+      if (sender < receiver) {
+        int tmp = sender;
+        sender = receiver;
+        receiver = tmp;
+      }
+    }
+    array[sender][receiver] = latency;
+  }
+
+  // ---------------------------------------------------------------------
+
+  /** Returns the current size of the underlying network (i.e., the number of routers). */
+  public static int getSize() {
+    return size;
+  }
 }

@@ -26,70 +26,54 @@ import java.util.ArrayList;
 import java.util.BitSet;
 
 /**
-* Speeds up {@link ConstUndirGraph#isEdge} by storing the links in an
-* adjacency matrix (in fact in a triangle).
-* Its memory consumption is huge but it's much faster if the isEdge method
-* of the original underlying graph is slow.
-*/
-public class FastUndirGraph extends ConstUndirGraph
-{
+ * Speeds up {@link ConstUndirGraph#isEdge} by storing the links in an adjacency matrix (in fact in
+ * a triangle). Its memory consumption is huge but it's much faster if the isEdge method of the
+ * original underlying graph is slow.
+ */
+public class FastUndirGraph extends ConstUndirGraph {
 
-private BitSet[] triangle;
+  private BitSet[] triangle;
 
+  // ======================= initializarion ==========================
+  // =================================================================
 
-// ======================= initializarion ==========================
-// =================================================================
+  /** Calls super constructor */
+  public FastUndirGraph(Graph graph) {
+    super(graph);
+  }
 
+  // -----------------------------------------------------------------
 
-/** Calls super constructor */
-public FastUndirGraph(Graph graph)
-{
-	super(graph);
+  protected void initGraph() {
+    final int max = g.size();
+    triangle = new BitSet[max];
+    for (int i = 0; i < max; ++i) {
+      in[i] = new ArrayList<Integer>();
+      triangle[i] = new BitSet(i);
+    }
+
+    for (int i = 0; i < max; ++i) {
+      for (Integer out : g.getNeighbours(i)) {
+        int j = out.intValue();
+        if (!g.isEdge(j, i)) in[j].add(i);
+        // But always add the link to the triangle
+        if (i > j) // make sure i>j
+        triangle[i].set(j);
+        else triangle[j].set(i);
+      }
+    }
+  }
+
+  // ============================ Graph functions ====================
+  // =================================================================
+
+  public boolean isEdge(int i, int j) {
+    // make sure i>j
+    if (i < j) {
+      int ii = i;
+      i = j;
+      j = ii;
+    }
+    return triangle[i].get(j);
+  }
 }
-
-// -----------------------------------------------------------------
-
-protected void initGraph()
-{
-	final int max = g.size();
-	triangle = new BitSet[max];
-	for (int i=0; i<max; ++i)
-	{
-		in[i] = new ArrayList<Integer>();
-		triangle[i] = new BitSet(i);
-	}
-
-	for(int i=0; i<max; ++i)
-	{
-		for(Integer out:g.getNeighbours(i))
-		{
-			int j=out.intValue();
-			if( ! g.isEdge(j,i) )
-				in[j].add(i);
-			// But always add the link to the triangle
-			if (i>j) // make sure i>j
-				triangle[i].set(j);
-			else
-				triangle[j].set(i);
-		}
-	}
-}
-
-
-// ============================ Graph functions ====================
-// =================================================================
-
-
-public boolean isEdge(int i, int j)
-{
-	// make sure i>j
-	if (i<j)
-	{
-		int ii=i;
-		i=j;
-		j=ii;
-	}
-	return triangle[i].get(j);
-}
-}
-

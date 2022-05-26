@@ -21,35 +21,38 @@ package peersim.reports;
 import peersim.core.*;
 
 /**
- * This observer reports memory utilization (max, total and 
- * free, as defined by <code>java.lang.Runtime</code>).
+ * This observer reports memory utilization (max, total and free, as defined by <code>
+ * java.lang.Runtime</code>).
  *
  * @author Alberto Montresor
  * @version $Revision: 1.1 $
  */
-public class MemoryObserver implements Control
-{
+public class MemoryObserver implements Control {
 
-/** The runtime object to obtain memory info */
-private final static Runtime r = Runtime.getRuntime(); 
+  /** The runtime object to obtain memory info */
+  private static final Runtime r = Runtime.getRuntime();
 
-/** The prefix to be printed */
-private final String prefix;
+  /** The prefix to be printed */
+  private final String prefix;
 
-/**
- * Constructor to be instantiated in PeerSim.
- * @param prefix
- */
-public MemoryObserver(String prefix)
-{
-	this.prefix = prefix;
-}
+  /**
+   * Constructor to be instantiated in PeerSim.
+   *
+   * @param prefix
+   */
+  public MemoryObserver(String prefix) {
+    this.prefix = prefix;
+  }
 
-public boolean execute()
-{
-	System.out.println(prefix + ": max=" + r.maxMemory() + ", total=" + 
-			r.totalMemory() + ", free=" + r.freeMemory()); 
-	return false;
-}
-
+  public boolean execute() {
+    System.out.println(
+        prefix
+            + ": max="
+            + r.maxMemory()
+            + ", total="
+            + r.totalMemory()
+            + ", free="
+            + r.freeMemory());
+    return false;
+  }
 }

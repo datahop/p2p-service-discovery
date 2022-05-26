@@ -15,28 +15,21 @@
  * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  *
  */
-		
+
 package peersim.util;
 
-/**
-* This class provides iterations over the set of integers [0...k-1].
-*/
+/** This class provides iterations over the set of integers [0...k-1]. */
 public interface IndexIterator {
 
-	/**
-	* This resets the iteration. The set of integers will be 0,..,k-1.
-	*/
-	public void reset(int k);
-	
-	/**
-	* Returns next index.
-	*/
-	public int next();
+  /** This resets the iteration. The set of integers will be 0,..,k-1. */
+  public void reset(int k);
 
-	/**
-	* Returns true if {@link #next} can be called at least one more time.
-	* Note that {@link #next} can be called k times after {@link #reset}.
-	*/
-	public boolean hasNext();
+  /** Returns next index. */
+  public int next();
+
+  /**
+   * Returns true if {@link #next} can be called at least one more time. Note that {@link #next} can
+   * be called k times after {@link #reset}.
+   */
+  public boolean hasNext();
 }
-

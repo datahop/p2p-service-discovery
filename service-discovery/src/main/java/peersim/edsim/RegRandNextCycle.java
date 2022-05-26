@@ -20,79 +20,67 @@ package peersim.edsim;
 
 import peersim.core.*;
 
-
 /**
-* Implements a random delay, but making sure there is exactly one call in each
-* consecutive <code>step</code> time units.
-*/
+ * Implements a random delay, but making sure there is exactly one call in each consecutive <code>
+ * step</code> time units.
+ */
 public class RegRandNextCycle extends NextCycleEvent {
 
-// ============================== fields ==============================
-// ====================================================================
+  // ============================== fields ==============================
+  // ====================================================================
 
-/**
-* Indicates the start of the next cycle for a particular protocol
-* instance. If negative it means it has not been initialized yet.
-*/
-private long nextCycleStart = -1;
+  /**
+   * Indicates the start of the next cycle for a particular protocol instance. If negative it means
+   * it has not been initialized yet.
+   */
+  private long nextCycleStart = -1;
 
-// =============================== initialization ======================
-// =====================================================================
+  // =============================== initialization ======================
+  // =====================================================================
 
+  /** Calls super constructor. */
+  public RegRandNextCycle(String n) {
 
-/**
-* Calls super constructor.
-*/
-public RegRandNextCycle(String n) {
+    super(n);
+  }
 
-	super(n);
+  // --------------------------------------------------------------------
+
+  /** Calls super.clone(). */
+  public Object clone() throws CloneNotSupportedException {
+
+    return super.clone();
+  }
+
+  // ========================== methods ==================================
+  // =====================================================================
+
+  /**
+   * Returns a random delay but making sure there is exactly one invocation in each consecutive
+   * interval of length <code>step</code>. The beginning of these intervals is defined by the first
+   * invocation which is in turn defined by {@link CDScheduler} that initiates the protocol in
+   * question.
+   */
+  protected long nextDelay(long step) {
+
+    // at this point nextCycleStart points to the start of the next cycle
+    // (the cycle after the one in which this execution is taking place)
+    // (note that the start of the cycle is included in the cycle)
+
+    final long now = CommonState.getTime();
+    if (nextCycleStart < 0) {
+      // not initialized
+      nextCycleStart = now + step;
+    }
+
+    // to be on the safe side, we do the next while loop.
+    // although currently it never executes
+    while (nextCycleStart <= now) nextCycleStart += step;
+
+    // we increment nextCycleStart to point to the start of the cycle
+    // after the next cycle
+    nextCycleStart += step;
+
+    return nextCycleStart - now - CommonState.r.nextLong(step) - 1;
+  }
 }
-
-// --------------------------------------------------------------------
-
-/**
-* Calls super.clone().
-*/
-public Object clone() throws CloneNotSupportedException {
-	
-	return super.clone();
-}
-
-
-// ========================== methods ==================================
-// =====================================================================
-
-
-/**
-* Returns a random delay but making sure there is exactly one invocation in each
-* consecutive interval of length <code>step</code>. The beginning of these
-* intervals is defined by the first invocation which is in turn defined by
-* {@link CDScheduler} that initiates the protocol in question.
-*/
-protected long nextDelay(long step) {
-	
-	// at this point nextCycleStart points to the start of the next cycle
-	// (the cycle after the one in which this execution is taking place)
-	// (note that the start of the cycle is included in the cycle)
-	
-	final long now = CommonState.getTime();
-	if(nextCycleStart<0)
-	{
-		// not initialized
-		nextCycleStart=now+step;
-	}
-	
-	// to be on the safe side, we do the next while loop.
-	// although currently it never executes
-	while(nextCycleStart<=now) nextCycleStart+=step;
-	
-	// we increment nextCycleStart to point to the start of the cycle
-	// after the next cycle
-	nextCycleStart+=step;
-	
-	return nextCycleStart-now-CommonState.r.nextLong(step)-1;
-}
-
-}
-
-

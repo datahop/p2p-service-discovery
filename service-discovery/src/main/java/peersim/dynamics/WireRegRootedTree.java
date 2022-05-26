@@ -18,60 +18,58 @@
 
 package peersim.dynamics;
 
-import peersim.graph.*;
 import peersim.config.*;
+import peersim.graph.*;
 
 /**
- * Takes a {@link peersim.core.Linkable} protocol and adds connections that
- * define a regular
- * rooted tree. Note that no
- * connections are removed, they are only added. So it can be used in
- * combination with other initializers.
+ * Takes a {@link peersim.core.Linkable} protocol and adds connections that define a regular rooted
+ * tree. Note that no connections are removed, they are only added. So it can be used in combination
+ * with other initializers.
+ *
  * @see #wire
  * @see GraphFactory#wireRegRootedTree
  */
 public class WireRegRootedTree extends WireGraph {
 
-//--------------------------------------------------------------------------
-//Parameters
-//--------------------------------------------------------------------------
+  // --------------------------------------------------------------------------
+  // Parameters
+  // --------------------------------------------------------------------------
 
-/**
- * The parameter of the tree wiring method.
- * It is passed to {@link GraphFactory#wireRegRootedTree}.
- * @config
- */
-private static final String PAR_DEGREE = "k";
+  /**
+   * The parameter of the tree wiring method. It is passed to {@link
+   * GraphFactory#wireRegRootedTree}.
+   *
+   * @config
+   */
+  private static final String PAR_DEGREE = "k";
 
-//--------------------------------------------------------------------------
-//Fields
-//--------------------------------------------------------------------------
+  // --------------------------------------------------------------------------
+  // Fields
+  // --------------------------------------------------------------------------
 
-private final int k;
+  private final int k;
 
-//--------------------------------------------------------------------------
-//Initialization
-//--------------------------------------------------------------------------
+  // --------------------------------------------------------------------------
+  // Initialization
+  // --------------------------------------------------------------------------
 
-/**
- * Standard constructor that reads the configuration parameters.
- * Invoked by the simulation engine.
- * @param prefix the configuration prefix for this class
- */
-public WireRegRootedTree(String prefix)
-{
-	super(prefix);
-	k = Configuration.getInt(prefix + "." + PAR_DEGREE);
-}
+  /**
+   * Standard constructor that reads the configuration parameters. Invoked by the simulation engine.
+   *
+   * @param prefix the configuration prefix for this class
+   */
+  public WireRegRootedTree(String prefix) {
+    super(prefix);
+    k = Configuration.getInt(prefix + "." + PAR_DEGREE);
+  }
 
-//--------------------------------------------------------------------------
-//Methods
-//--------------------------------------------------------------------------
+  // --------------------------------------------------------------------------
+  // Methods
+  // --------------------------------------------------------------------------
 
-/** Calls {@link GraphFactory#wireRegRootedTree}. */
-public void wire(Graph g) {
+  /** Calls {@link GraphFactory#wireRegRootedTree}. */
+  public void wire(Graph g) {
 
-	GraphFactory.wireRegRootedTree(g,k);
-}
-
+    GraphFactory.wireRegRootedTree(g, k);
+  }
 }

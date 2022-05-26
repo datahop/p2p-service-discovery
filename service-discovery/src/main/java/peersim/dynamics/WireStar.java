@@ -15,40 +15,38 @@
  * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  *
  */
-		
+
 package peersim.dynamics;
 
 import peersim.graph.*;
 
 /**
- * Takes a {@link peersim.core.Linkable} protocol and adds connection
- * which for a star
- * topology. No connections are removed, they are only added. So it can be used
- * in combination with other initializers.
+ * Takes a {@link peersim.core.Linkable} protocol and adds connection which for a star topology. No
+ * connections are removed, they are only added. So it can be used in combination with other
+ * initializers.
+ *
  * @see GraphFactory#wireStar
  */
 public class WireStar extends WireGraph {
 
-// ===================== initialization ==============================
-// ===================================================================
+  // ===================== initialization ==============================
+  // ===================================================================
 
-/**
- * Standard constructor that reads the configuration parameters.
- * Invoked by the simulation engine.
- * @param prefix the configuration prefix for this class
- */
-public WireStar(String prefix) { super(prefix); }
+  /**
+   * Standard constructor that reads the configuration parameters. Invoked by the simulation engine.
+   *
+   * @param prefix the configuration prefix for this class
+   */
+  public WireStar(String prefix) {
+    super(prefix);
+  }
 
-// ===================== public methods ==============================
-// ===================================================================
+  // ===================== public methods ==============================
+  // ===================================================================
 
+  /** Calls {@link GraphFactory#wireStar}. */
+  public void wire(Graph g) {
 
-/** Calls {@link GraphFactory#wireStar}.*/
-public void wire(Graph g) {
-	
-	GraphFactory.wireStar(g);
+    GraphFactory.wireStar(g);
+  }
 }
-
-
-}
-

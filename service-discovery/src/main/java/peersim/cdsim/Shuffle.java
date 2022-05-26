@@ -15,46 +15,38 @@
  * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  *
  */
-		
+
 package peersim.cdsim;
 
 import peersim.core.*;
 
 /**
-* Shuffles the network. After shuffling, the order in which the nodes
-* are iterated over during a cycle of a cycle driven simulation
-* will be random. It has an effect only in cycle driven simulations.
-*/
+ * Shuffles the network. After shuffling, the order in which the nodes are iterated over during a
+ * cycle of a cycle driven simulation will be random. It has an effect only in cycle driven
+ * simulations.
+ */
 public class Shuffle implements Control {
 
+  // ========================= fields =================================
+  // ==================================================================
 
-// ========================= fields =================================
-// ==================================================================
+  // ==================== initialization ==============================
+  // ==================================================================
 
-// ==================== initialization ==============================
-// ==================================================================
+  /** Does nothing. */
+  public Shuffle(String prefix) {}
 
-/** Does nothing. */
-public Shuffle(String prefix) {}
+  // ===================== public methods ==============================
+  // ===================================================================
 
+  /**
+   * Calls {@link Network#shuffle()}. As a result, the order in which the nodes are iterated over
+   * during a cycle of a cycle driven simulation will be random. It has an effect only in cycle
+   * driven simulations.
+   */
+  public final boolean execute() {
 
-// ===================== public methods ==============================
-// ===================================================================
-
-
-/**
-* Calls {@link Network#shuffle()}. 
-* As a result, the order in which the nodes
-* are iterated over during a cycle of a cycle driven simulation
-* will be random. It has an effect only in cycle driven simulations.
-*/
-public final boolean execute() {
-
-	Network.shuffle();
-	return false;
+    Network.shuffle();
+    return false;
+  }
 }
-
-
-}
-
-

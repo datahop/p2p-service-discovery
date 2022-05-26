@@ -18,65 +18,60 @@
 
 package peersim.dynamics;
 
-import peersim.graph.*;
-import peersim.core.*;
 import peersim.config.*;
+import peersim.core.*;
+import peersim.graph.*;
 
 /**
- * Takes a {@link Linkable} protocol and adds random connections. Note that no
- * connections are removed, they are only added. So it can be used in
- * combination with other initializers.
+ * Takes a {@link Linkable} protocol and adds random connections. Note that no connections are
+ * removed, they are only added. So it can be used in combination with other initializers.
+ *
  * @see GraphFactory#wireKOut
  */
 public class WireKOut extends WireGraph {
 
-//--------------------------------------------------------------------------
-//Parameters
-//--------------------------------------------------------------------------
+  // --------------------------------------------------------------------------
+  // Parameters
+  // --------------------------------------------------------------------------
 
-/**
- * The number of outgoing edges to generate from each node.
- * Passed to {@link GraphFactory#wireKOut}.
- * No loop edges are generated.
- * In the undirected case, the degree
- * of nodes will be on average almost twice as much because the incoming links
- * also become links out of each node.
- * @config
- */
-private static final String PAR_DEGREE = "k";
+  /**
+   * The number of outgoing edges to generate from each node. Passed to {@link
+   * GraphFactory#wireKOut}. No loop edges are generated. In the undirected case, the degree of
+   * nodes will be on average almost twice as much because the incoming links also become links out
+   * of each node.
+   *
+   * @config
+   */
+  private static final String PAR_DEGREE = "k";
 
-//--------------------------------------------------------------------------
-//Fields
-//--------------------------------------------------------------------------
+  // --------------------------------------------------------------------------
+  // Fields
+  // --------------------------------------------------------------------------
 
-/**
- * The number of outgoing edges to generate from each node.
- */
-private final int k;
+  /** The number of outgoing edges to generate from each node. */
+  private final int k;
 
-//--------------------------------------------------------------------------
-//Initialization
-//--------------------------------------------------------------------------
+  // --------------------------------------------------------------------------
+  // Initialization
+  // --------------------------------------------------------------------------
 
-/**
- * Standard constructor that reads the configuration parameters.
- * Invoked by the simulation engine.
- * @param prefix the configuration prefix for this class
- */
-public WireKOut(String prefix)
-{
-	super(prefix);
-	k = Configuration.getInt(prefix + "." + PAR_DEGREE);
-}
+  /**
+   * Standard constructor that reads the configuration parameters. Invoked by the simulation engine.
+   *
+   * @param prefix the configuration prefix for this class
+   */
+  public WireKOut(String prefix) {
+    super(prefix);
+    k = Configuration.getInt(prefix + "." + PAR_DEGREE);
+  }
 
-//--------------------------------------------------------------------------
-//Methods
-//--------------------------------------------------------------------------
+  // --------------------------------------------------------------------------
+  // Methods
+  // --------------------------------------------------------------------------
 
-/** Calls {@link GraphFactory#wireKOut}. */
-public void wire(Graph g) {
+  /** Calls {@link GraphFactory#wireKOut}. */
+  public void wire(Graph g) {
 
-	GraphFactory.wireKOut(g,k,CommonState.r);
-}
-
+    GraphFactory.wireKOut(g, k, CommonState.r);
+  }
 }

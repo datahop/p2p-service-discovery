@@ -2,52 +2,52 @@ package peersim.kademlia;
 
 import inet.ipaddr.IPAddressString;
 import inet.ipaddr.ipv4.IPv4Address;
-//import inet.ipaddr.ipv4.IPv4AddressTrie;
+// import inet.ipaddr.ipv4.IPv4AddressTrie;
 
 public class IpModifier {
-	
-    protected static final int baseMultiplier = 30;
-    TrieNode root;
 
-	public IpModifier() {
-        root = new TrieNode();
-	}
-	//TODO instead of toBinaryString() conversion, check bits of addresses with & operator
-    // this conversion will likely be slow 
-	public double getModifier(String address) {
-		
-		IPAddressString addr = new IPAddressString(address);
-		IPv4Address ipv4Addr = addr.getAddress().toIPv4();
-		String binAddr = ipv4Addr.toBinaryString();
+  protected static final int baseMultiplier = 30;
+  TrieNode root;
 
-        return TrieNode.getSimilarityScore(root, binAddr);
-	}
+  public IpModifier() {
+    root = new TrieNode();
+  }
+  // TODO instead of toBinaryString() conversion, check bits of addresses with & operator
+  // this conversion will likely be slow
+  public double getModifier(String address) {
 
-    // adds the address and returns similarity score
-	public double newAddress(String address) {
-		IPAddressString addr = new IPAddressString(address);
-		IPv4Address ipv4Addr = addr.getAddress().toIPv4();
-		String binAddr = ipv4Addr.toBinaryString();
+    IPAddressString addr = new IPAddressString(address);
+    IPv4Address ipv4Addr = addr.getAddress().toIPv4();
+    String binAddr = ipv4Addr.toBinaryString();
 
-        return TrieNode.addIp(root, binAddr);
-	}
+    return TrieNode.getSimilarityScore(root, binAddr);
+  }
 
-	public void removeAddress(String address) {
-		IPAddressString addr = new IPAddressString(address);
-		IPv4Address ipv4Addr = addr.getAddress().toIPv4();
-		String binAddr = ipv4Addr.toBinaryString();
-		
-        TrieNode.removeIp(root, binAddr);
-	}
+  // adds the address and returns similarity score
+  public double newAddress(String address) {
+    IPAddressString addr = new IPAddressString(address);
+    IPv4Address ipv4Addr = addr.getAddress().toIPv4();
+    String binAddr = ipv4Addr.toBinaryString();
 
-    public TrieNode getLowerBound(String address) {
+    return TrieNode.addIp(root, binAddr);
+  }
 
-		IPAddressString addr = new IPAddressString(address);
-		IPv4Address ipv4Addr = addr.getAddress().toIPv4();
-		String binAddr = ipv4Addr.toBinaryString();
+  public void removeAddress(String address) {
+    IPAddressString addr = new IPAddressString(address);
+    IPv4Address ipv4Addr = addr.getAddress().toIPv4();
+    String binAddr = ipv4Addr.toBinaryString();
 
-        TrieNode n = TrieNode.getLowerBoundNode(root, binAddr);
+    TrieNode.removeIp(root, binAddr);
+  }
 
-        return n;
-    }
+  public TrieNode getLowerBound(String address) {
+
+    IPAddressString addr = new IPAddressString(address);
+    IPv4Address ipv4Addr = addr.getAddress().toIPv4();
+    String binAddr = ipv4Addr.toBinaryString();
+
+    TrieNode n = TrieNode.getLowerBoundNode(root, binAddr);
+
+    return n;
+  }
 }

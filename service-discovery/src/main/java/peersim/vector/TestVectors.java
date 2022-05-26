@@ -18,87 +18,79 @@
 
 package peersim.vector;
 
+/** Do testing the vector package. */
+public class TestVectors extends SingleValueHolder {
 
-/**
- * Do testing the vector package.
- */
-public class TestVectors extends SingleValueHolder
-{
+  // --------------------------------------------------------------------------
+  // Fields
+  // --------------------------------------------------------------------------
 
-//--------------------------------------------------------------------------
-//Fields
-//--------------------------------------------------------------------------
-	
-/** Value held by this protocol */
-protected float fvalue;
+  /** Value held by this protocol */
+  protected float fvalue;
 
-/** Value held by this protocol */
-protected int ivalue;
+  /** Value held by this protocol */
+  protected int ivalue;
 
-/** Value held by this protocol */
-protected long lvalue;
-	
+  /** Value held by this protocol */
+  protected long lvalue;
 
-//--------------------------------------------------------------------------
-//Initialization
-//--------------------------------------------------------------------------
+  // --------------------------------------------------------------------------
+  // Initialization
+  // --------------------------------------------------------------------------
 
-/**
- * Builds a new (not initialized) value holder.
- * Calls super constructor.
- */
-public TestVectors(String prefix) { super(prefix); }
+  /** Builds a new (not initialized) value holder. Calls super constructor. */
+  public TestVectors(String prefix) {
+    super(prefix);
+  }
 
-//--------------------------------------------------------------------------
-//methods
-//--------------------------------------------------------------------------
+  // --------------------------------------------------------------------------
+  // methods
+  // --------------------------------------------------------------------------
 
-/**
- * 
- */
-public int getIValue() { return ivalue; }
+  /** */
+  public int getIValue() {
+    return ivalue;
+  }
 
-//--------------------------------------------------------------------------
+  // --------------------------------------------------------------------------
 
-/**
- * 
- */
-public void setIValue(int value) { ivalue = value; }
+  /** */
+  public void setIValue(int value) {
+    ivalue = value;
+  }
 
-//--------------------------------------------------------------------------
+  // --------------------------------------------------------------------------
 
-/**
- * 
- */
-public float getFValue() { return fvalue; }
+  /** */
+  public float getFValue() {
+    return fvalue;
+  }
 
-//--------------------------------------------------------------------------
+  // --------------------------------------------------------------------------
 
-/**
- * 
- */
-public void setFValue(float value) { fvalue = value; }
+  /** */
+  public void setFValue(float value) {
+    fvalue = value;
+  }
 
-//--------------------------------------------------------------------------
+  // --------------------------------------------------------------------------
 
-/**
- * 
- */
-public long getLValue() { return lvalue; }
+  /** */
+  public long getLValue() {
+    return lvalue;
+  }
 
-//--------------------------------------------------------------------------
+  // --------------------------------------------------------------------------
 
-/**
- * 
- */
-public void setLValue(long value) { lvalue = value; }
+  /** */
+  public void setLValue(long value) {
+    lvalue = value;
+  }
 
-//--------------------------------------------------------------------------
+  // --------------------------------------------------------------------------
 
-/**
- * Returns the value as a string.
- */
-public String toString() { return value+" "+fvalue+" "+ivalue+" "+lvalue; }
-
+  /** Returns the value as a string. */
+  public String toString() {
+    return value + " " + fvalue + " " + ivalue + " " + lvalue;
+  }
 }
-

@@ -33,9 +33,4 @@ for simulation_type in ['benign', 'attack']:
     os.chdir(INDIR)
     
     createPerNodeStats(".")
-    if simulation_type == 'benign':
-        plotPerNodeStats(OUTDIR, simulation_type)
-    else:
-        plotPerNodeStats(OUTDIR, simulation_type)
-
-
+    plotPerNodeStats(OUTDIR, simulation_type)

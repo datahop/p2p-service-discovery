@@ -20,7 +20,6 @@ package peersim.vector;
 
 import java.lang.reflect.*;
 import java.util.*;
-
 import peersim.core.*;
 
 /**
@@ -47,51 +46,46 @@ import peersim.core.*;
  * @author Alberto Montresor
  * @version $Revision: 1.1 $
  */
-public class VectorComparator implements Comparator
-{
+public class VectorComparator implements Comparator {
 
-//--------------------------------------------------------------------------
-//Fields
-//--------------------------------------------------------------------------
+  // --------------------------------------------------------------------------
+  // Fields
+  // --------------------------------------------------------------------------
 
-/** Protocol identifier of the protocol to be observed */
-private final int pid;
+  /** Protocol identifier of the protocol to be observed */
+  private final int pid;
 
-/** The getter to be used to obtain comparable values */
-private final Method method;
+  /** The getter to be used to obtain comparable values */
+  private final Method method;
 
-//--------------------------------------------------------------------------
-//Initialization
-//--------------------------------------------------------------------------
+  // --------------------------------------------------------------------------
+  // Initialization
+  // --------------------------------------------------------------------------
 
-public VectorComparator(int pid, String methodName)
-{
-	this.pid = pid;
-	Node n = Network.prototype;
-	if (n == null) {
-		throw new IllegalStateException("No prototype node can be used to search methods");
-	}
-	Object p = n.getProtocol(pid);
-	Class c = p.getClass();
-	try {
-		method = GetterSetterFinder.getGetterMethod(c, methodName);
-	} catch (NoSuchMethodException e) {
-		throw new IllegalArgumentException(e.getMessage());
-	}
-}
+  public VectorComparator(int pid, String methodName) {
+    this.pid = pid;
+    Node n = Network.prototype;
+    if (n == null) {
+      throw new IllegalStateException("No prototype node can be used to search methods");
+    }
+    Object p = n.getProtocol(pid);
+    Class c = p.getClass();
+    try {
+      method = GetterSetterFinder.getGetterMethod(c, methodName);
+    } catch (NoSuchMethodException e) {
+      throw new IllegalArgumentException(e.getMessage());
+    }
+  }
 
-
-public int compare(Object o1, Object o2)
-{
-	try {
-	Comparable c1 = (Comparable) method.invoke(((Node) o1).getProtocol(pid));
-	Comparable c2 = (Comparable) method.invoke(((Node) o2).getProtocol(pid));
-	return c1.compareTo(c2);
-	} catch (InvocationTargetException e) {
-		throw new RuntimeException(e.getCause().getMessage());
-	} catch (IllegalAccessException e) {
-		throw new RuntimeException(e.getCause().getMessage());
-	}
-}
-
+  public int compare(Object o1, Object o2) {
+    try {
+      Comparable c1 = (Comparable) method.invoke(((Node) o1).getProtocol(pid));
+      Comparable c2 = (Comparable) method.invoke(((Node) o2).getProtocol(pid));
+      return c1.compareTo(c2);
+    } catch (InvocationTargetException e) {
+      throw new RuntimeException(e.getCause().getMessage());
+    } catch (IllegalAccessException e) {
+      throw new RuntimeException(e.getCause().getMessage());
+    }
+  }
 }

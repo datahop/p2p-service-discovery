@@ -20,40 +20,34 @@ package peersim.transport;
 
 import peersim.core.*;
 
-
 /**
- * This interface represents a generic transport protocol, used to
- * send messages through the underlying network. Generally, transport
- * protocols use {@link peersim.edsim.EDSimulator} to schedule the delivery of
- * messages with some appropriate delay. They can also model message omission
- * failure as well.
- * 
+ * This interface represents a generic transport protocol, used to send messages through the
+ * underlying network. Generally, transport protocols use {@link peersim.edsim.EDSimulator} to
+ * schedule the delivery of messages with some appropriate delay. They can also model message
+ * omission failure as well.
+ *
  * @author Alberto Montresor
  * @version $Revision: 1.7 $
  */
-public interface Transport extends Protocol
-{
-	
-/**
- * Sends message <code>msg</code>	from node <code>src</code> to protocol
- * <code>pid</code> of node <code>dst</code>.
- * 
- * @param src sender node
- * @param dest destination node
- * @param msg message to be sent
- * @param pid protocol identifier
- */
-public void send(Node src, Node dest, Object msg, int pid);
+public interface Transport extends Protocol {
 
+  /**
+   * Sends message <code>msg</code> from node <code>src</code> to protocol <code>pid</code> of node
+   * <code>dst</code>.
+   *
+   * @param src sender node
+   * @param dest destination node
+   * @param msg message to be sent
+   * @param pid protocol identifier
+   */
+  public void send(Node src, Node dest, Object msg, int pid);
 
-/**
- * Return a latency estimate from node <code>src</code> to protocol
- * <code>pid</code> of node <code>dst</code>. 
- * 
- * @param src sender node
- * @param dest destination node
- */
-public long getLatency(Node src, Node dest);
-
-
+  /**
+   * Return a latency estimate from node <code>src</code> to protocol <code>pid</code> of node
+   * <code>dst</code>.
+   *
+   * @param src sender node
+   * @param dest destination node
+   */
+  public long getLatency(Node src, Node dest);
 }

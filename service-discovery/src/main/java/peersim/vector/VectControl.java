@@ -21,70 +21,63 @@ package peersim.vector;
 import peersim.core.*;
 
 /**
- * Serves as an abstract superclass for {@link Control}s that deal
- * with vectors.
- * It reads a {@link Setter} to be used by extending classes.
+ * Serves as an abstract superclass for {@link Control}s that deal with vectors. It reads a {@link
+ * Setter} to be used by extending classes.
  */
 public abstract class VectControl implements Control {
 
+  // --------------------------------------------------------------------------
+  // Parameter names
+  // --------------------------------------------------------------------------
 
-// --------------------------------------------------------------------------
-// Parameter names
-// --------------------------------------------------------------------------
+  /**
+   * The protocol to operate on.
+   *
+   * @config
+   */
+  protected static final String PAR_PROT = "protocol";
 
-/**
- * The protocol to operate on.
- * @config
- */
-protected static final String PAR_PROT = "protocol";
+  /**
+   * The setter method used to set values in the protocol instances. Defaults to <code>setValue
+   * </code> (for backward compatibility with previous implementation of this class, that were based
+   * on the {@link SingleValue} interface). Refer to the {@linkplain peersim.vector vector package
+   * description} for more information about getters and setters.
+   *
+   * @config
+   */
+  protected static final String PAR_METHOD = "setter";
 
-/**
- * The setter method used to set values in the protocol instances. Defaults to
- * <code>setValue</code>
- * (for backward compatibility with previous implementation of this
- * class, that were based on the {@link SingleValue} interface). Refer to the
- * {@linkplain peersim.vector vector package description} for more
- * information about getters and setters.
- * @config
- */
-protected static final String PAR_METHOD = "setter";
+  /**
+   * The getter method used to obtain the protocol values. Defaults to <code>getValue</code> (for
+   * backward compatibility with previous implementation of this class, that were based on the
+   * {@link SingleValue} interface). Refer to the {@linkplain peersim.vector vector package
+   * description} for more information about getters and setters.
+   *
+   * @config
+   */
+  protected static final String PAR_GETTER = "getter";
 
-/**
- * The getter method used to obtain the protocol values. 
- * Defaults to <code>getValue</code>
- * (for backward compatibility with previous 
- * implementation of this class, that were based on the 
- * {@link SingleValue} interface).
- * Refer to the {@linkplain peersim.vector vector package description} for more 
- * information about getters and setters.
- * @config
- */
-protected static final String PAR_GETTER = "getter";
+  // --------------------------------------------------------------------------
+  // Fields
+  // --------------------------------------------------------------------------
 
-// --------------------------------------------------------------------------
-// Fields
-// --------------------------------------------------------------------------
+  /** The setter to be used to write a vector. */
+  protected final Setter setter;
 
-/** The setter to be used to write a vector. */
-protected final Setter setter;
+  /** The getter to be used to read a vector. */
+  protected final Getter getter;
 
-/** The getter to be used to read a vector. */
-protected final Getter getter;
+  // --------------------------------------------------------------------------
+  // Initialization
+  // --------------------------------------------------------------------------
 
-// --------------------------------------------------------------------------
-// Initialization
-// --------------------------------------------------------------------------
-
-/**
- * Standard constructor that reads the configuration parameters.
- * Invoked by the simulation engine.
- * @param prefix the configuration prefix for this class
- */
-protected VectControl(String prefix)
-{
-	setter = new Setter(prefix,PAR_PROT,PAR_METHOD);
-	getter = new Getter(prefix,PAR_PROT,PAR_GETTER);
+  /**
+   * Standard constructor that reads the configuration parameters. Invoked by the simulation engine.
+   *
+   * @param prefix the configuration prefix for this class
+   */
+  protected VectControl(String prefix) {
+    setter = new Setter(prefix, PAR_PROT, PAR_METHOD);
+    getter = new Getter(prefix, PAR_PROT, PAR_GETTER);
+  }
 }
-
-}
-

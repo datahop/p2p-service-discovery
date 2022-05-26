@@ -18,20 +18,15 @@
 
 package peersim.rangesim;
 
-public interface ProcessHandler
-{
+public interface ProcessHandler {
 
-/**
- * Stop the external process managed by this object.
- */
-public abstract void doStop();
+  /** Stop the external process managed by this object. */
+  public abstract void doStop();
 
-/**
- * Wait until the process has terminated. 
- * @exception InterruptedException 
- *   thrown if the wait is interrupted
- */
-public abstract void join()
-  throws InterruptedException;
-
+  /**
+   * Wait until the process has terminated.
+   *
+   * @exception InterruptedException thrown if the wait is interrupted
+   */
+  public abstract void join() throws InterruptedException;
 }

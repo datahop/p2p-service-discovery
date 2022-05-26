@@ -21,71 +21,62 @@ package peersim.transport;
 import peersim.config.*;
 import peersim.core.*;
 
-
 /**
- * Initializes {@link RouterInfo} protocols by assigning routers to them.
- * The number of routers is defined by static singleton {@link E2ENetwork}.
+ * Initializes {@link RouterInfo} protocols by assigning routers to them. The number of routers is
+ * defined by static singleton {@link E2ENetwork}.
  *
  * @author Alberto Montresor
  * @version $Revision: 1.6 $
  */
-public class UniformRouterAssignment implements Control
-{
+public class UniformRouterAssignment implements Control {
 
-//---------------------------------------------------------------------
-//Parameters
-//---------------------------------------------------------------------
+  // ---------------------------------------------------------------------
+  // Parameters
+  // ---------------------------------------------------------------------
 
-/** 
- * Parameter name used to configure the {@link RouterInfo} protocol
- * that should be initialized.
- * @config 
- */
-private static final String PAR_PROT = "protocol"; 
-	
-//---------------------------------------------------------------------
-//Methods
-//---------------------------------------------------------------------
+  /**
+   * Parameter name used to configure the {@link RouterInfo} protocol that should be initialized.
+   *
+   * @config
+   */
+  private static final String PAR_PROT = "protocol";
 
-/** Protocol identifier */
-private int pid;	
-	
+  // ---------------------------------------------------------------------
+  // Methods
+  // ---------------------------------------------------------------------
 
-//---------------------------------------------------------------------
-//Initialization
-//---------------------------------------------------------------------
+  /** Protocol identifier */
+  private int pid;
 
-/**
- * Reads configuration parameters.
- */
-public UniformRouterAssignment(String prefix)
-{
-	pid = Configuration.getPid(prefix+"."+PAR_PROT);
+  // ---------------------------------------------------------------------
+  // Initialization
+  // ---------------------------------------------------------------------
+
+  /** Reads configuration parameters. */
+  public UniformRouterAssignment(String prefix) {
+    pid = Configuration.getPid(prefix + "." + PAR_PROT);
+  }
+
+  // ---------------------------------------------------------------------
+  // Methods
+  // ---------------------------------------------------------------------
+
+  /**
+   * Initializes given {@link RouterInfo} protocol layer by assigning routers randomly. The number
+   * of routers is defined by static singleton {@link E2ENetwork}.
+   *
+   * @return always false
+   */
+  public boolean execute() {
+    int nsize = Network.size();
+    int nrouters = E2ENetwork.getSize();
+    for (int i = 0; i < nsize; i++) {
+      Node node = Network.get(i);
+      RouterInfo t = (RouterInfo) node.getProtocol(pid);
+      int r = CommonState.r.nextInt(nrouters);
+      t.setRouter(r);
+    }
+
+    return false;
+  }
 }
-
-//---------------------------------------------------------------------
-//Methods
-//---------------------------------------------------------------------
-
-/**
- * Initializes given {@link RouterInfo} protocol layer by assigning
- * routers randomly.
- * The number of routers is defined by static singleton {@link E2ENetwork}.
-* @return always false
-*/
-public boolean execute()
-{
-	int nsize = Network.size();
-	int nrouters = E2ENetwork.getSize();
-	for (int i=0; i < nsize; i++) {
-		Node node = Network.get(i);
-		RouterInfo t = (RouterInfo) node.getProtocol(pid);
-		int r = CommonState.r.nextInt(nrouters);
-		t.setRouter(r);
-	}
-
-	return false;
-}
-
-}
-
