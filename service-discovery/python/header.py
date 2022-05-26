@@ -1,10 +1,10 @@
-features = {'size': {'type': 'benign', 'default': 25000, 'keyword': 'SIZE', 'vals':[5000, 25000, 50000]},
-            'topic': {'type': 'benign', 'default': 300, 'keyword': 'control.0traffic.maxtopicnum', 'vals':[50,300,600]},
-            'discv5regs': {'type': 'benign', 'default': 3, 'keyword': 'protocol.3kademlia.TICKET_TABLE_BUCKET_SIZE', 'vals':[3]},
+features = {'size': {'type': 'benign', 'default': 25000, 'keyword': 'SIZE', 'vals':[]},
+            'topic': {'type': 'benign', 'default': 300, 'keyword': ['control.0traffic.maxtopicnum', 'init.1uniqueNodeID.topicnum'], 'vals':[]},
+            'discv5regs': {'type': 'benign', 'default': 3, 'keyword': 'protocol.3kademlia.TICKET_TABLE_BUCKET_SIZE', 'vals':[]},
             'idDistribution': {'type': 'attack', 'default': 'uniform', 'defaultAttack': 'uniform', 'keyword': 'init.1uniqueNodeID.idDistribution', 'vals':['nonUniform','uniform']},
             'sybilSize': {'type': 'attack', 'default': 0, 'defaultAttack': 10, 'keyword': 'init.1uniqueNodeID.iPSize', 'vals':[1, 10, 100]},
-            'attackTopic': {'type': 'attack', 'default': 0, 'defaultAttack': 0, 'keyword': 'init.1uniqueNodeID.attackTopic', 'vals':[0,5,9]},
-            'percentEvil': {'type': 'attack', 'default': 0, 'defaultAttack': 1.0, 'keyword':'init.1uniqueNodeID.percentEvil', 'vals':[1.0, 2.0, 3.0]}}
+            'attackTopic': {'type': 'attack', 'default': 0, 'defaultAttack': 'ALL', 'keyword': 'init.1uniqueNodeID.attackTopic', 'vals':['ALL']},
+            'percentEvilTopic': {'type': 'attack', 'default': 0, 'defaultAttack': 0.2, 'keyword':'init.1uniqueNodeID.percentEvilTopic', 'vals':[0.1, 0.2, 0.3]}}
 
 benign_y_vals = ['totalMsg','registrationMsgs', 'lookupMsgs', 'discovered', 'wasDiscovered', 'regsPlaced', 'regsAccepted', 'lookupAskedNodes']
 

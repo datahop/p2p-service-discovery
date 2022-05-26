@@ -6,10 +6,17 @@ from python.header import *
 def change_key(file, key, val):
     #make sure we don't overwrite an original config file
     assert(file not in config_files.values())
-    regex = "\"s@^" + key + " .*@" + key + " " + str(val) + "@g\"" 
-    result = os.system("sed -i " + regex + " " + file)
-    #make sure the command succeeded
-    assert(result == 0)
+    if type(key) is list:
+        for k in key:
+            regex = "\"s@^" + k + " .*@" + k + " " + str(val) + "@g\"" 
+            result = os.system("sed -i " + regex + " " + file)
+            #make sure the command succeeded
+            assert(result == 0)
+    else:
+        regex = "\"s@^" + key + " .*@" + key + " " + str(val) + "@g\"" 
+        result = os.system("sed -i " + regex + " " + file)
+        #make sure the command succeeded
+        assert(result == 0)
 
 def run_sim(config_file):
     result = os.system("java -Xmx200000m -cp ./lib/djep-1.0.0.jar:lib/jep-2.3.0.jar:target/service-discovery-1.0-SNAPSHOT.jar:lib/gs-core-2.0.jar:lib/pherd-1.0.jar:lib/mbox2-1.0.jar:lib/gs-ui-swing-2.0.jar -ea peersim.Simulator " + config_file + "> /dev/null 2> /dev/null")
@@ -30,8 +37,6 @@ def set_params(config_file, out_dir, params):
         key = features[param]['keyword']
         value = params[param]
         change_key(config_file, key, value)
-
-
 
 def main() -> int:
     os.system('rm -rf ' + result_dir)
