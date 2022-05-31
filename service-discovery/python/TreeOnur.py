@@ -130,7 +130,7 @@ class TreeOnur:
                 score += current.getCounter() * pow(2, depth)
             else:
                 if self.root.getCounter() != 0:
-                    score += (current.getCounter()/self.root.getCounter()) *pow(2, depth-32)
+                    score += (current.getCounter()/self.root.getCounter()) *pow(2, depth-31)
             
             current.increment()
             octet = int(addr.split('.')[int(depth/8)])
