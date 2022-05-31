@@ -224,7 +224,7 @@ def plotPerNodeStats(OUTDIR, simulation_type, graphType = GraphType.violin):
             if(secondary_feature != feature):
                 df = df[df[secondary_feature] == defaults[secondary_feature]]
                 #for attack scenarios take into account uniquely results from nodes involved in the attacked topic
-                if(secondary_feature == "attackTopic"):
+                if(secondary_feature == "attackTopic" and defaults['attackTopic'] != 'ALL'):
                     df = df[df['nodeTopic'] == defaults['attackTopic']]
         
         
@@ -334,7 +334,7 @@ def plotPerNodeStats(OUTDIR, simulation_type, graphType = GraphType.violin):
                         #evenly space the x ticks
                         ax.set_xticks(x_vals)
                         ax.set_xticklabels(list(avg.index))
-            ax.set_xlabel(feature)
+            ax.set_xlabel(titlePrettyText[feature])
             ax.set_ylabel(titlePrettyText[graph])
             ax.spines['top'].set_visible(True)
             ax.spines['right'].set_visible(True)
