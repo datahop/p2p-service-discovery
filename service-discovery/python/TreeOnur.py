@@ -130,7 +130,7 @@ class TreeOnur:
                 score += current.getCounter() * pow(2, depth)
             else:
                 if self.root.getCounter() != 0:
-                    score += (current.getCounter()/self.root.getCounter()) *pow(2, depth-31)
+                    score += (current.getCounter()/self.root.getCounter()) *pow(2, depth-24)
             
             current.increment()
             octet = int(addr.split('.')[int(depth/8)])
@@ -167,7 +167,7 @@ class TreeOnur:
         if(max_score == 0):
             return 0
 
-        return score
+        return min(score, 1.0)
 
     # remove the nodes with zero count and propagate their lower bound
     # state upwards and store at first node with count > 0
