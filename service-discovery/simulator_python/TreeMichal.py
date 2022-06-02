@@ -13,7 +13,7 @@ class TreeMichalNode:
         return self.counter
 
     def getBound(self):
-        return self.bound
+        return 0
 
     def getTimestamp(self):
         return self.timestamp
@@ -43,24 +43,6 @@ class TreeMichal:
         self.currTime = 0 # current simulation time (used for lower bound calculation)
         self.max_depth = 32 # number of bits in an IP address
     
-    def getMinScore(self):
-        current = self.root
-        score = -self.root.getCounter()
-
-        for depth in range(0, self.max_depth+1):
-            score += current.getCounter()
-
-            #if one branch is over - return the score
-            if((current.zero is None) or (current.one is None)):
-                return score
-
-            #follow 
-            if(current.one.getCounter() < current.zero.getCounter()):
-                current = current.one
-            else:
-                current = current.zero
-        return score
-
     #get the score for an address without actually adding the addr
     def tryAdd(self, addr, time):
         self.currTime = time #update current time
@@ -68,13 +50,16 @@ class TreeMichal:
         effBound = 0
         balanced_score = self.root.getCounter()
         max_score = self.root.getCounter()*self.max_depth
-        score = -self.root.getCounter()
+        score = -1
 
         traversed = ''
         if self.root is not None:
             for depth in range(0, self.max_depth):
                 parent = current
-                score += current.getCounter()
+                expected = max(0, (self.root.getCounter() - 1)/(2**depth))
+                if(current.getCounter() > expected):
+                    score += 1
+
             
                 octet = int(addr.split('.')[int(depth/8)])
                 comparator = self.comparators[int(depth % 8)]
@@ -94,6 +79,10 @@ class TreeMichal:
             diff = self.currTime - current.getTimestamp()
             effBound = max(0, bound - diff)
    
+        expected = self.root.getCounter()/(2**depth)
+        if(current.getCounter() > expected):
+                score += 1
+
         print("TryAdd final score: ", score, " Balanced score: ", balanced_score, "Max score:", max_score)
         if max_score == 0:
             max_score = 1
@@ -103,50 +92,20 @@ class TreeMichal:
     # find the node corresponding to the  most similar (i.e., longest-prefix match) 
     # ip address in the Trie and update/store the lower-bound state at that node.
     def updateBound(self, addr, bound, currTime):
-        current = self.root
-        prev = None
-        traversed = ''
-        self.currTime = currTime
-        for depth in range(0, self.max_depth):
-            prev = current
-            octet = int(addr.split('.')[int(depth/8)])
-            comparator = self.comparators[int(depth % 8)]
-            if((octet & comparator) == 0):
-                current = current.zero
-                traversed += '0'
-            else:
-                current = current.one
-                traversed += '1'
-            
-            if (current is None):
-                current = prev
-                break
-        
-        diff = self.currTime - current.getTimestamp()
-        effBound = current.bound - diff
-        if effBound < bound:
-        # update lower-bound
-            current.bound = bound
-            current.timestamp = self.currTime
-            print('updating lower bound for ip: ', addr, ' with bound: ', bound, ' and time: ', currTime, ' current eff bound is ', effBound, ' at current node: ', traversed)
+        pass
 
     #add an IP to the tree
     def add(self, addr):
         print("add", addr)
         current = self.root
         #balanced_score = self.root.getCounter()
-        min_score = self.getMinScore()
         max_score = 32#self.root.getCounter() * self.max_depth
-        #don't take the root counter into account
-        #score = -self.root.getCounter()
-        score = 0
+        score = -1
         for depth in range(0, self.max_depth):
             parent = current
             expected = max(0, (self.root.getCounter() - 1)/(2**depth))
             if(current.getCounter() > expected):
                 score += 1
-                        #score += current.getCounter()
-            #print("depth", depth, "score after:", score, "counter:", current.getCounter(), "expected:", expected, "current.getCounter() - expected:", current.getCounter() - expected)
             
             current.increment()
             octet = int(addr.split('.')[int(depth/8)])
