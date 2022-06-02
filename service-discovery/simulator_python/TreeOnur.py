@@ -36,7 +36,6 @@ class TreeOnur:
     def __init__(self,  exp=False):
         self.comparators = [128, 64, 32, 16, 8, 4, 2, 1]
         self.root = TreeOnurNode()
-        self.max_score = 0
         self.exp = exp
         self.currTime = 0 # current simulation time (used for lower bound calculation)
     
@@ -46,8 +45,6 @@ class TreeOnur:
         current = self.root
         score = 0
         effBound = 0
-        max_score = 0
-        balanced_score = 0 
         traversed = ''
         if self.root is not None:
             for depth in range(0, 32):
@@ -55,7 +52,8 @@ class TreeOnur:
                 if(self.exp == True):
                     score += current.getCounter() * pow(2, depth)
                 else:
-                    score += (current.getCounter()/self.root.getCounter()) * pow(2, 32-depth)
+                    if self.root.getCounter() != 0:
+                        score += (current.getCounter()/self.root.getCounter()) * pow(2, depth-24)
             
                 octet = int(addr.split('.')[int(depth/8)])
                 comparator = self.comparators[int(depth % 8)]
@@ -74,20 +72,11 @@ class TreeOnur:
             print('Bound of current node: ', traversed, ' is ', bound) 
             diff = self.currTime - current.getTimestamp()
             effBound = max(0, bound - diff)
-            if(self.exp is True):
-                balanced_score = (self.root.getCounter()) * 32
-                max_score = -(self.root.getCounter()) * (1 - pow(2, 33))
-            else:
-                balanced_score = self.root.getCounter()
-                max_score = self.root.getCounter()*32
-                # FIXME: why deduct the root counter ?
-                score -= self.root.getCounter()
+            score = min(1.0, score)
     
-        print("TryAdd final score: ", score, " Balanced score: ", balanced_score, "Max score:", max_score)
-        if max_score == 0:
-            max_score = 1
+        print("TryAdd final score: ", score)
 
-        return (score/max_score, effBound)
+        return (score, effBound)
     
     # find the node corresponding to the  most similar (i.e., longest-prefix match) 
     # ip address in the Trie and update/store the lower-bound state at that node.
@@ -130,7 +119,7 @@ class TreeOnur:
                 score += current.getCounter() * pow(2, depth)
             else:
                 if self.root.getCounter() != 0:
-                    score += (current.getCounter()/self.root.getCounter()) *pow(2, depth-32)
+                    score += (current.getCounter()/self.root.getCounter()) *pow(2, depth-24)
             
             current.increment()
             octet = int(addr.split('.')[int(depth/8)])
@@ -154,20 +143,9 @@ class TreeOnur:
 
         #score += current.getCounter()
         current.increment()
-        balanced_score = 0
-        max_score = 0
-        if(self.exp == True):
-            balanced_score = (self.root.getCounter()) * 32
-            max_score = -(self.root.getCounter()) * (1 - pow(2, 33))
-        else:
-            balanced_score = self.root.getCounter()
-            max_score = self.root.getCounter()*32
-        print("Add final score: ", score, " Balanced score: ", balanced_score, "Max score:", max_score)#, "New max score:", self.max_score)
+        print("Add final score: ")
 
-        if(max_score == 0):
-            return 0
-
-        return score
+        return min(score, 1.0)
 
     # remove the nodes with zero count and propagate their lower bound
     # state upwards and store at first node with count > 0
