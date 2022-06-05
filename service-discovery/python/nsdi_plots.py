@@ -122,16 +122,19 @@ def createPerNodeStats(dir):
                     df['registrationMsgs'] = df[reg_cols].sum(axis=1)
                     look_cols = ['MSG_FIND', 'MSG_RESPONSE', 'MSG_TOPIC_QUERY', 'MSG_TOPIC_QUERY_REPLY']
                     df['lookupMsgs'] = df[look_cols].sum(axis=1)    
-                    msg_cols=['MSG_FIND', 'MSG_RESPONSE', 'MSG_TOPIC_QUERY', 'MSG_TOPIC_QUERY_REPLY','MSG_REGISTER', 'MSG_TICKET_REQUEST', 'MSG_TICKET_RESPONSE', 'MSG_REGISTER_RESPONSE']
-                    df['totalMsg'] = df[msg_cols].sum(axis=1)    
+                    #msg_cols=['MSG_FIND', 'MSG_RESPONSE', 'MSG_TOPIC_QUERY', 'MSG_TOPIC_QUERY_REPLY','MSG_REGISTER', 'MSG_TICKET_REQUEST', 'MSG_TICKET_RESPONSE', 'MSG_REGISTER_RESPONSE']
+                    #df['totalMsg'] = df[msg_cols].sum(axis=1)  
+                    df['totalMsg'] = df['lookupMsgs'] + (df['registrationMsgs'] / 4)
 
                 else:
                     reg_cols = ['MSG_REGISTER', 'MSG_TICKET_REQUEST', 'MSG_TICKET_RESPONSE', 'MSG_REGISTER_RESPONSE', 'MSG_FIND', 'MSG_RESPONSE']
                     df['registrationMsgs'] = df[reg_cols].sum(axis=1)
                     look_cols = ['MSG_TOPIC_QUERY', 'MSG_TOPIC_QUERY_REPLY']
                     df['lookupMsgs'] = df[look_cols].sum(axis=1) 
-                    msg_cols=['MSG_REGISTER', 'MSG_TICKET_REQUEST', 'MSG_TICKET_RESPONSE', 'MSG_REGISTER_RESPONSE', 'MSG_FIND', 'MSG_RESPONSE','MSG_TOPIC_QUERY', 'MSG_TOPIC_QUERY_REPLY']
-                    df['totalMsg'] = df[msg_cols].sum(axis=1)    
+                    #msg_cols=['MSG_REGISTER', 'MSG_TICKET_REQUEST', 'MSG_TICKET_RESPONSE', 'MSG_REGISTER_RESPONSE', 'MSG_FIND', 'MSG_RESPONSE','MSG_TOPIC_QUERY', 'MSG_TOPIC_QUERY_REPLY']
+                    #df['totalMsg'] = df[msg_cols].sum(axis=1)    
+                    df['totalMsg'] = df['lookupMsgs'] + (df['registrationMsgs'] / 4)
+
 
                 df_list.append(df)
                 df.to_csv(path + 'df.csv')
@@ -211,6 +214,8 @@ def plotPerNodeStats(OUTDIR, simulation_type, graphType = GraphType.violin):
             defaults[feature] = features[feature]['default']
 
     print("############# Features:", features)
+    print("############# Defaults:", defaults)
+
     #x-axis
     for feature in features:
         if(features[feature]['type'] != simulation_type):
@@ -222,12 +227,14 @@ def plotPerNodeStats(OUTDIR, simulation_type, graphType = GraphType.violin):
             if(features[secondary_feature]['type'] != simulation_type):
                 continue
             if(secondary_feature != feature):
+                print("Secondary Feature:",secondary_feature)
                 df = df[df[secondary_feature] == defaults[secondary_feature]]
                 #for attack scenarios take into account uniquely results from nodes involved in the attacked topic
-                if(secondary_feature == "attackTopic"):
-                    df = df[df['nodeTopic'] == defaults['attackTopic']]
+                ##if(secondary_feature == "attackTopic"):
+                df = df[df['nodeTopic'] == defaults['attackTopic']]
         
-        
+        print("Feature:",feature)
+
         #y-axis
         if simulation_type == 'benign':
             y_vals = benign_y_vals
@@ -334,7 +341,7 @@ def plotPerNodeStats(OUTDIR, simulation_type, graphType = GraphType.violin):
                         #evenly space the x ticks
                         ax.set_xticks(x_vals)
                         ax.set_xticklabels(list(avg.index))
-            ax.set_xlabel(feature)
+            ax.set_xlabel(titlePrettyText[feature])
             ax.set_ylabel(titlePrettyText[graph])
             ax.spines['top'].set_visible(True)
             ax.spines['right'].set_visible(True)
@@ -343,6 +350,11 @@ def plotPerNodeStats(OUTDIR, simulation_type, graphType = GraphType.violin):
             ax.legend(bbox_to_anchor=(0.5, 1.1), loc='upper center', ncol=4)
             fig.set_size_inches(9, 6.5)
 
+            try:
+ #               print(ticksPrettyText[feature])
+                ax.set_xticklabels(ticksPrettyText[feature])
+            except KeyError:
+                print("ticksPrettyText not found")
             #ax.set_title(titlePrettyText[graph])
             fig.tight_layout()
             fig.savefig(OUTDIR + '/' + graphType.name + "_" + feature + "_" + graph,format='eps')

@@ -18,8 +18,8 @@ OUTDIR_BASE = os.path.abspath(OUTDIR_BASE)
 
 #createPerLookupOperationStats(LOGDIR)
 #plotPerLookupOperation()
-for simulation_type in ['benign', 'attack']:
-#for simulation_type in ['attack']:
+#for simulation_type in ['benign', 'attack']:
+for simulation_type in ['attack']:
     INDIR = INDIR_BASE + "/" + simulation_type + "/"
     OUTDIR = OUTDIR_BASE + "/" + simulation_type + "/"
     
