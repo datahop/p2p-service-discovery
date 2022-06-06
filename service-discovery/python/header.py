@@ -27,33 +27,36 @@ features_attack = {}
 result_dir = './python_logs'
 
 
-titlePrettyText = {'registrationMsgs' : '#Registration Messages', 
+titlePrettyText = {'registrationMsgs' : '#Registration messages', 
               'totalMsg' : '#Total received messages',
-              'lookupMsgs': '#Lookup Messages', 
-              'discovered' : '#Discovered Peers', 
-              'wasDiscovered': '#Times Discovered by Others',
-              'lookupAskedNodes' : '#Contacted Nodes during Lookups', 
-              'percentageEclipsedLookups': 'Eclipsed Lookups', 
-              'percentageMaliciousDiscovered' : 'Percentage of Malicious Nodes Returned from Lookups', 
-              'regsPlaced': '#Registrations Placed',
-              'regsAccepted':'#Registrations Accepted',
-              'lookupAskedMaliciousNodes': '#lookups to malicious nodes',
-              'maliciousResultsByHonest': '#malicious results by honest nodes',
+              'lookupMsgs': '#Lookup messages', 
+              'discovered' : '#Discovered peers', 
+              'wasDiscovered': '#Times discovered by others',
+              'lookupAskedNodes' : '#Contacted nodes during lookups', 
+              'percentageEclipsedLookups': '%Eclipsed lookups', 
+              'percentageMaliciousDiscovered' : '%Malicious nodes returned from lookups', 
+              'regsPlaced': '#Registrations placed',
+              'regsAccepted':'#Registrations accepted',
+              'lookupAskedMaliciousNodes': '#Lookups to malicious nodes',
+              'maliciousResultsByHonest': '#Malicious results by honest nodes',
+              'percentEvilTopic' : 'Ratio of topic peers that are malicious',
+              'percentEvil' : '#Malicious nodes',         
+              'sybilSize' : '#IP addresses used by attackers',
+              'attackTopic' : 'Attacked topic',
+              'idDistribution' : 'Distribution of attacker IDs',
               'size': '#Nodes in the network',
               'topic': '#Topics in the network',
-              'idDistribution': 'Sybil nodes identifiers distribution',
-              'sybilSize': '#Different IP addresses used by Sybil nodes',
-              'attackTopic': 'Targeted topic in the attack',
-              'percentEvil': '#Sybil nodes'
+              'idDistribution': 'Sybil nodes identifiers distribution'
               }
 
-protocolPrettyText = {'dht':'DHT',
-                      'dhtTicket': 'DHT_Ticket',
-                      'discv5' : 'TBSD',
-                      'discv4' : 'Discv4'
+protocolPrettyText = {'dht':'dht',
+                      'dhtTicket': 'dhtTicket',
+                      'discv5' : 'TOPDISC',
+                      'discv4' : 'discv4'
                       }
 
-ticksPrettyText = {'percentEvil':['250','500','1000']}
+ticksPrettyText = {}
+#ticksPrettyText = {'percentEvil':['250','500','1000']}
 
 y_lims = {#'violin_size_discovered': 100,
           'violin_size_lookupMsgs': 500,

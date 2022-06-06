@@ -9,19 +9,29 @@ from scipy.stats import entropy
 import copy
 import random as rand
 import simpy
+import sys
 from copy import deepcopy
 from Tree import *
+from TreeMichal import *
+from TreeOnur import *
 
 class Table(metaclass=abc.ABCMeta):
-    def __init__(self, capacity, ad_lifetime, interval=1, seed=1):
+    def __init__(self, capacity, ad_lifetime, interval=1, seed=1, tree = 'default'):
         rand.seed(seed)
         self.capacity = capacity
         self.ad_lifetime = ad_lifetime
         self.interval = interval
-        
-
+    
         self.table = {}
-        self.tree = Tree()
+        if(tree == 'default'):
+            self.tree = Tree()
+        elif(tree == 'michal'):
+            self.tree = TreeMichal()
+        elif(tree == 'onur'):
+            self.tree = TreeOnur()
+        else:
+            print("Unknown tree type", tree)
+            sys.exit(-1)
         self.workload = {}
         self.env = simpy.Environment()
         self.ad_ids = 0
@@ -396,9 +406,9 @@ class SimpleTable(Table):
     
     
 class DiversityTable(Table):
-    def __init__(self, capacity, ad_lifetime, amplify = 1, occupancy_power = 10, ip_id_power = 0.1, topic_power = 10, base_multiplier = 10, seed=1):
+    def __init__(self, capacity, ad_lifetime, amplify = 1, occupancy_power = 10, ip_id_power = 0.1, topic_power = 10, base_multiplier = 10, seed=1, tree = 'default'):
         rand.seed(seed)
-        super().__init__(capacity, ad_lifetime)
+        super().__init__(capacity, ad_lifetime, tree=tree)
         #self.tree = Tree()
         self.ip_modifiers = {}
         self.id_modifiers = {}
@@ -443,8 +453,8 @@ class DiversityTable(Table):
                 self.ip_counter[ip] = {}
             self.ip_counter[ip]['wtime'] = wtime
             self.ip_counter[ip]['timestamp'] = self.env.now
-
-        assert bound >= boundGT, 'Trie-based lower-bound must NOT be smaller than ground truth value'
+        #FIXME enable after initial tests
+        #assert bound >= boundGT, 'Trie-based lower-bound must NOT be smaller than ground truth value'
         #bound = boundGT 
         return max(wtime, bound)
 

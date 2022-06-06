@@ -230,8 +230,10 @@ def plotPerNodeStats(OUTDIR, simulation_type, graphType = GraphType.violin):
                 print("Secondary Feature:",secondary_feature)
                 df = df[df[secondary_feature] == defaults[secondary_feature]]
                 #for attack scenarios take into account uniquely results from nodes involved in the attacked topic
-                ##if(secondary_feature == "attackTopic"):
-                df = df[df['nodeTopic'] == defaults['attackTopic']]
+
+                if(secondary_feature == "attackTopic" and defaults['attackTopic'] != 'ALL'):
+                    df = df[df['nodeTopic'] == defaults['attackTopic']]
+        
         
         print("Feature:",feature)
 
