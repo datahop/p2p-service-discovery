@@ -28,16 +28,15 @@ class TreeOnurNode:
         self.counter -= 1
         return self.counter
 
-#a structure to calculate diversity between 1 and many IP addresses in O(1)
-#score is a similarity metric between the IP being inserted and IPs already in the tree
-#1 - the IP is exactly the same (shared all the bits) as all the IPs already in the table
-#0 - the IP is completely different (doesn't share a single bit) from IPs already in the table
 class TreeOnur:	 
-    def __init__(self,  exp=False):
+    # Parameters:
+    # prefix_cutoff: an ip address i pays a very large penalty (in ip score) if there already exists in the table another ip address, whose length of common prefix with i equals prefix_cutoff or higher 
+    def __init__(self,  exp=False, prefix_cutoff=24):
         self.comparators = [128, 64, 32, 16, 8, 4, 2, 1]
         self.root = TreeOnurNode()
         self.exp = exp
         self.currTime = 0 # current simulation time (used for lower bound calculation)
+        self.prefix_cutoff = prefix_cutoff 
     
     #get the score for an address without actually adding the addr
     def tryAdd(self, addr, time):
@@ -53,7 +52,7 @@ class TreeOnur:
                     score += current.getCounter() * pow(2, depth)
                 else:
                     if self.root.getCounter() != 0:
-                        score += (current.getCounter()/self.root.getCounter()) * pow(2, depth-24)
+                        score += (current.getCounter()/self.root.getCounter()) * pow(2, depth - self.prefix_cutoff)
             
                 octet = int(addr.split('.')[int(depth/8)])
                 comparator = self.comparators[int(depth % 8)]
@@ -119,7 +118,7 @@ class TreeOnur:
                 score += current.getCounter() * pow(2, depth)
             else:
                 if self.root.getCounter() != 0:
-                    score += (current.getCounter()/self.root.getCounter()) *pow(2, depth-24)
+                    score += (current.getCounter()/self.root.getCounter()) *pow(2, depth - self.prefix_cutoff)
             
             current.increment()
             octet = int(addr.split('.')[int(depth/8)])
