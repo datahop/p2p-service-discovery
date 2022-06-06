@@ -2,38 +2,6 @@ from numpy import random
 import csv
 import random as rand
 
-def generate_regular(size = 100, zipf_distribution = 2, rate = 1.0, seed = 0.0, output_filename = None):
-    rand.seed(seed)
-    random.seed(seed)
-    if(output_filename == None):
-        output_filename = './workloads/regular_size' + str(size) + '_dist' + str(zipf_distribution) + '.csv'
-    #get ips/ids from ethereum repo
-    ip_file = open('./workloads/ips.txt', "r")
-    id_file = open('./workloads/ids.txt', "r")
-    rand.seed(seed)
-    topics = random.zipf(a=zipf_distribution, size=size)#for topics
-    t_next_req = 0.0 # time of next request
-    with open(output_filename, 'w') as output_file:
-        fieldnames = ['time', 'id', 'ip', 'topic', 'attack']
-        dict_writer = csv.DictWriter(output_file, fieldnames=fieldnames)
-        dict_writer.writeheader()
-        for i in range(0, size):
-            t_next_req += rand.expovariate(rate)
-            record = {}
-            ip = ip_file.readline().rstrip()
-            iD = id_file.readline().rstrip()
-            if(not ip or not iD):
-                print("Not enough IPs/IDs in the files")
-                exit(1)
-            #record['time'] = int(1000*t_next_req)
-            record['time'] = int(10*i)
-            record['id'] = iD
-            record['ip'] =ip
-            record['topic'] = 't' + str(topics[i])
-            record['attack'] = 0
-            #print(record)
-            dict_writer.writerow(record)
-    print("Generated regular workload in", str(output_filename))
 
 def generate_impatient(size = 100, zipf_distribution = 2, rate = 1.0, seed = 0.0, output_filename = None):
     rand.seed(seed)
@@ -73,144 +41,79 @@ def generate_impatient(size = 100, zipf_distribution = 2, rate = 1.0, seed = 0.0
             dict_writer.writerow(record)
     print("Generated regular workload in", str(output_filename))
 
-def generate_attack_topic(size = 100, zipf_distribution = 2, topic_to_attack = 't11', attacker_ip_num = 3, attacker_id_num=10, rate_normal = 1.0, rate_attack = 10.0, seed = 0.0, output_filename = None):
-    rand.seed(seed)
-    random.seed(seed)
-    if(output_filename == None):
-        output_filename = './workloads/attack_topic_size' + str(size) + '_dist' + str(zipf_distribution) + '.csv'
-    #get ips/ids from ethereum repo
-    ip_file = open('./workloads/ips.txt', "r")
-    id_file = open('./workloads/ids.txt', "r")
-    topics = random.zipf(a=zipf_distribution, size=size)#for topics
+# helper function to flip a bit written as a string/character
+def flip(b):
+    assert(b == '0' or b == '1')
+    if (b == '0'):
+        return '1'
+    return '0'
 
-    attacker_ips = []
-    for i in range(0, attacker_ip_num):
-        num = int(255/attacker_ip_num * i)
-        ip = str(num) + "." + str(num) + "."+ str(num) + "."+ str(num)
-        attacker_ips.append(ip)
-    
-    attacker_ids = []
-    for i in range(0, attacker_id_num):
-        attacker_ids.append(''.join([str(i)]*20))
-    print("attacker ips:", attacker_ips)
-    print("attacker ids:", attacker_ids)
-
-    t_next_normal_req = rand.expovariate(rate_normal)  # time of next normal request
-    t_next_attack_req = rand.expovariate(rate_attack) # time of next attack request
-    time = 0.0
-    attack = 0
-    with open(output_filename, 'w') as output_file:
-        fieldnames = ['time', 'id', 'ip', 'topic', 'attack']
-        dict_writer = csv.DictWriter(output_file, fieldnames=fieldnames)
-        dict_writer.writeheader()
-        for i in range(0, size):
-            if t_next_normal_req < t_next_attack_req:
-                attack = 0
-                time = t_next_normal_req
-            elif t_next_normal_req > t_next_attack_req:
-                attack = 1
-                time = t_next_attack_req
-
-            record = {}
-            if( attack == 0 ):
-                ip = ip_file.readline().rstrip()
-                iD = id_file.readline().rstrip()
-                if(not ip or not iD):
-                    print("Not enough IPs/IDs in the files")
-                    exit(1)
-                topic = 't' + str(topics[i])
-            else: # attack == 1
-                ip = attacker_ips[i % attacker_ip_num]
-                iD = attacker_ids[i % attacker_id_num]
-                topic = topic_to_attack
-
-            record['time'] = int(10*i)
-            record['id'] = iD
-            record['ip'] =ip
-            record['topic'] = topic
-            record['attack'] = attack
-            #print(record)
-            dict_writer.writerow(record)
+# generates a specified amount of IPs that will get the lowest possible score in the IP tree
+def generate_IPs(n):
+    ips = []
+    init_ip = list('1'*32)
+    for i in range(0, n):
+        for j in range(0, len(init_ip)):
+            if((i % (2**j)) == 0):
+                init_ip[j] = flip(init_ip[j])
         
-            if time == t_next_normal_req:
-                t_next_normal_req += rand.expovariate(rate_normal)
-            if time == t_next_attack_req:
-                t_next_attack_req += rand.expovariate(rate_attack)
+        ip_str = ''
+        for octet in range(0, 4):
+            offset = octet*8
+            octet_str = str(int(''.join(init_ip[offset:offset + 8]), 2))
+            ip_str  = ip_str + '.' + octet_str
+        #remove the first '.'
+        ips.append(ip_str[1:])
+    return ips
 
-    print("Generated regular workload in", str(output_filename))
 
+def generate_workload(honest = 20, malicious = 80, zipf_distribution = 2, attacker_ip_num = 3, attacker_id_num=10, attack_topic = 'None', seed = 0, output_filename = None):
+    size = honest + malicious
+    requests = []
 
-def generate_spam_topic(size = 100, zipf_distribution = 2, attacker_ip_num = 3, attacker_id_num=10, rate_normal = 1.0, rate_attack = 10.0, seed = 0.0, output_filename = None):
-    rand.seed(seed)
-    random.seed(seed)
     if(output_filename == None):
-        output_filename = './workloads/spam_topic_size' + str(size) + '_dist' + str(zipf_distribution) + '.csv'
+        output_filename = './workloads/regular_size' + str(size) + '_dist' + str(zipf_distribution) + '.csv'
+    random.seed(seed)
     #get ips/ids from ethereum repo
     ip_file = open('./workloads/ips.txt', "r")
     id_file = open('./workloads/ids.txt', "r")
-    topics = random.zipf(a=zipf_distribution, size=size)#for topics
+    topics = random.zipf(a=zipf_distribution, size=honest)#for topics
+    for i in range(0, honest):
+        ip = ip_file.readline().rstrip()
+        iD = id_file.readline().rstrip()
+        assert (ip and iD), "Not enough IPs/IDs in the Ethereum files"
+        topic = 't' + str(topics[i])
 
-    attacker_ips = []
-    for i in range(0, attacker_ip_num):
-        num = int(255/attacker_ip_num * i)
-        ip = str(num) + "." + str(num) + "."+ str(num) + "."+ str(num)
-        attacker_ips.append(ip)
-    
-    attacker_ids = []
-    for i in range(0, attacker_id_num):
-        attacker_ids.append(''.join([str(i)]*20))
-    print("attacker ips:", attacker_ips)
-    print("attacker ids:", attacker_ids)
-    
-    t_next_normal_req = rand.expovariate(rate_normal)  # time of next normal request
-    t_next_attack_req = rand.expovariate(rate_attack) # time of next attack request
-    time = 0.0
-    attack = 0
+        record = {}
+        record['time'] = 0
+        record['id'] = iD
+        record['ip'] =ip
+        record['topic'] = topic
+        record['attack'] = 0
+        requests.append(record)
 
+    malicious_ips = generate_IPs(attacker_ip_num)        
+    for i in range(0, malicious):
+        record = {}
+        record['time'] = 0
+        record['id'] = i % attacker_id_num
+        record['ip'] = malicious_ips[i%len(malicious_ips)]
+        if(attack_topic):
+            record['topic'] = attack_topic
+        else:
+            record['topic'] = 'm' + str(i)
+        record['attack'] = 1
+        requests.append(record)
+    
     with open(output_filename, 'w') as output_file:
         fieldnames = ['time', 'id', 'ip', 'topic', 'attack']
         dict_writer = csv.DictWriter(output_file, fieldnames=fieldnames)
         dict_writer.writeheader()
+        assert(size == len(requests))
         for i in range(0, size):
-            if t_next_normal_req < t_next_attack_req:
-                attack = 0
-                time = t_next_normal_req
-            elif t_next_normal_req > t_next_attack_req:
-                attack = 1
-                time = t_next_attack_req
-            record = {}
-            if( attack == 0 ): # normal traffic
-                ip = ip_file.readline().rstrip()
-                iD = id_file.readline().rstrip()
-                if(not ip or not iD):
-                    print("Not enough IPs/IDs in the files")
-                    exit(1)
-                topic = 't' + str(topics[i])
-            else: # attack traffic
-                ip = attacker_ips[i % attacker_ip_num]
-                iD = attacker_ids[i % attacker_id_num]
-                topic = 't' + str(100+i)
+            req = requests.pop(rand.randint(0, len(requests) - 1))
+            req['time'] = i*10
+            dict_writer.writerow(req)
 
-            record['time'] = int(10*i) 
-            record['id'] = iD
-            record['ip'] =ip
-            record['topic'] = topic
-            record['attack'] = attack
-            #print(record)
-            dict_writer.writerow(record)
-            if time == t_next_normal_req:
-                t_next_normal_req += rand.expovariate(rate_normal)
-            if time == t_next_attack_req:
-                t_next_attack_req += rand.expovariate(rate_attack)
-    print("Generated regular workload in", str(output_filename))
 
-#zipf_distribution = 2
-#size = 100
-
-#generate_attack_topic(size=1000, rate_attack=2.0)
-#generate_attack_topic(size=100, rate_attack=2.0)
-#generate_attack_topic(size=150, rate_attack=2.0)
-#generate_spam_topic(size=1000, rate_attack=2.0)
-#generate_regular(size = 100, zipf_distribution=zipf_distribution)
-#generate_regular(size = 10, zipf_distribution=zipf_distribution)
-#generate_regular(size = 3, zipf_distribution=zipf_distribution)
+generate_workload(honest=5, malicious=10, attack_topic = None, output_filename='test.csv')

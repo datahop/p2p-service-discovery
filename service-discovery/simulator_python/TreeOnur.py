@@ -31,7 +31,7 @@ class TreeOnurNode:
 class TreeOnur:	 
     # Parameters:
     # prefix_cutoff: an ip address i pays a very large penalty (in ip score) if there already exists in the table another ip address, whose length of common prefix with i equals prefix_cutoff or higher 
-    def __init__(self,  exp=False, prefix_cutoff=24):
+    def __init__(self,  exp=False, prefix_cutoff=31):
         self.comparators = [128, 64, 32, 16, 8, 4, 2, 1]
         self.root = TreeOnurNode()
         self.exp = exp

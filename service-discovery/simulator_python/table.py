@@ -454,7 +454,7 @@ class DiversityTable(Table):
             self.ip_counter[ip]['wtime'] = wtime
             self.ip_counter[ip]['timestamp'] = self.env.now
         #FIXME enable after initial tests
-        #assert bound >= boundGT, 'Trie-based lower-bound must NOT be smaller than ground truth value'
+        assert bound >= boundGT, 'Trie-based lower-bound must NOT be smaller than ground truth value'
         #bound = boundGT 
         return max(wtime, bound)
 
@@ -477,6 +477,7 @@ class DiversityTable(Table):
             return 0
     
     def get_id_modifier(self, iD, table):
+        #return 0
         #print("Get ID Modifier", self.id_counter)
         if(iD in self.id_counter):
             counter = self.id_counter[iD]['counter']
@@ -532,9 +533,9 @@ class DiversityTable(Table):
         missing_time = max(0, needed_time - waited_time)
 
 
-        self.ip_modifiers[self.env.now] = (self.env.now, ip_modifier, req['attack'])
-        self.id_modifiers[self.env.now] = (self.env.now, id_modifier, req['attack'])
-        self.topic_modifiers[self.env.now] = (self.env.now, topic_modifier, req['attack'])
+        self.ip_modifiers[self.env.now] = (self.env.now, ip_modifier/self.get_basetime(table), req['attack'])
+        self.id_modifiers[self.env.now] = (self.env.now, id_modifier/self.get_basetime(table), req['attack'])
+        self.topic_modifiers[self.env.now] = (self.env.now, topic_modifier/self.get_basetime(table), req['attack'])
         self.base_modifiers[self.env.now] = (self.env.now, base_modifier, req['attack'])
         
         #if(req['attack'] == 0):
