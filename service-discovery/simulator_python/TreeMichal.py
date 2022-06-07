@@ -43,52 +43,7 @@ class TreeMichal:
         self.currTime = 0 # current simulation time (used for lower bound calculation)
         self.max_depth = 32 # number of bits in an IP address
     
-    #get the score for an address without actually adding the addr
-    def tryAdd(self, addr, time):
-        self.currTime = time #update current time
-        current = self.root
-        effBound = 0
-        balanced_score = self.root.getCounter()
-        max_score = self.root.getCounter()*self.max_depth
-        score = -1
-
-        traversed = ''
-        if self.root is not None:
-            for depth in range(0, self.max_depth):
-                parent = current
-                expected = max(0, (self.root.getCounter() - 1)/(2**depth))
-                if(current.getCounter() > expected):
-                    score += 1
-
-            
-                octet = int(addr.split('.')[int(depth/8)])
-                comparator = self.comparators[int(depth % 8)]
-                if((octet & comparator) == 0):
-                    current = current.zero
-                    traversed += '0'
-                else:
-                    current = current.one
-                    traversed += '1'
-            
-                if (current is None):
-                    current = parent
-                    break
-
-            bound = current.getBound()
-            print('Bound of current node: ', traversed, ' is ', bound) 
-            diff = self.currTime - current.getTimestamp()
-            effBound = max(0, bound - diff)
    
-        expected = self.root.getCounter()/(2**depth)
-        if(current.getCounter() > expected):
-                score += 1
-
-        print("TryAdd final score: ", score, " Balanced score: ", balanced_score, "Max score:", max_score)
-        if max_score == 0:
-            max_score = 1
-
-        return (score/max_score, effBound)
-    
     # find the node corresponding to the  most similar (i.e., longest-prefix match) 
     # ip address in the Trie and update/store the lower-bound state at that node.
     def updateBound(self, addr, bound, currTime):
@@ -120,11 +75,12 @@ class TreeMichal:
             print('updating lower bound for ip: ', addr, ' with bound: ', bound, ' and time: ', currTime, ' current eff bound is ', effBound, ' at current node: ', traversed)
 
     #add an IP to the tree
-    def add(self, addr):
-        print("add", addr)
+    def add(self, addr, time = 0, modifyTree = True):
+        if(not modifyTree):
+            self.currTime = time
         current = self.root
-        #balanced_score = self.root.getCounter()
-        max_score = 32#self.root.getCounter() * self.max_depth
+        effBound = 0
+        max_score = 32
         score = -1
         for depth in range(0, self.max_depth):
             parent = current
@@ -132,7 +88,9 @@ class TreeMichal:
             if(current.getCounter() > expected):
                 score += 1
             
-            current.increment()
+            if(modifyTree):
+                current.increment()
+
             octet = int(addr.split('.')[int(depth/8)])
             comparator = self.comparators[int(depth % 8)]
             if((octet & comparator) == 0):
@@ -152,11 +110,17 @@ class TreeMichal:
                     current.timestamp = parent.timestamp
                 parent.one = current
 
+        bound = current.getBound()
+        diff = self.currTime - current.getTimestamp()
+        effBound = max(0, bound - diff)
+
         #score += current.getCounter()
         expected = self.root.getCounter()/(2**depth)
         if(current.getCounter() > expected):
                 score += 1
-        current.increment()
+        
+        if(modifyTree):
+            current.increment()
 
         #assert(score >= min_score)
         #assert(score <= max_score)
@@ -165,7 +129,7 @@ class TreeMichal:
         if(max_score == 0):
             return 0
         #print("score:", score, "max_score:", max_score)
-        return score/max_score
+        return (score/max_score, effBound)
 
     # remove the nodes with zero count and propagate their lower bound
     # state upwards and store at first node with count > 0

@@ -438,7 +438,9 @@ class DiversityTable(Table):
 
     def get_ip_modifier(self, ip, table):
         #print("Get IP Modifier", self.ip_counter)
-        modifier, bound = self.tree.tryAdd(ip, self.env.now)
+        result = self.tree.add(ip, time = self.env.now, modifyTree=False)
+        print("Result:", result)
+        modifier, bound = result
 
         boundGT = 0 # ground truth for bound using per-ip state
         if(ip in self.ip_counter):

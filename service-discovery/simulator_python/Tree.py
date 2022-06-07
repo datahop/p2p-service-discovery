@@ -40,56 +40,7 @@ class Tree:
         self.exp = exp
         self.currTime = 0 # current simulation time (used for lower bound calculation)
     
-    #get the score for an address without actually adding the addr
-    def tryAdd(self, addr, time):
-        self.currTime = time #update current time
-        current = self.root
-        score = 0
-        effBound = 0
-        max_score = 0
-        balanced_score = 0 
-        traversed = ''
-        if self.root is not None:
-            for depth in range(0, 32):
-                parent = current
-                if(self.exp == True):
-                    score += current.getCounter() * pow(2, depth)
-                else:
-                    score += current.getCounter()
-            
-                octet = int(addr.split('.')[int(depth/8)])
-                comparator = self.comparators[int(depth % 8)]
-                if((octet & comparator) == 0):
-                    current = current.zero
-                    traversed += '0'
-                else:
-                    current = current.one
-                    traversed += '1'
-            
-                if (current is None):
-                    current = parent
-                    break
-
-            bound = current.getBound()
-            print('Bound of current node: ', traversed, ' is ', bound) 
-            diff = self.currTime - current.getTimestamp()
-            effBound = max(0, bound - diff)
-            if(self.exp is True):
-                balanced_score = (self.root.getCounter()) * 32
-                max_score = -(self.root.getCounter()) * (1 - pow(2, 33))
-            else:
-                balanced_score = self.root.getCounter()
-                max_score = self.root.getCounter()*32
-                # FIXME: why deduct the root counter ?
-                score -= self.root.getCounter()
-    
-        print("TryAdd final score: ", score, " Balanced score: ", balanced_score, "Max score:", max_score)
-        if max_score == 0:
-            max_score = 1
-
-        return (score/max_score, effBound)
-    
-    # find the node corresponding to the  most similar (i.e., longest-prefix match) 
+# find the node corresponding to the  most similar (i.e., longest-prefix match) 
     # ip address in the Trie and update/store the lower-bound state at that node.
     def updateBound(self, addr, bound, currTime):
         current = self.root
@@ -119,19 +70,24 @@ class Tree:
             current.timestamp = self.currTime
             print('updating lower bound for ip: ', addr, ' with bound: ', bound, ' and time: ', currTime, ' current eff bound is ', effBound, ' at current node: ', traversed)
 
+
+    
     #add an IP to the tree
-    def add(self, addr):
+    def add(self, addr, time = 0, modifyTree = True):
+        if(not modifyTree):
+            self.currTime = time #update current time
         current = self.root
-        max_bound = 0
         score = 0
+        effBound = 0
+        max_score = 0
+        balanced_score = 0
+        traversed = ''
         for depth in range(0, 32):
             parent = current
-            if(self.exp == True):
-                score += current.getCounter() * pow(2, depth)
-            else:
-                score += current.getCounter()
+            score += current.getCounter()
             
-            current.increment()
+            if(modifyTree):
+                current.increment()
             octet = int(addr.split('.')[int(depth/8)])
             comparator = self.comparators[int(depth % 8)]
             if((octet & comparator) == 0):
@@ -142,6 +98,7 @@ class Tree:
                     current.bound = parent.bound
                     current.timestamp = parent.timestamp
                 parent.zero = current
+                traversed = '0'
             else:
                 current = current.one
                 if (current is None):
@@ -150,23 +107,25 @@ class Tree:
                     current.bound = parent.bound
                     current.timestamp = parent.timestamp
                 parent.one = current
+                traversed = '1'
 
+        bound = current.getBound()
+        print('Bound of current node: ', traversed, ' is ', bound) 
+        diff = self.currTime - current.getTimestamp()
+        effBound = max(0, bound - diff)
         score += current.getCounter()
-        current.increment()
-        balanced_score = 0
-        max_score = 0
-        if(self.exp == True):
-            balanced_score = (self.root.getCounter()) * 32
-            max_score = -(self.root.getCounter()) * (1 - pow(2, 33))
-        else:
-            balanced_score = self.root.getCounter()
-            max_score = self.root.getCounter()*32
+
+        if(modifyTree):
+            current.increment()
+        
+        balanced_score = self.root.getCounter()
+        max_score = self.root.getCounter()*32
         print("Add final score: ", score, " Balanced score: ", balanced_score, "Max score:", max_score)#, "New max score:", self.max_score)
 
-        if(max_score == 0):
-            return 0
+        if max_score == 0:
+            max_score = 1
 
-        return score/max_score
+        return (score/max_score, effBound)
 
     # remove the nodes with zero count and propagate their lower bound
     # state upwards and store at first node with count > 0

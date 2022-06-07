@@ -38,45 +38,6 @@ class TreeOnur:
         self.currTime = 0 # current simulation time (used for lower bound calculation)
         self.prefix_cutoff = prefix_cutoff 
     
-    #get the score for an address without actually adding the addr
-    def tryAdd(self, addr, time):
-        self.currTime = time #update current time
-        current = self.root
-        score = 0
-        effBound = 0
-        traversed = ''
-        if self.root is not None:
-            for depth in range(0, 32):
-                parent = current
-                if(self.exp == True):
-                    score += current.getCounter() * pow(2, depth)
-                else:
-                    if self.root.getCounter() != 0:
-                        score += (current.getCounter()/self.root.getCounter()) * pow(2, depth - self.prefix_cutoff)
-            
-                octet = int(addr.split('.')[int(depth/8)])
-                comparator = self.comparators[int(depth % 8)]
-                if((octet & comparator) == 0):
-                    current = current.zero
-                    traversed += '0'
-                else:
-                    current = current.one
-                    traversed += '1'
-            
-                if (current is None):
-                    current = parent
-                    break
-
-            bound = current.getBound()
-            print('Bound of current node: ', traversed, ' is ', bound) 
-            diff = self.currTime - current.getTimestamp()
-            effBound = max(0, bound - diff)
-            score = min(1.0, score)
-    
-        print("TryAdd final score: ", score)
-
-        return (score, effBound)
-    
     # find the node corresponding to the  most similar (i.e., longest-prefix match) 
     # ip address in the Trie and update/store the lower-bound state at that node.
     def updateBound(self, addr, bound, currTime):
@@ -108,9 +69,13 @@ class TreeOnur:
             print('updating lower bound for ip: ', addr, ' with bound: ', bound, ' and time: ', currTime, ' current eff bound is ', effBound, ' at current node: ', traversed)
 
     #add an IP to the tree
-    def add(self, addr):
+    def add(self, addr, time = 0, modifyTree = True):
+        if(not modifyTree):
+            self.currTime = time #update current time
+
         current = self.root
-        max_bound = 0
+        effBound = 0
+        traversed = ''
         score = 0
         for depth in range(0, 32):
             parent = current
@@ -120,11 +85,14 @@ class TreeOnur:
                 if self.root.getCounter() != 0:
                     score += (current.getCounter()/self.root.getCounter()) *pow(2, depth - self.prefix_cutoff)
             
-            current.increment()
+            if(modifyTree):
+                current.increment()
+
             octet = int(addr.split('.')[int(depth/8)])
             comparator = self.comparators[int(depth % 8)]
             if((octet & comparator) == 0):
                 current = current.zero
+                traversed += '0'
                 if (current is None):
                     current = TreeOnurNode()
                     # propage lower-bound state to new child
@@ -133,18 +101,25 @@ class TreeOnur:
                 parent.zero = current
             else:
                 current = current.one
+                traversed += '0'
                 if (current is None):
                     current = TreeOnurNode()
                     # propage lower-bound state to new child
                     current.bound = parent.bound
                     current.timestamp = parent.timestamp
                 parent.one = current
+            
+            bound = current.getBound()
+            print('Bound of current node: ', traversed, ' is ', bound) 
+            diff = self.currTime - current.getTimestamp()
+            effBound = max(0, bound - diff)
 
         #score += current.getCounter()
-        current.increment()
+        if(modifyTree):
+            current.increment()
         print("Add final score: ")
 
-        return min(score, 1.0)
+        return score, effBound
 
     # remove the nodes with zero count and propagate their lower bound
     # state upwards and store at first node with count > 0
