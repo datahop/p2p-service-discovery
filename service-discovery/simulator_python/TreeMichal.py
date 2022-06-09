@@ -81,12 +81,15 @@ class TreeMichal:
         current = self.root
         effBound = 0
         max_score = 32
-        score = -1
+        score = 0
+        rootCounter = self.root.getCounter()
         for depth in range(0, self.max_depth):
             parent = current
-            expected = max(0, (self.root.getCounter() - 1)/(2**depth))
+            expected = rootCounter/(2**depth)
+            #print("depth:", depth, "counter:", current.getCounter(), "expected:", expected, "root counter:", rootCounter, "2^depth:", 2**depth)
             if(current.getCounter() > expected):
                 score += 1
+                #print("adding penalty point")
             
             if(modifyTree):
                 current.increment()
@@ -115,9 +118,11 @@ class TreeMichal:
         effBound = max(0, bound - diff)
 
         #score += current.getCounter()
-        expected = self.root.getCounter()/(2**depth)
+        expected = rootCounter/(2**self.max_depth)
+        #print("depth:", self.max_depth,  "counter:", current.getCounter(), "expected:", expected, "rootCounter:", rootCounter, "2^depth:", 2**self.max_depth)
         if(current.getCounter() > expected):
                 score += 1
+                #print("adding penalty point")
         
         if(modifyTree):
             current.increment()

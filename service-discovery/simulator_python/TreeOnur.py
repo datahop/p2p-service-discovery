@@ -31,10 +31,9 @@ class TreeOnurNode:
 class TreeOnur:	 
     # Parameters:
     # prefix_cutoff: an ip address i pays a very large penalty (in ip score) if there already exists in the table another ip address, whose length of common prefix with i equals prefix_cutoff or higher 
-    def __init__(self,  exp=False, prefix_cutoff=31):
+    def __init__(self, prefix_cutoff=31):
         self.comparators = [128, 64, 32, 16, 8, 4, 2, 1]
         self.root = TreeOnurNode()
-        self.exp = exp
         self.currTime = 0 # current simulation time (used for lower bound calculation)
         self.prefix_cutoff = prefix_cutoff 
     
@@ -79,11 +78,8 @@ class TreeOnur:
         score = 0
         for depth in range(0, 32):
             parent = current
-            if(self.exp == True):
-                score += current.getCounter() * pow(2, depth)
-            else:
-                if self.root.getCounter() != 0:
-                    score += (current.getCounter()/self.root.getCounter()) *pow(2, depth - self.prefix_cutoff)
+            if self.root.getCounter() != 0:
+                score += (current.getCounter()/self.root.getCounter()) *pow(2, depth - self.prefix_cutoff)
             
             if(modifyTree):
                 current.increment()
@@ -110,14 +106,14 @@ class TreeOnur:
                 parent.one = current
             
             bound = current.getBound()
-            print('Bound of current node: ', traversed, ' is ', bound) 
+            #print('Bound of current node: ', traversed, ' is ', bound) 
             diff = self.currTime - current.getTimestamp()
             effBound = max(0, bound - diff)
 
         #score += current.getCounter()
         if(modifyTree):
             current.increment()
-        print("Add final score: ")
+        #print("Add final score: ")
 
         return score, effBound
 

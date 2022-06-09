@@ -110,7 +110,7 @@ class Tree:
                 traversed = '1'
 
         bound = current.getBound()
-        print('Bound of current node: ', traversed, ' is ', bound) 
+        #print('Bound of current node: ', traversed, ' is ', bound) 
         diff = self.currTime - current.getTimestamp()
         effBound = max(0, bound - diff)
         score += current.getCounter()
@@ -120,7 +120,7 @@ class Tree:
         
         balanced_score = self.root.getCounter()
         max_score = self.root.getCounter()*32
-        print("Add final score: ", score, " Balanced score: ", balanced_score, "Max score:", max_score)#, "New max score:", self.max_score)
+        #print("Add final score: ", score, " Balanced score: ", balanced_score, "Max score:", max_score)#, "New max score:", self.max_score)
 
         if max_score == 0:
             max_score = 1
