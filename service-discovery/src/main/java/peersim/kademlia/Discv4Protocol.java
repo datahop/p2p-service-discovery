@@ -128,17 +128,27 @@ public class Discv4Protocol extends KademliaProtocol implements Cleanable {
       lop.increaseReturned(m.src.getId());
       String topicString = lop.getTopic().getTopic();
       lop.addAskedNode(m.src.getId());
+    
+      if (m.src.is_evil) 
+        lop.increaseMaliciousQueries();
 
       if (!lop.finished) lop.increaseUsed(m.src.getId());
 
+      int numEvilReturned = 0;
+      int numPeersNotAskedBefore = 0;
       for (BigInteger returnedPeerId : neighbours) {
         // peers shouldn't return me in their response
         assert (!returnedPeerId.equals(this.node.getId()));
         // if(returnedPeerId.equals(this.node.getId()))continue;
         KademliaNode returnedPeer =
             Util.nodeIdtoNode(returnedPeerId).getKademliaProtocol().getNode();
+
         // don't do anything if we already checked the node
         if (!lop.nodeAlreadyAsked(returnedPeerId)) {
+          numPeersNotAskedBefore++;
+          // Count number of evil peers in the response if returned by honest node
+          if (!m.src.is_evil && returnedPeer.is_evil)
+            numEvilReturned++;
           // simulate sending a lookup
           Message request = new Message(Message.MSG_TOPIC_QUERY);
           request.operationId = lop.operationId;
@@ -182,6 +192,8 @@ public class Discv4Protocol extends KademliaProtocol implements Cleanable {
           return;
         }
       }
+      if(numEvilReturned > 0 && (numPeersNotAskedBefore == numEvilReturned))
+        lop.increaseMalRespFromHonest();
     }
 
     op.increaseReturned(m.src.getId());
