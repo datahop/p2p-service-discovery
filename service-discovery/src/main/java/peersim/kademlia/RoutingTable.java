@@ -21,7 +21,7 @@ public class RoutingTable implements Cloneable {
   protected BigInteger nodeId = null;
 
   // k-buckets
-  protected KBucket k_buckets[];
+  public KBucket k_buckets[];
 
   protected int nBuckets, k, maxReplacements;
 
@@ -157,7 +157,21 @@ public class RoutingTable implements Cloneable {
    * @return String
    */
   public String toString() {
-    return "";
+
+    String table = "";
+    for (int i = 0; i < k_buckets.length; i++) {
+      for (BigInteger id : k_buckets[i].neighbours)
+        table +=
+            "Bucket:"
+                + i
+                + " Node:"
+                + id
+                + " ip:"
+                + Util.nodeIdtoNode(id).getKademliaProtocol().getNode().getAddr()
+                + "\n";
+    }
+    if (table.equals("")) table = "Routing table empty";
+    return table;
   }
 
   /** Check nodes and replace buckets with valid nodes from replacement list */

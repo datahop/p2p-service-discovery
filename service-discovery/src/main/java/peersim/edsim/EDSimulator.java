@@ -328,6 +328,33 @@ public class EDSimulator {
     }
   }
 
+  /** Runs an experiment, resetting everything except the random seed. */
+  public static void inits() {
+    // Reading parameter
+    if (Configuration.contains(PAR_PQ)) heap = (PriorityQ) Configuration.getInstance(PAR_PQ);
+    else heap = new Heap();
+    endtime = Configuration.getLong(PAR_ENDTIME);
+    if (CommonState.getEndTime() < 0) // not initialized yet
+    CommonState.setEndTime(endtime);
+    if (heap.maxTime() < endtime)
+      throw new IllegalParameterException(
+          PAR_ENDTIME,
+          "End time is too large: configured event queue only" + " supports " + heap.maxTime());
+    logtime = Configuration.getLong(PAR_LOGTIME, Long.MAX_VALUE);
+
+    // initialization
+    System.err.println("EDSimulator: resetting");
+    CommonState.setPhase(CommonState.PHASE_UNKNOWN);
+    CommonState.setTime(0); // needed here
+    controls = null;
+    ctrlSchedules = null;
+    nextlog = 0;
+    Network.reset();
+    System.err.println("EDSimulator: running initializers");
+    runInitializers();
+    scheduleControls();
+  }
+
   // ---------------------------------------------------------------------
 
   /**

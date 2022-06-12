@@ -112,8 +112,8 @@ public class CustomDistribution implements peersim.core.Control {
         : "Either percentEvilTotal or percentEvilTopic must be 0.0 - they can't be used at the same time";
 
     if (percentEvilTotal > 0.0) {
-        assert (attackTopicNo != -1)
-        :  "An attack topic must be set of percentEvilTotal is greater than 0.0";
+      assert (attackTopicNo != -1)
+          : "An attack topic must be set of percentEvilTotal is greater than 0.0";
     }
   }
 
@@ -218,11 +218,11 @@ public class CustomDistribution implements peersim.core.Control {
 
       if (percentEvilTopic > 0) {
         numEvilNodes = 0;
-        numEvilNodes += calculateEvil(attack_topic, topicNum, exp, networkSizeBefore) * percentEvilTopic;
+        numEvilNodes +=
+            calculateEvil(attack_topic, topicNum, exp, networkSizeBefore) * percentEvilTopic;
       }
 
-      System.out.println(
-          "Number of evil nodes for topic:" + attack_topic + " is: " + numEvilNodes);
+      System.out.println("Number of evil nodes for topic:" + attack_topic + " is: " + numEvilNodes);
       for (int i = 0; i < numEvilNodes; i++) {
 
         // Add Node

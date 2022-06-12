@@ -585,9 +585,9 @@ public class Discv5TicketProtocol extends Discv5Protocol {
     lop.addAskedNode(m.src.getId());
     if (!lop.finished) lop.increaseUsed(m.src.getId());
 
-    for (SearchTable st : searchTables.values()) {
+    /*for (SearchTable st : searchTables.values()) {
       st.addNeighbour(neighbours);
-    }
+    }*/
 
     for (BigInteger neighbour : neighbours) {
       routingTable.addNeighbour(neighbour);

@@ -150,6 +150,10 @@ public class KademliaProtocol implements Cloneable, EDProtocol {
     this.targetTopic = t;
   }
 
+  public RoutingTable getRoutingTable() {
+    return this.routingTable;
+  }
+
   /**
    * Perform the required operation upon receiving a message in response to a ROUTE message.<br>
    * Update the find operation record with the closest set of neighbour received. Then, send as many
