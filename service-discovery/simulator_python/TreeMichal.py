@@ -134,6 +134,7 @@ class TreeMichal:
         if(max_score == 0):
             return 0
         #print("score:", score, "max_score:", max_score)
+        assert (0 <= score/max_score <= 1), "score must be between 0 and 1"
         return (score/max_score, effBound)
 
     # remove the nodes with zero count and propagate their lower bound

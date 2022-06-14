@@ -114,7 +114,7 @@ class TreeOnur:
         if(modifyTree):
             current.increment()
         #print("Add final score: ")
-
+        assert (0 <= score <= 1), "score must be between 0 and 1"
         return score, effBound
 
     # remove the nodes with zero count and propagate their lower bound
