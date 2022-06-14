@@ -31,8 +31,9 @@ class GraphType(Enum):
 
 #csv.field_size_limit(sys.maxsize)
 
+
 def human_format(num):
-    num = float('{:.3g}'.format(num))
+    num = float('{:.1f}'.format(num))
     magnitude = 0
     while abs(num) >= 1000:
         magnitude += 1
@@ -257,6 +258,8 @@ def plotPerNodeStats(OUTDIR, simulation_type, graphType = GraphType.violin):
             ax.spines['right'].set_visible(False)
             ax.spines['top'].set_visible(False)
             if(graphType == GraphType.violin):
+                df = df[df['isMalicious'] == 0]
+               # print(df[graph][df['protocol']=='discv4'])
                 violin = sns.violinplot(ax = ax,
                                 data = df,
                                 x = feature,
@@ -296,6 +299,24 @@ def plotPerNodeStats(OUTDIR, simulation_type, graphType = GraphType.violin):
                             if(max_val > y_lim):
                                 violin.annotate("max:" + human_format(max_val), xy = (protocol_xpos[protocol]+i, 0.7*y_lim), horizontalalignment = 'center', color='red', rotation=90)
                             i += 1
+                if graph == 'percentageMaliciousDiscovered':
+
+                    #indicate the maximum values                    
+                    groups = df.groupby('protocol')
+                    protocol_xpos = {'discv5' : -0.30,
+                                 'dht' : -0.10,
+                                 'discv4'    : 0.10,
+                                 'dhtTicket': 0.30
+                                }
+                    ax.set_ylim(-0.06, 1.06)
+                    
+                    for protocol, group in groups:
+                        i = 0
+                        for x_val in features[feature]['vals']:
+                            print(feature,x_val,protocol)
+                            print(df['eclipsedLookupOperations'][df['protocol'] == protocol][df[feature] == x_val][df['isMalicious'] == 0].mean())
+                            violin.annotate(human_format(df['eclipsedLookupOperations'][df['protocol'] == protocol][df[feature] == x_val][df['isMalicious'] == 0].mean()*100)+"%", xy = (protocol_xpos[protocol]+i, 1.01), horizontalalignment = 'center', color='red',fontsize=11.5)
+                            i +=1
 
 
                     
@@ -359,7 +380,7 @@ def plotPerNodeStats(OUTDIR, simulation_type, graphType = GraphType.violin):
                 print("ticksPrettyText not found")
             #ax.set_title(titlePrettyText[graph])
             fig.tight_layout()
-            fig.savefig(OUTDIR + '/' + graphType.name + "_" + feature + "_" + graph,format='eps')
+            fig.savefig(OUTDIR + '/' + graphType.name + "_" + feature + "_" + graph+"_t"+str(defaults['attackTopic'])+".eps",format='eps')
 
             #quit()
 
