@@ -258,27 +258,43 @@ def plotPerNodeStats(OUTDIR, simulation_type, graphType = GraphType.violin):
             ax.spines['right'].set_visible(False)
             ax.spines['top'].set_visible(False)
             if(graphType == GraphType.violin):
-                df = df[df['isMalicious'] == 0]
-               # print(df[graph][df['protocol']=='discv4'])
-                violin = sns.violinplot(ax = ax,
-                                data = df,
+                if graph == 'regsPlaced':
+                  #  print(df)
+                    df1 = df[df['protocol'] == 'TOPDISC']
+                    violin = sns.violinplot(ax = ax,
+                                data = df1,
                                 x = feature,
                                 y = graph,
-                                hue = 'protocol',
+                                hue = 'isMalicious',
                                 inner=None,#"point",  # Representation of the datapoints in the violin interior.
-                                split = False, 
+                                split = True, 
                                 scale = 'width', #make the width of each violin equal (by default it's the area)
                                 cut = 0, #cut = 0 limits the violin range within the range of the observed data 
                                 palette='colorblind'
                                 ) 
                 
+                else :
+                    df2 = df[df['isMalicious'] == 0]
+               # print(df[graph][df['protocol']=='discv4'])
+                    violin = sns.violinplot(ax = ax,
+                                    data = df2,
+                                    x = feature,
+                                    y = graph,
+                                    hue = 'protocol',
+                                    inner=None,#"point",  # Representation of the datapoints in the violin interior.
+                                    split = False, 
+                                    scale = 'width', #make the width of each violin equal (by default it's the area)
+                                    cut = 0, #cut = 0 limits the violin range within the range of the observed data 
+                                    palette='colorblind'
+                                    ) 
+                    
                 #the below set the y_lim from header.py to make graphs more readible
                 #it also prints a max value as an annotation is its above the set y_lim
                 lim_key = graphType.name + "_" + feature + "_" + graph
-                protocol_xpos = {'discv5' : -0.35,
-                                 'dht' : -0.15,
-                                 'discv4'    : 0.15,
-                                 'dhtTicket': 0.35
+                protocol_xpos = {'TOPDISC' : -0.35,
+                                 'DHT' : -0.15,
+                                 'DISCv4'    : 0.15,
+                                 'DHTTicket': 0.35
                                 }
                 if(lim_key in y_lims):
                     y_lim = y_lims[lim_key]
@@ -303,10 +319,10 @@ def plotPerNodeStats(OUTDIR, simulation_type, graphType = GraphType.violin):
 
                     #indicate the maximum values                    
                     groups = df.groupby('protocol')
-                    protocol_xpos = {'discv5' : -0.30,
-                                 'dht' : -0.10,
-                                 'discv4'    : 0.10,
-                                 'dhtTicket': 0.30
+                    protocol_xpos = {'TOPDISC' : -0.30,
+                                 'DHT' : -0.10,
+                                 'DISCv4'    : 0.10,
+                                 'DHTTicket': 0.30
                                 }
                     ax.set_ylim(-0.06, 1.06)
                     
@@ -351,7 +367,7 @@ def plotPerNodeStats(OUTDIR, simulation_type, graphType = GraphType.violin):
                         x = np.arange(len(avg.index))+(width*i)
                         #print("x:", x)
                         #print("avg:", avg)
-                        plt.bar(x, avg, width, label=protocolPrettyText[protocol])
+                        plt.bar(x, avg, width, label=protocol)
                      #   ax.legend(loc=9)
                         ticks = avg.index
                         ax.set_xticks(range(len(ticks)))
@@ -380,7 +396,11 @@ def plotPerNodeStats(OUTDIR, simulation_type, graphType = GraphType.violin):
                 print("ticksPrettyText not found")
             #ax.set_title(titlePrettyText[graph])
             fig.tight_layout()
-            fig.savefig(OUTDIR + '/' + graphType.name + "_" + feature + "_" + graph+"_t"+str(defaults['attackTopic'])+".eps",format='eps')
+            if simulation_type == 'benign':
+                fig.savefig(OUTDIR + '/' + graphType.name + "_" + feature + "_" + graph+".eps",format='eps')
+            else :
+                fig.savefig(OUTDIR + '/' + graphType.name + "_" + feature + "_" + graph+"_t"+str(defaults['attackTopic'])+".eps",format='eps')
+
 
             #quit()
 

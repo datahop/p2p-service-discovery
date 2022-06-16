@@ -32,5 +32,5 @@ for simulation_type in ['attack']:
 
     os.chdir(INDIR)
     
-    createPerNodeStats(".")
+#    createPerNodeStats(".")
     plotPerNodeStats(OUTDIR, simulation_type)
