@@ -1,6 +1,6 @@
 features = {'size': {'type': 'benign', 'default': 25000, 'keyword': 'SIZE', 'vals':[]},
             'topic': {'type': 'benign', 'default': 300, 'keyword': ['control.0traffic.maxtopicnum', 'init.1uniqueNodeID.topicnum'], 'vals':[50,300,600]},
-            'discv5regs': {'type': 'benign', 'default': 3, 'keyword': 'protocol.3kademlia.TICKET_TABLE_BUCKET_SIZE', 'vals':[3]},
+            #'discv5regs': {'type': 'benign', 'default': 3, 'keyword': 'protocol.3kademlia.TICKET_TABLE_BUCKET_SIZE', 'vals':[3]},
             'idDistribution': {'type': 'attack', 'default': 'nonUniform', 'defaultAttack': 'nonUniform', 'keyword': 'init.1uniqueNodeID.idDistribution', 'vals':['nonUniform','uniform']},
             'sybilSize': {'type': 'attack', 'default': 0, 'defaultAttack': 100, 'keyword': 'init.1uniqueNodeID.iPSize', 'vals':[10, 100, 1000]},
             'attackTopic': {'type': 'attack', 'default': 0, 'defaultAttack': 0, 'keyword': 'init.1uniqueNodeID.attackTopic', 'vals':[0]},
@@ -46,13 +46,14 @@ titlePrettyText = {'registrationMsgs' : '#Registration messages',
               'idDistribution' : 'Distribution of attacker IDs',
               'size': '#Nodes in the network',
               'topic': '#Topics in the network',
-              'idDistribution': 'Sybil nodes identifiers distribution'
+              'idDistribution': 'Sybil nodes identifiers distribution',
+              'discv5regs': 'discv5regs'
               }
 
 protocolPrettyText = {'dht':'dht',
                       'dhtTicket': 'dhtTicket',
-                      'discv5' : 'TOPDISC',
-                      'discv4' : 'discv4'
+                      'discv4' : 'discv4',
+                      'discv5' : 'TOPDISC'
                       }
 
 ticksPrettyText = {}

@@ -205,6 +205,7 @@ def plotPerNodeStats(OUTDIR, simulation_type, graphType = GraphType.violin):
     print("Reading:", os.getcwd(), "/dfs.csv")
     dfs = pd.read_csv('dfs.csv')
     
+    protocol_order = list(protocolPrettyText.keys())
     #features = ['size']
     #default values for all the features
     defaults = {}
@@ -269,17 +270,16 @@ def plotPerNodeStats(OUTDIR, simulation_type, graphType = GraphType.violin):
                                 split = False, 
                                 scale = 'width', #make the width of each violin equal (by default it's the area)
                                 cut = 0, #cut = 0 limits the violin range within the range of the observed data 
-                                palette='colorblind'
+                                palette='colorblind',
+                                hue_order = protocol_order #make protocols appears in the same order
                                 ) 
                 
                 #the below set the y_lim from header.py to make graphs more readible
                 #it also prints a max value as an annotation is its above the set y_lim
                 lim_key = graphType.name + "_" + feature + "_" + graph
-                protocol_xpos = {'discv5' : -0.35,
-                                 'dht' : -0.15,
-                                 'discv4'    : 0.15,
-                                 'dhtTicket': 0.35
-                                }
+
+                x_pos = [-0.35, -0.15, 0.15, 0.35]
+                protocol_xpos = dict(zip(protocol_order, x_pos))
                 if(lim_key in y_lims):
                     y_lim = y_lims[lim_key]
                     ax.set_ylim(0, y_lim)
@@ -361,9 +361,6 @@ def plotPerNodeStats(OUTDIR, simulation_type, graphType = GraphType.violin):
                         print("Unknown graph type:", graphType)
                         exit(-1)
 
-                        #evenly space the x ticks
-                        ax.set_xticks(x_vals)
-                        ax.set_xticklabels(list(avg.index))
             ax.set_xlabel(titlePrettyText[feature])
             ax.set_ylabel(titlePrettyText[graph])
             ax.spines['top'].set_visible(True)
