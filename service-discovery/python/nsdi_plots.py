@@ -31,8 +31,9 @@ class GraphType(Enum):
 
 #csv.field_size_limit(sys.maxsize)
 
+
 def human_format(num):
-    num = float('{:.3g}'.format(num))
+    num = float('{:.1f}'.format(num))
     magnitude = 0
     while abs(num) >= 1000:
         magnitude += 1
@@ -204,6 +205,7 @@ def plotPerNodeStats(OUTDIR, simulation_type, graphType = GraphType.violin):
     print("Reading:", os.getcwd(), "/dfs.csv")
     dfs = pd.read_csv('dfs.csv')
     
+    protocol_order = list(protocolPrettyText.keys())
     #features = ['size']
     #default values for all the features
     defaults = {}
@@ -257,6 +259,8 @@ def plotPerNodeStats(OUTDIR, simulation_type, graphType = GraphType.violin):
             ax.spines['right'].set_visible(False)
             ax.spines['top'].set_visible(False)
             if(graphType == GraphType.violin):
+                df = df[df['isMalicious'] == 0]
+               # print(df[graph][df['protocol']=='discv4'])
                 violin = sns.violinplot(ax = ax,
                                 data = df,
                                 x = feature,
@@ -266,17 +270,16 @@ def plotPerNodeStats(OUTDIR, simulation_type, graphType = GraphType.violin):
                                 split = False, 
                                 scale = 'width', #make the width of each violin equal (by default it's the area)
                                 cut = 0, #cut = 0 limits the violin range within the range of the observed data 
-                                palette='colorblind'
+                                palette='colorblind',
+                                hue_order = protocol_order #make protocols appears in the same order
                                 ) 
                 
                 #the below set the y_lim from header.py to make graphs more readible
                 #it also prints a max value as an annotation is its above the set y_lim
                 lim_key = graphType.name + "_" + feature + "_" + graph
-                protocol_xpos = {'discv5' : -0.35,
-                                 'dht' : -0.15,
-                                 'discv4'    : 0.15,
-                                 'dhtTicket': 0.35
-                                }
+
+                x_pos = [-0.35, -0.15, 0.15, 0.35]
+                protocol_xpos = dict(zip(protocol_order, x_pos))
                 if(lim_key in y_lims):
                     y_lim = y_lims[lim_key]
                     ax.set_ylim(0, y_lim)
@@ -296,6 +299,24 @@ def plotPerNodeStats(OUTDIR, simulation_type, graphType = GraphType.violin):
                             if(max_val > y_lim):
                                 violin.annotate("max:" + human_format(max_val), xy = (protocol_xpos[protocol]+i, 0.7*y_lim), horizontalalignment = 'center', color='red', rotation=90)
                             i += 1
+                if graph == 'percentageMaliciousDiscovered':
+
+                    #indicate the maximum values                    
+                    groups = df.groupby('protocol')
+                    protocol_xpos = {'discv5' : -0.30,
+                                 'dht' : -0.10,
+                                 'discv4'    : 0.10,
+                                 'dhtTicket': 0.30
+                                }
+                    ax.set_ylim(-0.06, 1.06)
+                    
+                    for protocol, group in groups:
+                        i = 0
+                        for x_val in features[feature]['vals']:
+                            print(feature,x_val,protocol)
+                            print(df['eclipsedLookupOperations'][df['protocol'] == protocol][df[feature] == x_val][df['isMalicious'] == 0].mean())
+                            violin.annotate(human_format(df['eclipsedLookupOperations'][df['protocol'] == protocol][df[feature] == x_val][df['isMalicious'] == 0].mean()*100)+"%", xy = (protocol_xpos[protocol]+i, 1.01), horizontalalignment = 'center', color='red',fontsize=11.5)
+                            i +=1
 
 
                     
@@ -340,9 +361,6 @@ def plotPerNodeStats(OUTDIR, simulation_type, graphType = GraphType.violin):
                         print("Unknown graph type:", graphType)
                         exit(-1)
 
-                        #evenly space the x ticks
-                        ax.set_xticks(x_vals)
-                        ax.set_xticklabels(list(avg.index))
             ax.set_xlabel(titlePrettyText[feature])
             ax.set_ylabel(titlePrettyText[graph])
             ax.spines['top'].set_visible(True)
@@ -359,7 +377,7 @@ def plotPerNodeStats(OUTDIR, simulation_type, graphType = GraphType.violin):
                 print("ticksPrettyText not found")
             #ax.set_title(titlePrettyText[graph])
             fig.tight_layout()
-            fig.savefig(OUTDIR + '/' + graphType.name + "_" + feature + "_" + graph,format='eps')
+            fig.savefig(OUTDIR + '/' + graphType.name + "_" + feature + "_" + graph+"_t"+str(defaults['attackTopic'])+".eps",format='eps')
 
             #quit()
 

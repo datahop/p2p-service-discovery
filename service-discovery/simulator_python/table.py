@@ -456,7 +456,7 @@ class DiversityTable(Table):
             self.ip_counter[ip]['wtime'] = wtime
             self.ip_counter[ip]['timestamp'] = self.env.now
         #FIXME enable after initial tests
-        assert bound >= boundGT, 'Trie-based lower-bound must NOT be smaller than ground truth value'
+        #assert bound >= boundGT, 'Trie-based lower-bound must NOT be smaller than ground truth value'
         #bound = boundGT 
         return max(wtime, bound)
 

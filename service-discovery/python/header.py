@@ -46,13 +46,14 @@ titlePrettyText = {'registrationMsgs' : '#Registration messages',
               'idDistribution' : 'Distribution of attacker IDs',
               'size': '#Nodes in the network',
               'topic': '#Topics in the network',
-              'idDistribution': 'Sybil nodes identifiers distribution'
+              'idDistribution': 'Sybil nodes identifiers distribution',
+              'discv5regs': 'discv5regs'
               }
 
 protocolPrettyText = {'dht':'dht',
                       'dhtTicket': 'dhtTicket',
-                      'discv5' : 'TOPDISC',
-                      'discv4' : 'discv4'
+                      'discv4' : 'discv4',
+                      'discv5' : 'TOPDISC'
                       }
 
 ticksPrettyText = {}
