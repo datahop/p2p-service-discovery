@@ -23,7 +23,9 @@ public class Discv5DHTProtocol extends Discv5Protocol {
 
   private HashMap<Long, Long> registrationMap;
 
-  private HashMap<String, Integer> scheduled;
+  protected HashMap<String, Integer> scheduled;
+
+  protected int nRefresh;
 
   public Discv5DHTProtocol(String prefix) {
     super(prefix);
@@ -60,7 +62,7 @@ public class Discv5DHTProtocol extends Discv5Protocol {
 
     KademliaCommonConfig.N = Configuration.getInt(prefix + "." + PAR_N, KademliaCommonConfig.N);
 
-    KademliaCommonConfig.REG_REFRESH =
+    this.nRefresh =
         Configuration.getInt(prefix + "." + PAR_REG_REFRESH, KademliaCommonConfig.REG_REFRESH);
 
     KademliaCommonConfig.REG_TIMEOUT =
@@ -548,7 +550,7 @@ public class Discv5DHTProtocol extends Discv5Protocol {
 
     operations.remove(m.operationId);
 
-    if (KademliaCommonConfig.REG_REFRESH == 1) {
+    if (this.nRefresh == 1) {
 
       if (scheduled.get(t.getTopic()) != null) {
         int sch = scheduled.get(t.getTopic()) + 1;
@@ -722,7 +724,7 @@ public class Discv5DHTProtocol extends Discv5Protocol {
       case Timeout.REG_TIMEOUT:
         KademliaObserver.reportExpiredRegistration(((Timeout) event).topic, this.node.is_evil);
 
-        if (KademliaCommonConfig.REG_REFRESH == 1) {
+        if (this.nRefresh == 1) {
 
           String top = ((Timeout) event).topic.getTopic();
           int sch = scheduled.get(top) - 1;
