@@ -103,12 +103,25 @@ public class Discv4EvilProtocol extends Discv4Protocol {
   protected void handleFind(Message m, int myPid, int dist) {
     // get the ALPHA closest node to destNode
 
-    BigInteger[] neighbours = this.evilRoutingTable.getNeighbours(dist);
+    // BigInteger[] neighbours = this.evilRoutingTable.getNeighbours(dist);
+    BigInteger[] neighbours = new BigInteger[0];
+    while (neighbours.length < 16 && dist < 256) {
+      neighbours = this.evilRoutingTable.getNeighbours(dist);
+      dist++;
+    }
+
+    List<BigInteger> tempList = new ArrayList<BigInteger>();
+
+    while (tempList.size() < 16 && dist < 256) {
+      neighbours = this.evilRoutingTable.getNeighbours(dist);
+      tempList.addAll(Arrays.asList(neighbours));
+      dist++;
+    }
+
     // remove the source of message m from the results
-    List<BigInteger> tempList = new ArrayList<BigInteger>(Arrays.asList(neighbours));
+    // List<BigInteger> tempList = new ArrayList<BigInteger>(Arrays.asList(neighbours));
     tempList.remove(m.src.getId());
     neighbours = tempList.toArray(new BigInteger[0]);
-
     // create a response message containing the neighbours (with the same id of the request)
     Message response = new Message(Message.MSG_RESPONSE, neighbours);
     response.operationId = m.operationId;

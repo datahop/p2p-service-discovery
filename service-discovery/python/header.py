@@ -1,10 +1,10 @@
-features = {'size': {'type': 'benign', 'default': 25000, 'keyword': 'SIZE', 'vals':[]},
-            'topic': {'type': 'benign', 'default': 300, 'keyword': ['control.0traffic.maxtopicnum', 'init.1uniqueNodeID.topicnum'], 'vals':[50,300,600]},
+features = {'size': {'type': 'benign', 'default': 25000, 'keyword': 'SIZE', 'vals':[5000,25000,50000]},
+            'topic': {'type': 'benign', 'default': 300, 'keyword': ['control.0traffic.maxtopicnum', 'init.1uniqueNodeID.topicnum'], 'vals':[100,300,600]},
             'discv5regs': {'type': 'benign', 'default': 3, 'keyword': 'protocol.3kademlia.TICKET_TABLE_BUCKET_SIZE', 'vals':[3]},
-            'idDistribution': {'type': 'attack', 'default': 'nonUniform', 'defaultAttack': 'nonUniform', 'keyword': 'init.1uniqueNodeID.idDistribution', 'vals':['nonUniform','uniform']},
-            'sybilSize': {'type': 'attack', 'default': 0, 'defaultAttack': 100, 'keyword': 'init.1uniqueNodeID.iPSize', 'vals':[10, 100, 1000]},
+            'idDistribution': {'type': 'attack', 'default': 'uniform', 'defaultAttack': 'nonUniform', 'keyword': 'init.1uniqueNodeID.idDistribution', 'vals':['uniform','nonUniform']},
+            'sybilSize': {'type': 'attack', 'default': 0, 'defaultAttack': 100, 'keyword': 'init.1uniqueNodeID.iPSize', 'vals':[10,100,1000]},
             'attackTopic': {'type': 'attack', 'default': 0, 'defaultAttack': 0, 'keyword': 'init.1uniqueNodeID.attackTopic', 'vals':[0]},
-            'percentEvil': {'type': 'attack', 'default': 0, 'defaultAttack': 0.1, 'keyword':'init.1uniqueNodeID.percentEvilTopic', 'vals':[0.05,0.1,0.2]}}
+            'percentEvil': {'type': 'attack', 'default': 0, 'defaultAttack': 0.02, 'keyword':'init.1uniqueNodeID.percentEvil', 'vals':[0.01,0.02,0.04]}}
 
 benign_y_vals = ['totalMsg','registrationMsgs', 'lookupMsgs', 'discovered', 'wasDiscovered', 'regsPlaced', 'regsAccepted', 'lookupAskedNodes']
 
@@ -12,14 +12,14 @@ attack_y_vals = ['percentageMaliciousDiscovered', 'percentageEclipsedLookups', '
 
 
 #protocols to test
-config_files = {'discv5': './config/discv5ticket.cfg', 
-                'dhtTicket': './config/discv5dhtticket.cfg', 
-                'dht': './config/discv5dhtnoticket.cfg', 
-                'discv4' : './config/noattackdiscv4.cfg',
-                'attackDiscv5' :  './config/attack_configs/discv5ticketattack.cfg',
-                'attackDhtTicket' : './config/attack_configs/discv5dhtticket_topicattack.cfg',
-                'attackDht' : './config/attack_configs/discv5dhtnoticket_topicattack.cfg',
-                'attackDiscv4' : './config/attack_configs/discv4_topicattack.cfg'}
+config_files = {'TOPDISC': './config/discv5ticket.cfg', 
+                'DHTTicket': './config/discv5dhtticket.cfg', 
+                'DHT': './config/discv5dhtnoticket.cfg', 
+                'DISCv4' : './config/noattackdiscv4.cfg'}
+#config_files = {'attackTOPDISC' :  './config/attack_configs/discv5ticketattack.cfg',
+#                'attackDHTTicket' : './config/attack_configs/discv5dhtticket_topicattack.cfg',
+#                'attackDHT' : './config/attack_configs/discv5dhtnoticket_topicattack.cfg',
+#                'attackDISCv4' : './config/attack_configs/discv4_topicattack.cfg'}
 
 #security
 features_attack = {}
@@ -68,4 +68,4 @@ y_lims = {#'violin_size_discovered': 100,
           'violin_topic_wasDiscovered': 100,
           'violin_topic_totalMsg':9000,
           'violin_size_totalMsg':9000
-        }
+          }

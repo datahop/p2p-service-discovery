@@ -26,7 +26,7 @@ public class Discv5EvilTicketProtocol extends Discv5TicketProtocol {
   private RoutingTable evilRoutingTable; // routing table only containing evil neighbors
   private HashMap<Topic, HashMap<BigInteger, Long>> initTicketRequestTime;
   private HashMap<Topic, HashMap<BigInteger, Long>> previousTicketRequestTime;
-
+  private int ticketBucketSize;
   /**
    * Replicate this object by returning an identical copy.<br>
    * It is called by the initializer and do not fill any particular field.
@@ -46,6 +46,9 @@ public class Discv5EvilTicketProtocol extends Discv5TicketProtocol {
    */
   public Discv5EvilTicketProtocol(String prefix) {
     super(prefix);
+    this.ticketBucketSize =
+        Configuration.getInt(
+            prefix + "." + PAR_TICKET_TABLE_BUCKET_SIZE, KademliaCommonConfig.TICKET_BUCKET_SIZE);
     this.attackType = Configuration.getString(prefix + "." + PAR_ATTACK_TYPE);
     this.numOfRegistrations = 0;
     this.targetNumOfRegistrations =
@@ -155,7 +158,26 @@ public class Discv5EvilTicketProtocol extends Discv5TicketProtocol {
       }
     }
 
-    super.handleInitRegisterTopic(m, myPid);
+    // super.handleInitRegisterTopic(m, myPid);
+
+    activeTopics.add(t.getTopic());
+
+    TicketTable tt =
+        new TicketTable(
+            KademliaCommonConfig.TTNBUCKETS,
+            ticketBucketSize,
+            KademliaCommonConfig.TICKET_TABLE_REPLACEMENTS,
+            this,
+            t,
+            myPid,
+            KademliaCommonConfig.TICKET_REFRESH == 1);
+    tt.setNodeId(t.getTopicID());
+    ticketTables.put(t.getTopicID(), tt);
+
+    for (int i = 0; i <= KademliaCommonConfig.BITS; i++) {
+      BigInteger[] neighbours = routingTable.getNeighbours(i);
+      tt.addNeighbour(neighbours);
+    }
 
     /*
     if (this.attackType.equals(KademliaCommonConfig.ATTACK_TYPE_TOPIC_SPAM) || this.attackType.equals(KademliaCommonConfig.ATTACK_TYPE_HYBRID) ) {

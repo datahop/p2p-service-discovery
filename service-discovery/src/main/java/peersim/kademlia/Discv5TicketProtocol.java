@@ -60,6 +60,7 @@ public class Discv5TicketProtocol extends Discv5Protocol {
   boolean firstRegister;
   boolean printSearchTable = false;
 
+  private int removeAfterReg;
   /**
    * Replicate this object by returning an identical copy.<br>
    * It is called by the initializer and do not fill any particular field.
@@ -129,7 +130,7 @@ public class Discv5TicketProtocol extends Discv5Protocol {
     KademliaCommonConfig.LOOKUP_BUCKET_ORDER =
         Configuration.getInt(
             prefix + "." + PAR_LOOKUP_BUCKET_ORDER, KademliaCommonConfig.LOOKUP_BUCKET_ORDER);
-    KademliaCommonConfig.TICKET_REMOVE_AFTER_REG =
+    this.removeAfterReg =
         Configuration.getInt(
             prefix + "." + PAR_TICKET_REMOVE_AFTER_REG,
             KademliaCommonConfig.TICKET_REMOVE_AFTER_REG);
@@ -417,7 +418,7 @@ public class Discv5TicketProtocol extends Discv5Protocol {
                 + " for topic "
                 + topic.getTopic());
       else {
-        logger.warning("Ticket request cumwaitingtime too big " + ticket.getCumWaitTime());
+        logger.info("Ticket request cumwaitingtime too big " + ticket.getCumWaitTime());
         KademliaObserver.reportOverThresholdWaitingTime(
             topic.getTopic(), this.node.getId(), m.src.getId(), ticket.getWaitTime());
       }
@@ -490,7 +491,7 @@ public class Discv5TicketProtocol extends Discv5Protocol {
           && (ticket.getCumWaitTime() <= KademliaCommonConfig.REG_TIMEOUT)) {
         scheduleSendMessage(register, m.src.getId(), myPid, ticket.getWaitTime());
       } else {
-        logger.warning(
+        logger.info(
             "Ticket request cumwaitingtime too big "
                 + ticket.getCumWaitTime()
                 + " or too many tries "
@@ -529,7 +530,7 @@ public class Discv5TicketProtocol extends Discv5Protocol {
       EDSimulator.add(
           KademliaCommonConfig.AD_LIFE_TIME, timeout, Util.nodeIdtoNode(this.node.getId()), myPid);
 
-      if (KademliaCommonConfig.TICKET_REMOVE_AFTER_REG == 1) {
+      if (this.removeAfterReg == 1) {
         ticketTables.get(topic.getTopicID()).removeNeighbour(m.src.getId());
       }
 
@@ -714,7 +715,9 @@ public class Discv5TicketProtocol extends Discv5Protocol {
             + " "
             + t.getTopicID()
             + " "
-            + KademliaCommonConfig.TICKET_BUCKET_SIZE);
+            + KademliaCommonConfig.TICKET_BUCKET_SIZE
+            + " "
+            + this.node.is_evil);
     // restore the IF statement
     KademliaObserver.addTopicRegistration(t, this.node.getId());
 
@@ -856,7 +859,7 @@ public class Discv5TicketProtocol extends Discv5Protocol {
   }
 
   public void sendTicketRequest(BigInteger dest, Topic t, int myPid) {
-    logger.warning("Sending ticket request to " + dest + " for topic " + t.topic);
+    logger.info("Sending ticket request to " + dest + " for topic " + t.topic);
     TicketOperation top = new TicketOperation(this.node.getId(), CommonState.getTime(), t);
     top.body = t;
     operations.put(top.operationId, top);
@@ -993,7 +996,7 @@ public class Discv5TicketProtocol extends Discv5Protocol {
         // ticketTables.get(((Timeout)event).topic.getTopicID()).removeRegisteredList(((Timeout)event).nodeSrc);
         tt.removeRegisteredList(((Timeout) event).nodeSrc);
         tt.expiredReg(((Timeout) event).nodeSrc);
-        if (KademliaCommonConfig.TICKET_REMOVE_AFTER_REG == 0) {
+        if (this.removeAfterReg == 0) {
           tt.removeNeighbour(((Timeout) event).nodeSrc);
         }
 

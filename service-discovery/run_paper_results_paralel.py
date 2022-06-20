@@ -1,4 +1,4 @@
-PARALLEL_RUNS = 2
+PARALLEL_RUNS = 8
 
 import sys
 from pprint import pformat
@@ -80,7 +80,7 @@ def main() -> int:
                 if(pformat(params) not in already_run):
                     already_run.add(pformat(params))
                     if(is_attack):
-                        out_dir = result_dir + "/attack/" + protocol.replace("attack","").replace('D', 'd') + "/" + params_to_dir(params, type='attack') + "/"
+                        out_dir = result_dir + "/attack/" + protocol.replace("attack","") + "/" + params_to_dir(params, type='attack') + "/"
                      #   out_dir = result_dir + "/attack/" + protocol + "/" + params_to_dir(params, type='attack') + "/"
                     else:    
                         out_dir = result_dir + "/benign/" + protocol + "/" + params_to_dir(params, type='benign') + "/"
