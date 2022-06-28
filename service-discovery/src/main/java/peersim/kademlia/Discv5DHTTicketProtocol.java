@@ -671,7 +671,7 @@ public class Discv5DHTTicketProtocol extends Discv5Protocol {
               + " "
               + ticket.getCumWaitTime());
       KademliaObserver.addAcceptedRegistration(
-          t, this.node.getId(), m.src.getId(), ticket.getCumWaitTime());
+          t, this.node.getId(), m.src.getId(), ticket.getCumWaitTime(), this.node.is_evil);
       KademliaObserver.reportActiveRegistration(ticket.getTopic(), this.node.is_evil);
 
       if (this.nRefresh == 1) {

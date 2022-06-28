@@ -278,7 +278,7 @@ def plotPerNodeStats(OUTDIR, simulation_type, graphType = GraphType.violin):
                 #it also prints a max value as an annotation is its above the set y_lim
                 lim_key = graphType.name + "_" + feature + "_" + graph
 
-                x_pos = [-0.35, -0.15, 0.15, 0.35]
+                x_pos = [-0.30, -0.10, 0.10, 0.30]
                 protocol_xpos = dict(zip(protocol_order, x_pos))
                 if(lim_key in y_lims):
                     y_lim = y_lims[lim_key]
@@ -303,11 +303,7 @@ def plotPerNodeStats(OUTDIR, simulation_type, graphType = GraphType.violin):
 
                     #indicate the maximum values                    
                     groups = df.groupby('protocol')
-                    #protocol_xpos = {'discv5' : -0.30,
-                    #             'dht' : -0.10,
-                    #             'discv4'    : 0.10,
-                    #             'dhtTicket': 0.30
-                    #            }
+
                     ax.set_ylim(-0.06, 1.06)
                     
                     for protocol, group in groups:
@@ -315,7 +311,7 @@ def plotPerNodeStats(OUTDIR, simulation_type, graphType = GraphType.violin):
                         for x_val in features[feature]['vals']:
                             print(feature,x_val,protocol)
                             print(df['eclipsedLookupOperations'][df['protocol'] == protocol][df[feature] == x_val][df['isMalicious'] == 0].mean())
-                            violin.annotate(human_format(df['eclipsedLookupOperations'][df['protocol'] == protocol][df[feature] == x_val][df['isMalicious'] == 0].mean()*100)+"%", xy = (protocol_xpos[protocol]+i, 1.01), horizontalalignment = 'center', color='red',fontsize=11.5)
+                            violin.annotate(human_format(df['eclipsedLookupOperations'][df['protocol'] == protocol][df[feature] == x_val][df['isMalicious'] == 0].mean()*100)+"%", xy = (protocol_xpos[protocol]+i, 1.01), horizontalalignment = 'center', color='red',fontsize=10.5)
                             i +=1
 
 
