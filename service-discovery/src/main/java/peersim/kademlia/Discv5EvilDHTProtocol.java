@@ -280,7 +280,11 @@ public class Discv5EvilDHTProtocol extends Discv5DHTProtocol {
     KademliaObserver.reportActiveRegistration(t, this.node.is_evil);
 
     KademliaObserver.addAcceptedRegistration(
-        t, this.node.getId(), m.src.getId(), CommonState.getTime() - r.getTimestamp());
+        t,
+        this.node.getId(),
+        m.src.getId(),
+        CommonState.getTime() - r.getTimestamp(),
+        this.node.is_evil);
 
     operations.remove(m.operationId);
 
