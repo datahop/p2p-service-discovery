@@ -1,4 +1,4 @@
-PARALLEL_RUNS = 8
+PARALLEL_RUNS = 4
 
 import sys
 from pprint import pformat
@@ -47,7 +47,7 @@ def set_params(config_file, out_dir, params):
 
 
 def main() -> int:
-    os.system('rm -rf ' + result_dir)
+#    os.system('rm -rf ' + result_dir)
 
     run = 1
     for protocol in config_files.keys():
