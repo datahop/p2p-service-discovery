@@ -265,43 +265,6 @@ public class Discv5EvilDHTProtocol extends Discv5DHTProtocol {
     super.handleResponse(m, myPid);
   }
 
-  /**
-   * Process a register response message.<br>
-   * The body should contain a ticket, which indicates whether registration is complete. In case it
-   * is not, schedule sending a new register request
-   *
-   * @param m Message received (contains the node to find)
-   * @param myPid the sender Pid
-   */
-  protected void handleRegisterResponse(Message m, int myPid) {
-
-    TopicRegistration r = (TopicRegistration) m.body;
-
-    Topic t = r.getTopic();
-    KademliaObserver.reportActiveRegistration(t, this.node.is_evil);
-
-    KademliaObserver.addAcceptedRegistration(
-        t,
-        this.node.getId(),
-        m.src.getId(),
-        CommonState.getTime() - r.getTimestamp(),
-        this.node.is_evil);
-
-    operations.remove(m.operationId);
-
-    if (this.nRefresh == 1) {
-
-      if (scheduled.get(t.getTopic()) != null) {
-        int sch = scheduled.get(t.getTopic()) + 1;
-        scheduled.put(t.getTopic(), sch);
-      } else {
-        scheduled.put(t.getTopic(), 1);
-      }
-    }
-    Timeout timeout = new Timeout(t, m.src.getId());
-    EDSimulator.add(refreshTime, timeout, Util.nodeIdtoNode(this.node.getId()), myPid);
-  }
-
   protected void startRegistration(RegisterOperation rop, int myPid) {
 
     // int distToTopic = Util.logDistance((BigInteger) rop.getTopic().getTopicID(),
@@ -407,11 +370,15 @@ public class Discv5EvilDHTProtocol extends Discv5DHTProtocol {
     KademliaObserver.reportActiveRegistration(t, this.node.is_evil);
 
     KademliaObserver.addAcceptedRegistration(
-        t, this.node.getId(), m.src.getId(), CommonState.getTime() - r.getTimestamp());
+        t,
+        this.node.getId(),
+        m.src.getId(),
+        CommonState.getTime() - r.getTimestamp(),
+        this.node.is_evil);
 
     operations.remove(m.operationId);
 
-    if (KademliaCommonConfig.REG_REFRESH == 1) {
+    if (this.nRefresh == 1) {
       if (this.attackType.equals(KademliaCommonConfig.ATTACK_TYPE_TOPIC_SPAM)) {
         if (scheduled.get(this.targetTopic.getTopic()) != null) {
           int sch = scheduled.get(this.targetTopic.getTopic()) + 1;
@@ -429,8 +396,7 @@ public class Discv5EvilDHTProtocol extends Discv5DHTProtocol {
       }
     }
     Timeout timeout = new Timeout(t, m.src.getId());
-    EDSimulator.add(
-        KademliaCommonConfig.AD_LIFE_TIME, timeout, Util.nodeIdtoNode(this.node.getId()), myPid);
+    EDSimulator.add(refreshTime, timeout, Util.nodeIdtoNode(this.node.getId()), myPid);
   }
 
   /**
