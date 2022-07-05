@@ -60,7 +60,7 @@ public class Discv5TicketProtocol extends Discv5Protocol {
   boolean firstRegister;
   boolean printSearchTable = false;
 
-  private int removeAfterReg;
+  protected int removeAfterReg;
   /**
    * Replicate this object by returning an identical copy.<br>
    * It is called by the initializer and do not fill any particular field.
@@ -190,6 +190,8 @@ public class Discv5TicketProtocol extends Discv5Protocol {
   public void scheduleSendMessage(Message m, BigInteger destId, int myPid, long delay) {
     Node src = Util.nodeIdtoNode(this.node.getId());
     Node dest = Util.nodeIdtoNode(destId);
+
+    assert delay >= 0 : "attempting to schedule a message in the past";
 
     int destpid = dest.getKademliaProtocol().getProtocolID();
 

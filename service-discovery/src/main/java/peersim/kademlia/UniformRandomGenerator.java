@@ -45,6 +45,10 @@ public final class UniformRandomGenerator {
     rnd = r;
   }
 
+  public int randomInt() {
+    return rnd.nextInt();
+  }
+
   // ______________________________________________________________________________________________
   /**
    * instanciate the random generator with the given seed

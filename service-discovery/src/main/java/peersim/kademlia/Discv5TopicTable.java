@@ -64,19 +64,19 @@ public class Discv5TopicTable implements TopicTable {
     } else {
       // new topic is further closer/equal distance from the hostID than the furthest one currently
       // in table
-      //if (t.compareTo(table.lastKey()) >= 0) {
-        // System.out.println("The topic is closer than another one - replacing");
-        table.get(table.lastKey()).remove(0);
-        // if a topic has no more registration - remove it
-        if (table.get(table.lastKey()).size() == 0) table.remove(table.lastKey());
-        this.size--;
-        add(r, t);
+      // if (t.compareTo(table.lastKey()) >= 0) {
+      // System.out.println("The topic is closer than another one - replacing");
+      table.get(table.lastKey()).remove(0);
+      // if a topic has no more registration - remove it
+      if (table.get(table.lastKey()).size() == 0) table.remove(table.lastKey());
+      this.size--;
+      add(r, t);
 
-        return true;
-      //}
+      return true;
+      // }
     }
 
-   // return false;
+    // return false;
   }
 
   public TopicRegistration[] getRegistration(Topic t, KademliaNode src) {

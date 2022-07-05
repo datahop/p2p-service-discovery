@@ -286,4 +286,11 @@ public class Util {
 
     return false;
   }
+
+  public static Topic generateRandomTopic(UniformRandomGenerator urg) {
+
+    int random_topic = urg.randomInt();
+    String topic = new String("t_random" + random_topic);
+    return new Topic(topic);
+  }
 }

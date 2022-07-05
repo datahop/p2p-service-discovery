@@ -197,7 +197,7 @@ public class CustomDistribution implements peersim.core.Control {
       generalNode.setKademliaProtocol((KademliaProtocol) (Network.get(i).getProtocol(protocolID)));
       ((KademliaProtocol) (Network.get(i).getProtocol(protocolID))).setNode(node);
       ((KademliaProtocol) (Network.get(i).getProtocol(protocolID))).setProtocolID(protocolID);
-      // Topics for honest nodes are set in
+      // Topics for honest nodes are set later in ZipfReader
     }
 
     List<Integer> topicsToAttack = new ArrayList<Integer>();

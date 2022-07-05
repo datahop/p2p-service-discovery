@@ -91,6 +91,7 @@ public class KademliaProtocol implements Cloneable, EDProtocol {
    * @param prefix String
    */
   public KademliaProtocol(String prefix) {
+    // LogManager.getLogManager().reset();
     this.node = null; // empty nodeId
     KademliaProtocol.prefix = prefix;
     _init();

@@ -23,7 +23,7 @@ public class Discv5DHTProtocol extends Discv5Protocol {
 
   private HashMap<Long, Long> registrationMap;
 
-  private HashMap<String, Integer> scheduled;
+  protected HashMap<String, Integer> scheduled;
 
   public Discv5DHTProtocol(String prefix) {
     super(prefix);
@@ -474,6 +474,8 @@ public class Discv5DHTProtocol extends Discv5Protocol {
   public void scheduleSendMessage(Message m, BigInteger destId, int myPid, long delay) {
     Node src = Util.nodeIdtoNode(this.node.getId());
     Node dest = Util.nodeIdtoNode(destId);
+
+    assert delay >= 0 : "attempting to schedule a message in the past";
 
     int destpid = dest.getKademliaProtocol().getProtocolID();
 

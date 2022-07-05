@@ -54,6 +54,7 @@ public class SearchTable extends RoutingTable {
 
     removedPerDist = new HashMap<Integer, Integer>();
     logger = Logger.getLogger(protocol.getNode().getId().toString());
+    // LogManager.getLogManager().reset();
     added = new HashSet<BigInteger>();
   }
 

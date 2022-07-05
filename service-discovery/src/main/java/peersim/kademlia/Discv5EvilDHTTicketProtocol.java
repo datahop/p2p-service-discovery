@@ -10,7 +10,9 @@ import peersim.config.Configuration;
 import peersim.core.CommonState;
 import peersim.core.Network;
 import peersim.core.Node;
+import peersim.edsim.EDSimulator;
 import peersim.kademlia.operations.RegisterOperation;
+import peersim.kademlia.operations.TicketOperation;
 import peersim.transport.UnreliableTransport;
 
 public class Discv5EvilDHTTicketProtocol extends Discv5DHTTicketProtocol {
@@ -19,6 +21,7 @@ public class Discv5EvilDHTTicketProtocol extends Discv5DHTTicketProtocol {
   final String PAR_ATTACK_TYPE = "attackType";
   final String PAR_NUMBER_OF_REGISTRATIONS = "numberOfRegistrations";
 
+  UniformRandomGenerator urg = new UniformRandomGenerator(KademliaCommonConfig.BITS, CommonState.r);
   // type of attack (TopicSpam)
   private String attackType;
   // number of registrations to make
@@ -127,8 +130,9 @@ public class Discv5EvilDHTTicketProtocol extends Discv5DHTTicketProtocol {
       // super.handleInitRegisterTopic(m, myPid);
     }
     if (first
-        && (this.attackType.equals(KademliaCommonConfig.ATTACK_TYPE_HYBRID)
-            || this.attackType.equals(KademliaCommonConfig.ATTACK_TYPE_MALICIOUS_REGISTRAR))) {
+            && (this.attackType.equals(KademliaCommonConfig.ATTACK_TYPE_HYBRID)
+                || this.attackType.equals(KademliaCommonConfig.ATTACK_TYPE_MALICIOUS_REGISTRAR))
+        || this.attackType.equals(KademliaCommonConfig.ATTACK_TYPE_TOPIC_SPAM)) {
       first = false;
       logger.warning("Filling up the topic table with malicious entries");
       for (int i = 0; i < Network.size(); i++) {
@@ -234,6 +238,33 @@ public class Discv5EvilDHTTicketProtocol extends Discv5DHTTicketProtocol {
     }
   }
 
+  public void sendTicketRequest(BigInteger dest, Topic t, int myPid) {
+
+    logger.info("Sending ticket request to " + dest + " for topic " + t.topic);
+    TicketOperation top = new TicketOperation(this.node.getId(), CommonState.getTime(), t);
+    Message m;
+    if (this.attackType.equals(KademliaCommonConfig.ATTACK_TYPE_TOPIC_SPAM)) {
+      // Generate a ticket request for a random topic
+      Topic t_rand = Util.generateRandomTopic(urg);
+      top.body = t_rand;
+      m = new Message(Message.MSG_TICKET_REQUEST, t_rand);
+    } else {
+      top.body = t;
+      m = new Message(Message.MSG_TICKET_REQUEST, t);
+    }
+
+    top.available_requests = KademliaCommonConfig.ALPHA;
+
+    m.timestamp = CommonState.getTime();
+    // set message operation id
+    m.operationId = top.operationId;
+    m.src = this.node;
+    m.dest = Util.nodeIdtoNode(dest).getKademliaProtocol().getNode();
+
+    logger.info("Send ticket request to " + dest + " for topic " + t.getTopic());
+    sendMessage(m, dest, myPid);
+  }
+
   /**
    * Process a topic query message.<br>
    * The body should contain a topic. Return a response message containing the registrations for the
@@ -247,9 +278,8 @@ public class Discv5EvilDHTTicketProtocol extends Discv5DHTTicketProtocol {
     Topic t = (Topic) m.body;
     TopicRegistration[] registrations = new TopicRegistration[0];
 
-    if (this.attackType.equals(KademliaCommonConfig.ATTACK_TYPE_TOPIC_SPAM)
-        || this.attackType.endsWith(KademliaCommonConfig.ATTACK_TYPE_DOS)
-        || this.attackType.endsWith(KademliaCommonConfig.ATTACK_TYPE_WAITING_TIME_SPAM)) {
+    if (this.attackType.equals(KademliaCommonConfig.ATTACK_TYPE_DOS)
+        || this.attackType.equals(KademliaCommonConfig.ATTACK_TYPE_WAITING_TIME_SPAM)) {
       // if only a spammer than follow the normal protocol
       super.handleTopicQuery(m, myPid);
     } else {
@@ -309,8 +339,7 @@ public class Discv5EvilDHTTicketProtocol extends Discv5DHTTicketProtocol {
   protected void handleTicketRequest(Message m, int myPid) {
 
     logger.warning("Handle ticket request EVIL");
-    if (this.attackType.equals(KademliaCommonConfig.ATTACK_TYPE_TOPIC_SPAM)
-        || this.attackType.endsWith(KademliaCommonConfig.ATTACK_TYPE_WAITING_TIME_SPAM)) {
+    if (this.attackType.endsWith(KademliaCommonConfig.ATTACK_TYPE_WAITING_TIME_SPAM)) {
       super.handleTicketRequest(m, myPid);
       return;
     }
@@ -353,27 +382,6 @@ public class Discv5EvilDHTTicketProtocol extends Discv5DHTTicketProtocol {
     assert m.src != null;
     response.dest = m.src;
     sendMessage(response, m.src.getId(), myPid);
-
-    /*long curr_time = CommonState.getTime();
-          Topic topic = (Topic) m.body;
-          KademliaNode advertiser = new KademliaNode(m.src);
-    transport = (UnreliableTransport) (Network.prototype).getProtocol(tid);
-          long rtt_delay = 2*transport.getLatency(Util.nodeIdtoNode(m.src.getId()), Util.nodeIdtoNode(m.dest.getId()));
-          // Generate a ticket without any waiting time
-          Ticket ticket = new Ticket(topic, curr_time, 0, advertiser, rtt_delay);
-          ticket.setMsg(m);
-
-          // Send a response message with a ticket back to advertiser
-    BigInteger[] neighbours = this.evilRoutingTable.getNeighbours(Util.logDistance(topic.getTopicID(), this.node.getId()));
-
-      	Message.TicketRequestBody body = new Message.TicketRequestBody(ticket, neighbours);
-    Message response  = new Message(Message.MSG_TICKET_RESPONSE, body);
-
-          //Message response = new Message(Message.MSG_TICKET_RESPONSE, ticket);
-    response.ackId = m.id; // set ACK number
-    response.operationId = m.operationId;
-
-          sendMessage(response, m.src.getId(), myPid);*/
   }
 
   /**
@@ -414,6 +422,117 @@ public class Discv5EvilDHTTicketProtocol extends Discv5DHTTicketProtocol {
   }
 
   /**
+   * Process a register response message.<br>
+   * The body should contain a ticket, which indicates whether registration is complete. In case it
+   * is not, schedule sending a new register request
+   *
+   * @param m Message received (contains the node to find)
+   * @param myPid the sender Pid
+   */
+  protected void handleRegisterResponse(Message m, int myPid) {
+
+    Ticket ticket = (Ticket) m.body;
+
+    Topic t = ticket.getTopic();
+
+    if (!ticket.isRegistrationComplete()) {
+      logger.warning(
+          "Unsuccessful Registration of topic: "
+              + ticket.getTopic().getTopic()
+              + " at node: "
+              + m.src.getId()
+              + " wait time: "
+              + ticket.getWaitTime()
+              + " "
+              + ticket.getCumWaitTime());
+      Message register = new Message(Message.MSG_REGISTER, ticket);
+      register.operationId = m.operationId;
+      register.body = m.body;
+
+      BackoffService backoff = registrationFailed.get(ticket);
+      if (backoff == null) {
+        backoff =
+            new BackoffService(
+                KademliaCommonConfig.AD_LIFE_TIME, KademliaCommonConfig.MAX_REGISTRATION_RETRIES);
+        backoff.registrationFailed();
+        registrationFailed.put(ticket, backoff);
+      } else {
+        backoff.registrationFailed();
+      }
+      logger.info(
+          "Registration failed "
+              + backoff.getTimesFailed()
+              + " backing off "
+              + +backoff.getTimeToWait()
+              + " "
+              + backoff.shouldRetry()
+              + " "
+              + ticket.getWaitTime());
+
+      if ((backoff.shouldRetry() && ticket.getWaitTime() >= 0)
+          && (ticket.getCumWaitTime() <= KademliaCommonConfig.REG_TIMEOUT)) {
+        scheduleSendMessage(register, m.src.getId(), myPid, ticket.getWaitTime());
+      } else {
+        logger.warning(
+            "Ticket request cumwaitingtime too big "
+                + ticket.getCumWaitTime()
+                + " or too many tries "
+                + backoff.getTimesFailed());
+        // ticketTables.get(topic.getTopicID()).removeRegisteredList(m.src.getId());
+        RetryTimeout timeout = new RetryTimeout(ticket.getTopic(), m.src.getId());
+        EDSimulator.add(
+            KademliaCommonConfig.AD_LIFE_TIME,
+            timeout,
+            Util.nodeIdtoNode(this.node.getId()),
+            myPid);
+
+        if (ticket.getCumWaitTime() > KademliaCommonConfig.REG_TIMEOUT)
+          KademliaObserver.reportOverThresholdWaitingTime(
+              t.getTopic(), this.node.getId(), m.src.getId(), ticket.getWaitTime());
+      }
+
+    } else {
+      logger.warning(
+          "Registration succesful for topic "
+              + ticket.getTopic().topic
+              + " at node "
+              + m.src.getId()
+              + " at dist "
+              + Util.logDistance(m.src.getId(), ticket.getTopic().getTopicID())
+              + " "
+              + ticket.getCumWaitTime());
+      KademliaObserver.addAcceptedRegistration(
+          t, this.node.getId(), m.src.getId(), ticket.getCumWaitTime());
+      KademliaObserver.reportActiveRegistration(ticket.getTopic(), this.node.is_evil);
+
+      if (KademliaCommonConfig.REG_REFRESH == 1) {
+
+        if (this.attackType.equals(KademliaCommonConfig.ATTACK_TYPE_TOPIC_SPAM)) {
+          if (scheduled.get(this.targetTopic.getTopic()) != null) {
+            int sch = scheduled.get(this.targetTopic.getTopic()) + 1;
+            scheduled.put(this.targetTopic.getTopic(), sch);
+          } else {
+            scheduled.put(this.targetTopic.getTopic(), 1);
+          }
+        } else {
+          if (scheduled.get(t.getTopic()) != null) {
+            int sch = scheduled.get(t.getTopic()) + 1;
+            scheduled.put(t.getTopic(), sch);
+          } else {
+            scheduled.put(t.getTopic(), 1);
+          }
+        }
+      }
+      // Timeout to report expired ad (i.e., upon expiration of this successful registration)
+      Timeout timeout = new Timeout(ticket.getTopic(), m.src.getId());
+      EDSimulator.add(
+          KademliaCommonConfig.AD_LIFE_TIME, timeout, Util.nodeIdtoNode(this.node.getId()), myPid);
+    }
+
+    operations.remove(m.operationId);
+  }
+
+  /**
    * manage the peersim receiving of the events
    *
    * @param myNode Node
@@ -441,6 +560,28 @@ public class Discv5EvilDHTTicketProtocol extends Discv5DHTTicketProtocol {
       case Message.MSG_TOPIC_QUERY:
         m = (Message) event;
         handleTopicQuery(m, myPid);
+        break;
+
+      case Timeout.REG_TIMEOUT:
+        KademliaObserver.reportExpiredRegistration(((Timeout) event).topic, this.node.is_evil);
+
+        if (KademliaCommonConfig.REG_REFRESH == 1) {
+          String top = ((Timeout) event).topic.getTopic();
+          if (this.attackType.equals(KademliaCommonConfig.ATTACK_TYPE_TOPIC_SPAM)) {
+            top = this.targetTopic.getTopic();
+          }
+          int sch = scheduled.get(top) - 1;
+          scheduled.put(top, sch);
+          logger.info("scheduled Topic " + top + " " + sch);
+          if (sch == 0) {
+            logger.info("Registering again");
+            EDSimulator.add(
+                0,
+                generateRegisterMessage(top),
+                Util.nodeIdtoNode(this.node.getId()),
+                this.getProtocolID());
+          }
+        }
         break;
 
       default:
