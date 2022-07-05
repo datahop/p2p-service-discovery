@@ -59,6 +59,7 @@ public class TicketTable extends RoutingTable {
     this.myPid = myPid;
 
     logger = Logger.getLogger(protocol.getNode().getId().toString());
+    // LogManager.getLogManager().reset();
 
     this.refresh = refresh;
 
@@ -136,6 +137,26 @@ public class TicketTable extends RoutingTable {
     if (pendingTickets.contains(m.src.getId())) {
 
       Message register = new Message(Message.MSG_REGISTER, t);
+      register.ackId = m.id;
+      register.dest = m.src; // new KademliaNode(m.src);
+      register.body = ticket;
+      register.operationId = m.operationId;
+      protocol.scheduleSendMessage(register, m.src.getId(), myPid, ticket.getWaitTime());
+
+      int dist = Util.logDistance(nodeId, m.src.getId());
+      if (!registeredPerDist.containsKey(dist)) {
+        registeredPerDist.put(dist, 1);
+      } else {
+        registeredPerDist.put(dist, registeredPerDist.get(dist) + 1);
+      }
+    }
+  }
+
+  public void addTicketRandomTopic(Message m, Ticket ticket, Topic randomTopic) {
+
+    if (pendingTickets.contains(m.src.getId())) {
+
+      Message register = new Message(Message.MSG_REGISTER, randomTopic);
       register.ackId = m.id;
       register.dest = m.src; // new KademliaNode(m.src);
       register.body = ticket;

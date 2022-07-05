@@ -76,6 +76,7 @@ class TreeMichal:
 
     #add an IP to the tree
     def add(self, addr, time = 0, modifyTree = True):
+        #print("!!!!!!!!!! adding", addr)
         if(not modifyTree):
             self.currTime = time
         current = self.root

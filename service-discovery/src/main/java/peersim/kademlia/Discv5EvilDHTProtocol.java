@@ -19,6 +19,7 @@ public class Discv5EvilDHTProtocol extends Discv5DHTProtocol {
   final String PAR_ATTACK_TYPE = "attackType";
   final String PAR_REFRESH_TIME = "refreshTime";
 
+  UniformRandomGenerator urg = new UniformRandomGenerator(KademliaCommonConfig.BITS, CommonState.r);
   // type of attack (TopicSpam)
   private String attackType;
   // number of registrations to make
@@ -264,43 +265,6 @@ public class Discv5EvilDHTProtocol extends Discv5DHTProtocol {
     super.handleResponse(m, myPid);
   }
 
-  /**
-   * Process a register response message.<br>
-   * The body should contain a ticket, which indicates whether registration is complete. In case it
-   * is not, schedule sending a new register request
-   *
-   * @param m Message received (contains the node to find)
-   * @param myPid the sender Pid
-   */
-  protected void handleRegisterResponse(Message m, int myPid) {
-
-    TopicRegistration r = (TopicRegistration) m.body;
-
-    Topic t = r.getTopic();
-    KademliaObserver.reportActiveRegistration(t, this.node.is_evil);
-
-    KademliaObserver.addAcceptedRegistration(
-        t,
-        this.node.getId(),
-        m.src.getId(),
-        CommonState.getTime() - r.getTimestamp(),
-        this.node.is_evil);
-
-    operations.remove(m.operationId);
-
-    if (this.nRefresh == 1) {
-
-      if (scheduled.get(t.getTopic()) != null) {
-        int sch = scheduled.get(t.getTopic()) + 1;
-        scheduled.put(t.getTopic(), sch);
-      } else {
-        scheduled.put(t.getTopic(), 1);
-      }
-    }
-    Timeout timeout = new Timeout(t, m.src.getId());
-    EDSimulator.add(refreshTime, timeout, Util.nodeIdtoNode(this.node.getId()), myPid);
-  }
-
   protected void startRegistration(RegisterOperation rop, int myPid) {
 
     // int distToTopic = Util.logDistance((BigInteger) rop.getTopic().getTopicID(),
@@ -340,6 +304,10 @@ public class Discv5EvilDHTProtocol extends Discv5DHTProtocol {
       BigInteger nextNode = registrars.get(i);
       if (nextNode != null) {
         message.dest = new KademliaNode(nextNode);
+        if (this.attackType.equals(KademliaCommonConfig.ATTACK_TYPE_TOPIC_SPAM)) {
+          Topic t_rand = Util.generateRandomTopic(urg);
+          message.body = t_rand;
+        }
         sendMessage(message.copy(), nextNode, myPid);
         rop.nrHops++;
       } else {
@@ -387,6 +355,51 @@ public class Discv5EvilDHTProtocol extends Discv5DHTProtocol {
   }
 
   /**
+   * Process a register response message.<br>
+   * The body should contain a ticket, which indicates whether registration is complete. In case it
+   * is not, schedule sending a new register request
+   *
+   * @param m Message received (contains the node to find)
+   * @param myPid the sender Pid
+   */
+  protected void handleRegisterResponse(Message m, int myPid) {
+
+    TopicRegistration r = (TopicRegistration) m.body;
+
+    Topic t = r.getTopic();
+    KademliaObserver.reportActiveRegistration(t, this.node.is_evil);
+
+    KademliaObserver.addAcceptedRegistration(
+        t,
+        this.node.getId(),
+        m.src.getId(),
+        CommonState.getTime() - r.getTimestamp(),
+        this.node.is_evil);
+
+    operations.remove(m.operationId);
+
+    if (this.nRefresh == 1) {
+      if (this.attackType.equals(KademliaCommonConfig.ATTACK_TYPE_TOPIC_SPAM)) {
+        if (scheduled.get(this.targetTopic.getTopic()) != null) {
+          int sch = scheduled.get(this.targetTopic.getTopic()) + 1;
+          scheduled.put(this.targetTopic.getTopic(), sch);
+        } else {
+          scheduled.put(this.targetTopic.getTopic(), 1);
+        }
+      } else {
+        if (scheduled.get(t.getTopic()) != null) {
+          int sch = scheduled.get(t.getTopic()) + 1;
+          scheduled.put(t.getTopic(), sch);
+        } else {
+          scheduled.put(t.getTopic(), 1);
+        }
+      }
+    }
+    Timeout timeout = new Timeout(t, m.src.getId());
+    EDSimulator.add(refreshTime, timeout, Util.nodeIdtoNode(this.node.getId()), myPid);
+  }
+
+  /**
    * manage the peersim receiving of the events
    *
    * @param myNode Node
@@ -414,6 +427,27 @@ public class Discv5EvilDHTProtocol extends Discv5DHTProtocol {
       case Message.MSG_TOPIC_QUERY:
         m = (Message) event;
         handleTopicQuery(m, myPid);
+        break;
+
+      case Timeout.REG_TIMEOUT:
+        KademliaObserver.reportExpiredRegistration(((Timeout) event).topic, this.node.is_evil);
+        if (KademliaCommonConfig.REG_REFRESH == 1) {
+          String top = ((Timeout) event).topic.getTopic();
+          if (this.attackType.equals(KademliaCommonConfig.ATTACK_TYPE_TOPIC_SPAM)) {
+            top = this.targetTopic.getTopic();
+          }
+          int sch = scheduled.get(top) - 1;
+          scheduled.put(top, sch);
+          logger.info("scheduled Topic " + top + " " + sch);
+          if (sch == 0) {
+            logger.warning("Registering again");
+            EDSimulator.add(
+                0,
+                generateRegisterMessage(top),
+                Util.nodeIdtoNode(this.node.getId()),
+                this.getProtocolID());
+          }
+        }
         break;
 
       default:

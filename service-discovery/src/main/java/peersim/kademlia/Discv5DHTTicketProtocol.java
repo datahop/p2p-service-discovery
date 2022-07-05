@@ -537,6 +537,8 @@ public class Discv5DHTTicketProtocol extends Discv5Protocol {
     Node src = Util.nodeIdtoNode(this.node.getId());
     Node dest = Util.nodeIdtoNode(destId);
 
+    assert delay >= 0 : "attempting to schedule a message in the past";
+
     int destpid = dest.getKademliaProtocol().getProtocolID();
 
     m.src = this.node;
@@ -567,27 +569,17 @@ public class Discv5DHTTicketProtocol extends Discv5Protocol {
   protected void handleRegister(Message m, int myPid) {
     Ticket ticket = (Ticket) m.body;
     long curr_time = CommonState.getTime();
-    boolean add_event =
-        ((Discv5StatefulTopicTable) topicTable).register_ticket(ticket, m, curr_time);
+    // boolean add_event = ((Discv5GlobalTopicTable)this.topicTable).register_ticket(ticket, m,
+    // curr_time);
 
-    // Setup a timeout event for the registration decision
-    if (add_event) {
-      Timeout timeout = new Timeout(ticket.getTopic());
-      EDSimulator.add(
-          KademliaCommonConfig.ONE_UNIT_OF_TIME,
-          timeout,
-          Util.nodeIdtoNode(this.node.getId()),
-          myPid);
-    }
-    // logger.warning("Slot time "+ CommonState.getTime()+"
-    // "+(CommonState.getTime()-slotTime));
-    /*
-     * if(firstRegister) { logger.warning("Slot executed"); Timeout timeout = new
-     * Timeout(ticket.getTopic()); EDSimulator.add(KademliaCommonConfig.SLOT,
-     * timeout, Util.nodeIdtoNode(this.node.getId()), myPid); firstRegister=false; }
-     */
-    // slotTime = CommonState.getTime();
-
+    ((Discv5GlobalTopicTable) this.topicTable)
+        .makeRegisterDecisionForSingleTicket(ticket, curr_time);
+    Message response = new Message(Message.MSG_REGISTER_RESPONSE, ticket);
+    response.ackId = m.id;
+    response.operationId = m.operationId;
+    response.src = this.node;
+    response.dest = m.src;
+    sendMessage(response, m.src.getId(), myPid);
   }
 
   /**
