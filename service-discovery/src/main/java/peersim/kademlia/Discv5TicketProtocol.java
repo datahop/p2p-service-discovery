@@ -523,7 +523,7 @@ public class Discv5TicketProtocol extends Discv5Protocol {
               + " "
               + ticket.getCumWaitTime());
       KademliaObserver.addAcceptedRegistration(
-          topic, this.node.getId(), m.src.getId(), ticket.getCumWaitTime());
+          topic, this.node.getId(), m.src.getId(), ticket.getCumWaitTime(), this.node.is_evil);
       KademliaObserver.reportActiveRegistration(ticket.getTopic(), this.node.is_evil);
 
       Timeout timeout = new Timeout(ticket.getTopic(), m.src.getId());

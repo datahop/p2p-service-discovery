@@ -20,6 +20,7 @@ public class Discv5EvilDHTTicketProtocol extends Discv5DHTTicketProtocol {
   // VARIABLE PARAMETERS
   final String PAR_ATTACK_TYPE = "attackType";
   final String PAR_NUMBER_OF_REGISTRATIONS = "numberOfRegistrations";
+  final String PAR_REFRESH_TIME = "refreshTime";
 
   UniformRandomGenerator urg = new UniformRandomGenerator(KademliaCommonConfig.BITS, CommonState.r);
   // type of attack (TopicSpam)
@@ -36,6 +37,9 @@ public class Discv5EvilDHTTicketProtocol extends Discv5DHTTicketProtocol {
   private HashMap<String, List<BigInteger>> allSeen;
 
   private int n_regs;
+
+  private int refreshTime;
+
   /**
    * Replicate this object by returning an identical copy.<br>
    * It is called by the initializer and do not fill any particular field.
@@ -58,6 +62,7 @@ public class Discv5EvilDHTTicketProtocol extends Discv5DHTTicketProtocol {
     super(prefix);
     this.allSeen = new HashMap<>();
     this.n_regs = Configuration.getInt(prefix + "." + PAR_N, KademliaCommonConfig.N);
+    this.refreshTime = Configuration.getInt(prefix + "." + PAR_REFRESH_TIME, 60000);
 
     this.attackType = Configuration.getString(prefix + "." + PAR_ATTACK_TYPE);
     this.numOfRegistrations = 0;
@@ -112,7 +117,15 @@ public class Discv5EvilDHTTicketProtocol extends Discv5DHTTicketProtocol {
   protected void handleInitRegister(Message m, int myPid) {
     Topic t = (Topic) m.body;
 
-    logger.warning("In handleInitRegister of EVIL " + t.getTopic() + " " + t.getTopicID());
+    logger.warning(
+        "In handleInitRegister of EVIL "
+            + t.getTopic()
+            + " "
+            + t.getTopicID()
+            + " "
+            + n_regs
+            + " "
+            + refreshTime);
 
     allSeen.put(t.getTopic(), new ArrayList<BigInteger>());
 
@@ -382,6 +395,107 @@ public class Discv5EvilDHTTicketProtocol extends Discv5DHTTicketProtocol {
     assert m.src != null;
     response.dest = m.src;
     sendMessage(response, m.src.getId(), myPid);
+  }
+
+  /**
+   * Process a register response message.<br>
+   * The body should contain a ticket, which indicates whether registration is complete. In case it
+   * is not, schedule sending a new register request
+   *
+   * @param m Message received (contains the node to find)
+   * @param myPid the sender Pid
+   */
+  protected void handleRegisterResponse(Message m, int myPid) {
+
+    Ticket ticket = (Ticket) m.body;
+
+    Topic t = ticket.getTopic();
+
+    if (!ticket.isRegistrationComplete()) {
+      logger.warning(
+          "Unsuccessful Registration of topic: "
+              + ticket.getTopic().getTopic()
+              + " at node: "
+              + m.src.getId()
+              + " wait time: "
+              + ticket.getWaitTime()
+              + " "
+              + ticket.getCumWaitTime());
+      Message register = new Message(Message.MSG_REGISTER, ticket);
+      register.operationId = m.operationId;
+      register.body = m.body;
+
+      BackoffService backoff = registrationFailed.get(ticket);
+      if (backoff == null) {
+        backoff =
+            new BackoffService(
+                KademliaCommonConfig.AD_LIFE_TIME, KademliaCommonConfig.MAX_REGISTRATION_RETRIES);
+        backoff.registrationFailed();
+        registrationFailed.put(ticket, backoff);
+      } else {
+        backoff.registrationFailed();
+      }
+      logger.info(
+          "Registration failed "
+              + backoff.getTimesFailed()
+              + " backing off "
+              + +backoff.getTimeToWait()
+              + " "
+              + backoff.shouldRetry()
+              + " "
+              + ticket.getWaitTime());
+
+      if ((backoff.shouldRetry() && ticket.getWaitTime() >= 0)
+          && (ticket.getCumWaitTime() <= KademliaCommonConfig.REG_TIMEOUT)) {
+        scheduleSendMessage(register, m.src.getId(), myPid, ticket.getWaitTime());
+      } else {
+        logger.warning(
+            "Ticket request cumwaitingtime too big "
+                + ticket.getCumWaitTime()
+                + " or too many tries "
+                + backoff.getTimesFailed());
+        // ticketTables.get(topic.getTopicID()).removeRegisteredList(m.src.getId());
+        RetryTimeout timeout = new RetryTimeout(ticket.getTopic(), m.src.getId());
+        EDSimulator.add(
+            KademliaCommonConfig.AD_LIFE_TIME,
+            timeout,
+            Util.nodeIdtoNode(this.node.getId()),
+            myPid);
+
+        if (ticket.getCumWaitTime() > KademliaCommonConfig.REG_TIMEOUT)
+          KademliaObserver.reportOverThresholdWaitingTime(
+              t.getTopic(), this.node.getId(), m.src.getId(), ticket.getWaitTime());
+      }
+
+    } else {
+      logger.warning(
+          "Registration succesful for topic "
+              + ticket.getTopic().topic
+              + " at node "
+              + m.src.getId()
+              + " at dist "
+              + Util.logDistance(m.src.getId(), ticket.getTopic().getTopicID())
+              + " "
+              + ticket.getCumWaitTime());
+      KademliaObserver.addAcceptedRegistration(
+          t, this.node.getId(), m.src.getId(), ticket.getCumWaitTime(), this.node.is_evil);
+      KademliaObserver.reportActiveRegistration(ticket.getTopic(), this.node.is_evil);
+
+      if (this.nRefresh == 1) {
+
+        if (scheduled.get(t.getTopic()) != null) {
+          int sch = scheduled.get(t.getTopic()) + 1;
+          scheduled.put(t.getTopic(), sch);
+        } else {
+          scheduled.put(t.getTopic(), 1);
+        }
+      }
+      // Timeout to report expired ad (i.e., upon expiration of this successful registration)
+      Timeout timeout = new Timeout(ticket.getTopic(), m.src.getId());
+      EDSimulator.add(refreshTime, timeout, Util.nodeIdtoNode(this.node.getId()), myPid);
+    }
+
+    operations.remove(m.operationId);
   }
 
   /**

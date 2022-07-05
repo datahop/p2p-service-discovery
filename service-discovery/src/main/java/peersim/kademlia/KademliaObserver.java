@@ -246,7 +246,7 @@ public class KademliaObserver implements Control {
   }
 
   public static void addAcceptedRegistration(
-      Topic t, BigInteger registrant, BigInteger registrar, long waitingTime) {
+      Topic t, BigInteger registrant, BigInteger registrar, long waitingTime, boolean is_evil) {
     String topic = t.getTopic();
     if (registeredTopics.containsKey(topic)) {
       HashMap<BigInteger, RegistrationLog> set = registeredTopics.get(topic);
@@ -260,6 +260,7 @@ public class KademliaObserver implements Control {
 
     increaseNodeStatsBy(registrant, "regsPlaced", 1);
     increaseNodeStatsBy(registrar, "regsAccepted", 1);
+    if (is_evil) increaseNodeStatsBy(registrar, "regsEvilAccepted", 1);
   }
 
   public static void addDiscovered(Topic t, BigInteger requesting, BigInteger discovered) {
@@ -319,6 +320,7 @@ public class KademliaObserver implements Control {
     msgStats.put("wasDiscovered", 0);
     msgStats.put("regsPlaced", 0);
     msgStats.put("regsAccepted", 0);
+    msgStats.put("regsEvilAccepted", 0);
     msgStats.put("maliciousDiscovered", 0);
     msgStats.put("lookupOperations", 0);
     msgStats.put("lookupAskedNodes", 0);

@@ -17,7 +17,7 @@ public class Discv5EvilDHTProtocol extends Discv5DHTProtocol {
 
   // VARIABLE PARAMETERS
   final String PAR_ATTACK_TYPE = "attackType";
-  final String PAR_NUMBER_OF_REGISTRATIONS = "numberOfRegistrations";
+  final String PAR_REFRESH_TIME = "refreshTime";
 
   UniformRandomGenerator urg = new UniformRandomGenerator(KademliaCommonConfig.BITS, CommonState.r);
   // type of attack (TopicSpam)
@@ -31,6 +31,8 @@ public class Discv5EvilDHTProtocol extends Discv5DHTProtocol {
   private HashMap<Topic, HashMap<BigInteger, Long>> previousTicketRequestTime;
 
   private HashMap<String, List<BigInteger>> allSeen;
+
+  private int refreshTime;
 
   private int n_regs;
   /**
@@ -55,6 +57,8 @@ public class Discv5EvilDHTProtocol extends Discv5DHTProtocol {
 
     this.allSeen = new HashMap<>();
     this.attackType = Configuration.getString(prefix + "." + PAR_ATTACK_TYPE);
+    this.refreshTime = Configuration.getInt(prefix + "." + PAR_REFRESH_TIME, 60000);
+
     this.n_regs = Configuration.getInt(prefix + "." + PAR_N, KademliaCommonConfig.N);
     this.evilTopicTable = new HashMap<Topic, ArrayList<TopicRegistration>>();
     this.evilRoutingTable =
@@ -105,7 +109,15 @@ public class Discv5EvilDHTProtocol extends Discv5DHTProtocol {
   protected void handleInitRegister(Message m, int myPid) {
     Topic t = (Topic) m.body;
 
-    logger.warning("In handleInitRegister of EVIL " + t.getTopic() + " " + t.getTopicID());
+    logger.warning(
+        "In handleInitRegister of EVIL "
+            + t.getTopic()
+            + " "
+            + t.getTopicID()
+            + " "
+            + n_regs
+            + " "
+            + refreshTime);
 
     allSeen.put(t.getTopic(), new ArrayList<BigInteger>());
 
@@ -251,6 +263,43 @@ public class Discv5EvilDHTProtocol extends Discv5DHTProtocol {
     logger.warning("handleresponse " + neighbours.length);
 
     super.handleResponse(m, myPid);
+  }
+
+  /**
+   * Process a register response message.<br>
+   * The body should contain a ticket, which indicates whether registration is complete. In case it
+   * is not, schedule sending a new register request
+   *
+   * @param m Message received (contains the node to find)
+   * @param myPid the sender Pid
+   */
+  protected void handleRegisterResponse(Message m, int myPid) {
+
+    TopicRegistration r = (TopicRegistration) m.body;
+
+    Topic t = r.getTopic();
+    KademliaObserver.reportActiveRegistration(t, this.node.is_evil);
+
+    KademliaObserver.addAcceptedRegistration(
+        t,
+        this.node.getId(),
+        m.src.getId(),
+        CommonState.getTime() - r.getTimestamp(),
+        this.node.is_evil);
+
+    operations.remove(m.operationId);
+
+    if (this.nRefresh == 1) {
+
+      if (scheduled.get(t.getTopic()) != null) {
+        int sch = scheduled.get(t.getTopic()) + 1;
+        scheduled.put(t.getTopic(), sch);
+      } else {
+        scheduled.put(t.getTopic(), 1);
+      }
+    }
+    Timeout timeout = new Timeout(t, m.src.getId());
+    EDSimulator.add(refreshTime, timeout, Util.nodeIdtoNode(this.node.getId()), myPid);
   }
 
   protected void startRegistration(RegisterOperation rop, int myPid) {

@@ -45,8 +45,8 @@ The project is organised in three main milestones of the project together with t
   * Deadline: 21/6/2021
 
 * Objective 5: Publication-ready technical report
-  * [ ] Task: Write a technical report including the final specs of the discovery mechanism, all results of the evaluation and the conclusions of the investigation.
-  * Deliverable: Technical report including specs and evaluation. ([Ongoing work](https://github.com/harnen/service-discovery-paper) )
+  * [X] Task: Write a technical report including the final specs of the discovery mechanism, all results of the evaluation and the conclusions of the investigation.
+  * Deliverable: Technical report including specs and evaluation. ([Paper](https://github.com/harnen/service-discovery-paper) )
   * Deadline: 21/7/2021
   
 * Objective 6: Evaluation on a real testbed
