@@ -173,7 +173,7 @@ public class Discv5StatefulTopicTable extends Discv5GlobalTopicTable {
 
   protected double getTopicModifier(TopicRegistration reg) {
     double modifier = super.getTopicModifier(reg);
-    // modifier = modifier * getOccupancyScore();
+    modifier = modifier * getOccupancyScore() * baseMultiplier;
 
     // incorporate the lower-bound
     ArrayDeque<TopicRegistration> topicQ = topicTable.get(reg.getTopic());
@@ -198,7 +198,7 @@ public class Discv5StatefulTopicTable extends Discv5GlobalTopicTable {
     double modifier = 0;
 
     if (allAds.size() > 0) {
-      modifier = 0.000001;
+      modifier = 0.0000001; // XXX old val 0.000001;
       double delta_time = Math.max(0, CommonState.getTime() - base_timestamp);
       double lower_bound = Math.max(0, base_last_modifier - delta_time);
       modifier = modifier * getOccupancyScore() * baseMultiplier;
@@ -215,6 +215,7 @@ public class Discv5StatefulTopicTable extends Discv5GlobalTopicTable {
   protected double getIPModifier(TopicRegistration reg) {
 
     double modifier = super.getIPModifier(reg);
+    modifier = modifier * baseMultiplier * getOccupancyScore();
 
     // Incorporate the lower-bound
     // The lower-bound logic below associates the longest-prefix match
@@ -251,7 +252,7 @@ public class Discv5StatefulTopicTable extends Discv5GlobalTopicTable {
     if (id_count == null) id_count = 0;
 
     double modifier = super.getIdModifier(reg);
-    // modifier = modifier * getOccupancyScore();
+    modifier = modifier * baseMultiplier * getOccupancyScore();
 
     // incorporate the lower-bound
     double lower_bound = 0;
