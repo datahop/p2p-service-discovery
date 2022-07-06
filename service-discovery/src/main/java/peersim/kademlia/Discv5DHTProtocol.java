@@ -477,6 +477,8 @@ public class Discv5DHTProtocol extends Discv5Protocol {
     Node src = Util.nodeIdtoNode(this.node.getId());
     Node dest = Util.nodeIdtoNode(destId);
 
+    assert delay >= 0 : "attempting to schedule a message in the past";
+
     int destpid = dest.getKademliaProtocol().getProtocolID();
 
     m.src = this.node;

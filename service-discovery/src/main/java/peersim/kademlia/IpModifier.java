@@ -24,12 +24,12 @@ public class IpModifier {
   }
 
   // adds the address and returns similarity score
-  public double newAddress(String address) {
+  public void newAddress(String address) {
     IPAddressString addr = new IPAddressString(address);
     IPv4Address ipv4Addr = addr.getAddress().toIPv4();
     String binAddr = ipv4Addr.toBinaryString();
 
-    return TrieNode.addIp(root, binAddr);
+    TrieNode.addIp(root, binAddr);
   }
 
   public void removeAddress(String address) {

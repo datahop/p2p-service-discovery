@@ -69,7 +69,9 @@ public class TrieNode {
 
     for (int length = 0; length < 32; length++) {
 
-      score += currNode.count();
+      double expected = root.count() / Math.pow(2, length);
+      if (currNode.count() > expected) score += 1;
+
       char bit = ip.charAt(length);
       if (bit == '0') {
         currNode = currNode.zero();
@@ -79,20 +81,18 @@ public class TrieNode {
       if (currNode == null) break;
     }
 
-    return (1.0 * score) / (31.0 * root.count());
+    return (1.0 * score) / 32;
   }
 
   // adds an ip to the trie whose root node is given and
   // returns similarity score
-  public static double addIp(TrieNode root, String ip) {
+  public static void addIp(TrieNode root, String ip) {
 
-    int score = 0;
     TrieNode currNode = root;
     // logger.info("Adding ip: " + ip);
 
     for (int length = 0; length < 32; length++) {
 
-      score += currNode.count();
       currNode.increment();
 
       // String prefix = ip.substring(0, length);
@@ -115,10 +115,7 @@ public class TrieNode {
         System.exit(-1);
       }
     }
-    score += currNode.count();
     currNode.increment();
-
-    return (1.0 * score) / (31.0 * root.count());
   }
 
   // Removes an ip address from the trie whose root node is the root

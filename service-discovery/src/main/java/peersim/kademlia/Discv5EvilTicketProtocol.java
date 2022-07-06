@@ -8,6 +8,8 @@ import peersim.config.Configuration;
 import peersim.core.CommonState;
 import peersim.core.Network;
 import peersim.core.Node;
+import peersim.edsim.EDSimulator;
+import peersim.kademlia.operations.TicketOperation;
 import peersim.transport.UnreliableTransport;
 
 public class Discv5EvilTicketProtocol extends Discv5TicketProtocol {
@@ -16,17 +18,22 @@ public class Discv5EvilTicketProtocol extends Discv5TicketProtocol {
   final String PAR_ATTACK_TYPE = "attackType";
   final String PAR_NUMBER_OF_REGISTRATIONS = "numberOfRegistrations";
 
+  UniformRandomGenerator urg = new UniformRandomGenerator(KademliaCommonConfig.BITS, CommonState.r);
   // type of attack (TopicSpam)
   private String attackType;
   // number of registrations to make
   private int numOfRegistrations;
   private int targetNumOfRegistrations;
+  private boolean firstSpam = true;
   private boolean first = true;
   private HashMap<Topic, ArrayList<TopicRegistration>> evilTopicTable;
   private RoutingTable evilRoutingTable; // routing table only containing evil neighbors
   private HashMap<Topic, HashMap<BigInteger, Long>> initTicketRequestTime;
   private HashMap<Topic, HashMap<BigInteger, Long>> previousTicketRequestTime;
   private int ticketBucketSize;
+  // In case of ATTACK_TYPE_TOPIC_SPAM, the target topic is only used as a destination for
+  // registration msgs and random topics are registered
+  private Topic targetTopic;
   /**
    * Replicate this object by returning an identical copy.<br>
    * It is called by the initializer and do not fill any particular field.
@@ -91,6 +98,23 @@ public class Discv5EvilTicketProtocol extends Discv5TicketProtocol {
     super._init();
   }
 
+  // ______________________________________________________________________________________________
+  /**
+   * generates a random find node message, by selecting randomly the destination.
+   *
+   * @return Message
+   */
+  private Message generateFindNodeMessage(Topic t) {
+    // existing active destination node
+
+    BigInteger dst = t.topicID;
+
+    Message m = Message.makeInitFindNode(dst);
+    m.timestamp = CommonState.getTime();
+
+    return m;
+  }
+
   /**
    * Start a register topic operation.<br>
    * If this is an on-going register operation with a previously obtained ticket, then send a
@@ -100,7 +124,12 @@ public class Discv5EvilTicketProtocol extends Discv5TicketProtocol {
    * @param myPid the sender Pid
    */
   protected void handleInitRegisterTopic(Message m, int myPid) {
+
     Topic t = (Topic) m.body;
+    this.targetTopic = getTargetTopic();
+
+    assert (t.getTopic().equals(targetTopic.getTopic()))
+        : "target topic is different from the one that is registered";
 
     logger.warning(
         "In handleInitRegister of EVIL "
@@ -127,7 +156,8 @@ public class Discv5EvilTicketProtocol extends Discv5TicketProtocol {
     }
     if (first
         && (this.attackType.equals(KademliaCommonConfig.ATTACK_TYPE_HYBRID)
-            || this.attackType.equals(KademliaCommonConfig.ATTACK_TYPE_MALICIOUS_REGISTRAR))) {
+            || this.attackType.equals(KademliaCommonConfig.ATTACK_TYPE_MALICIOUS_REGISTRAR)
+            || this.attackType.equals(KademliaCommonConfig.ATTACK_TYPE_TOPIC_SPAM))) {
       first = false;
       logger.warning("Filling up the topic table with malicious entries");
       for (int i = 0; i < Network.size(); i++) {
@@ -177,6 +207,15 @@ public class Discv5EvilTicketProtocol extends Discv5TicketProtocol {
     for (int i = 0; i <= KademliaCommonConfig.BITS; i++) {
       BigInteger[] neighbours = routingTable.getNeighbours(i);
       tt.addNeighbour(neighbours);
+    }
+
+    // TODO if the attack type is topic spam (i.e., spam random topics)
+    // we should do a FIND request to the existing topic (say t1) that is attacked
+    // in order to populate the ticket table with neighbors close to t1.
+    // Otherwise, ticket requests with random topics populate the ticket table with only the peers
+    // close to the random topic
+    if (this.attackType.equals(KademliaCommonConfig.ATTACK_TYPE_TOPIC_SPAM)) {
+      Message mFind = generateFindNodeMessage(t);
     }
 
     /*
@@ -261,8 +300,7 @@ public class Discv5EvilTicketProtocol extends Discv5TicketProtocol {
   protected void handleTicketRequest(Message m, int myPid) {
 
     logger.warning("Handle ticket request EVIL");
-    if (this.attackType.equals(KademliaCommonConfig.ATTACK_TYPE_TOPIC_SPAM)
-        || this.attackType.endsWith(KademliaCommonConfig.ATTACK_TYPE_WAITING_TIME_SPAM)) {
+    if (this.attackType.endsWith(KademliaCommonConfig.ATTACK_TYPE_WAITING_TIME_SPAM)) {
       super.handleTicketRequest(m, myPid);
       return;
     }
@@ -282,12 +320,11 @@ public class Discv5EvilTicketProtocol extends Discv5TicketProtocol {
     Ticket ticket =
         ((Discv5GlobalTopicTable) this.topicTable)
             .getTicket(topic, advertiser, rtt_delay, curr_time);
-    // Send a response message with a ticket back to advertiser
+
+    // Send a response message with evil neighbors back to the requester
     BigInteger[] neighbours =
         this.evilRoutingTable.getNeighbours(
             Util.logDistance(topic.getTopicID(), this.node.getId()));
-    // BigInteger[] neighbours =
-    // this.routingTable.getNeighbours(Util.logDistance(topic.getTopicID(), this.node.getId()));
 
     Message.TicketReplyBody body = new Message.TicketReplyBody(ticket, neighbours);
 
@@ -298,43 +335,28 @@ public class Discv5EvilTicketProtocol extends Discv5TicketProtocol {
     }
     Message response = new Message(Message.MSG_TICKET_RESPONSE, body);
 
-    // Message response = new Message(Message.MSG_TICKET_RESPONSE, ticket);
     response.ackId = m.id; // set ACK number
     response.operationId = m.operationId;
 
     sendMessage(response, m.src.getId(), myPid);
-
-    /*long curr_time = CommonState.getTime();
-          Topic topic = (Topic) m.body;
-          KademliaNode advertiser = new KademliaNode(m.src);
-    transport = (UnreliableTransport) (Network.prototype).getProtocol(tid);
-          long rtt_delay = 2*transport.getLatency(Util.nodeIdtoNode(m.src.getId()), Util.nodeIdtoNode(m.dest.getId()));
-          // Generate a ticket without any waiting time
-          Ticket ticket = new Ticket(topic, curr_time, 0, advertiser, rtt_delay);
-          ticket.setMsg(m);
-
-          // Send a response message with a ticket back to advertiser
-    BigInteger[] neighbours = this.evilRoutingTable.getNeighbours(Util.logDistance(topic.getTopicID(), this.node.getId()));
-
-      	Message.TicketRequestBody body = new Message.TicketRequestBody(ticket, neighbours);
-    Message response  = new Message(Message.MSG_TICKET_RESPONSE, body);
-
-          //Message response = new Message(Message.MSG_TICKET_RESPONSE, ticket);
-    response.ackId = m.id; // set ACK number
-    response.operationId = m.operationId;
-
-          sendMessage(response, m.src.getId(), myPid);*/
   }
 
   /** Process a ticket response and schedule a register message */
   protected void handleTicketResponse(Message m, int myPid) {
 
     logger.info("Got response EVIL! Is topic queue full?");
-
     Message.TicketReplyBody body = (Message.TicketReplyBody) m.body;
     Ticket ticket = body.ticket;
-    Topic topic = ticket.getTopic();
-    TicketTable tt = ticketTables.get(topic.getTopicID());
+    if (!(this.attackType.equals(KademliaCommonConfig.ATTACK_TYPE_TOPIC_SPAM))) {
+      assert ticket.getTopic().getTopic().equals(targetTopic.getTopic());
+    }
+    TicketTable tt;
+    if (this.attackType.equals(KademliaCommonConfig.ATTACK_TYPE_TOPIC_SPAM)) {
+      tt = ticketTables.get(targetTopic.getTopicID());
+    } else {
+      Topic topic = ticket.getTopic();
+      tt = ticketTables.get(topic.getTopicID());
+    }
     tt.reportResponse(ticket);
 
     if (KademliaCommonConfig.TICKET_NEIGHBOURS == 1) {
@@ -344,75 +366,76 @@ public class Discv5EvilTicketProtocol extends Discv5TicketProtocol {
       if (tt != null) {
         tt.addNeighbour(body.neighbours);
       }
-      SearchTable st = searchTables.get(topic.getTopicID());
+      SearchTable st = searchTables.get(targetTopic.getTopicID());
       if (st != null) st.addNeighbour(body.neighbours);
     }
 
-    /*if (ticket.getWaitTime() == -1 || ticket.getCumWaitTime()>registrationTimeout) {
+    // if request is rejected because of re-registration attempt
+    if (ticket.getWaitTime() == -1 || ticket.getCumWaitTime() > KademliaCommonConfig.REG_TIMEOUT) {
 
-    	if(ticket.getWaitTime()==-1)
-    		logger.warning("Attempted to re-register topic on the same node " + m.src.getId() + " for topic "
-    			+ topic.getTopic());
-    	else
-    		logger.warning("Ticket request cumwaitingtime too big "+ticket.getCumWaitTime());
-    	tt.removeNeighbour(m.src.getId());
-    	RetryTimeout timeout = new RetryTimeout(ticket.getTopic(), m.src.getId());
-    	EDSimulator.add(KademliaCommonConfig.AD_LIFE_TIME, timeout, Util.nodeIdtoNode(this.node.getId()),
-    			myPid);
-    	if (KademliaCommonConfig.PARALLELREGISTRATIONS == 0) {
-    		ticketTables.get(ticket.getTopic().getTopicID()).increaseAvailableRequests();
-
-    		if (ticketTables.get(ticket.getTopic().getTopicID()).getAvailableRequests() > 0) {
-    			BigInteger nextNode = ticketTables.get(ticket.getTopic().getTopicID()).getNeighbour();
-    			if (nextNode != null) {
-    				sendTicketRequest(nextNode, ticket.getTopic(), myPid);
-    			}
-    		}
-    	}
-    	return;
-    }*/
+      if (ticket.getWaitTime() == -1)
+        logger.warning(
+            "Attempted to re-register topic on the same node "
+                + m.src.getId()
+                + " for topic "
+                + ticket.getTopic().getTopic());
+      else {
+        logger.info("Ticket request cumwaitingtime too big " + ticket.getCumWaitTime());
+        if (this.attackType.equals(KademliaCommonConfig.ATTACK_TYPE_TOPIC_SPAM)) {
+          KademliaObserver.reportOverThresholdWaitingTime(
+              this.targetTopic.getTopic(), this.node.getId(), m.src.getId(), ticket.getWaitTime());
+        } else {
+          KademliaObserver.reportOverThresholdWaitingTime(
+              ticket.getTopic().getTopic(), this.node.getId(), m.src.getId(), ticket.getWaitTime());
+        }
+      }
+      tt.removeNeighbour(m.src.getId());
+      RetryTimeout timeout = new RetryTimeout(ticket.getTopic(), m.src.getId());
+      EDSimulator.add(
+          KademliaCommonConfig.AD_LIFE_TIME, timeout, Util.nodeIdtoNode(this.node.getId()), myPid);
+      return;
+    }
 
     if (this.attackType.equals(KademliaCommonConfig.ATTACK_TYPE_WAITING_TIME_SPAM)) {
 
       logger.info("Waiting time attack");
 
-      // if(initTicketRequestTime.get(topic).get(m.src.getId())==null)
-
-      if (previousTicketRequestTime.get(topic).get(m.src.getId()) != null) {
-        // logger.warning("Previous ticket
-        // "+previousTicketRequestTime.get(topic).get(m.src.getId())+" previous time
-        // "+initTicketRequestTime.get(topic).get(m.src.getId())+" current ticket wait
-        // "+ticket.getWaitTime());
-        if ((CommonState.getTime() - initTicketRequestTime.get(topic).get(m.src.getId()) > 0)
-            && (previousTicketRequestTime.get(topic).get(m.src.getId())
+      if (previousTicketRequestTime.get(targetTopic).get(m.src.getId()) != null) {
+        if ((CommonState.getTime() - initTicketRequestTime.get(targetTopic).get(m.src.getId()) > 0)
+            && (previousTicketRequestTime.get(targetTopic).get(m.src.getId())
                 > (CommonState.getTime()
-                    - initTicketRequestTime.get(topic).get(m.src.getId())
+                    - initTicketRequestTime.get(targetTopic).get(m.src.getId())
                     + ticket.getWaitTime()
                     + ticket.getRTT()))) {
           logger.warning(
               "Received smaller waiting time than before "
                   + ticket.getWaitTime()
                   + " "
-                  + previousTicketRequestTime.get(topic).get(m.src.getId())
+                  + previousTicketRequestTime.get(targetTopic).get(m.src.getId())
                   + " "
                   + CommonState.getTime()
                   + " "
-                  + initTicketRequestTime.get(topic).get(m.src.getId()));
+                  + initTicketRequestTime.get(targetTopic).get(m.src.getId()));
           KademliaObserver.reportBetterWaitingTime(
               ticket.getTopic().getTopic(),
-              previousTicketRequestTime.get(topic).get(m.src.getId()),
+              previousTicketRequestTime.get(targetTopic).get(m.src.getId()),
               ticket.getWaitTime(),
-              CommonState.getTime() - initTicketRequestTime.get(topic).get(m.src.getId()));
+              CommonState.getTime() - initTicketRequestTime.get(targetTopic).get(m.src.getId()));
         }
       }
 
-      initTicketRequestTime.get(topic).put(m.src.getId(), CommonState.getTime());
-      previousTicketRequestTime.get(topic).put(m.src.getId(), ticket.getWaitTime());
-      super.sendTicketRequest(m.src.getId(), topic, myPid);
+      initTicketRequestTime.get(targetTopic).put(m.src.getId(), CommonState.getTime());
+      previousTicketRequestTime.get(targetTopic).put(m.src.getId(), ticket.getWaitTime());
+      super.sendTicketRequest(m.src.getId(), targetTopic, myPid);
 
     } else {
 
-      tt.addTicket(m, ticket);
+      if (this.attackType.equals(KademliaCommonConfig.ATTACK_TYPE_TOPIC_SPAM)) {
+        TicketOperation top = (TicketOperation) operations.get(m.operationId);
+        tt.addTicketRandomTopic(m, ticket, (Topic) top.body);
+      } else {
+        tt.addTicket(m, ticket);
+      }
     }
   }
   /** Process register requests The malicious node simply approves all tickets */
@@ -437,8 +460,7 @@ public class Discv5EvilTicketProtocol extends Discv5TicketProtocol {
    */
   protected void handleFind(Message m, int myPid, int dist) {
 
-    if (this.attackType.equals(KademliaCommonConfig.ATTACK_TYPE_TOPIC_SPAM)
-        || this.attackType.equals(KademliaCommonConfig.ATTACK_TYPE_DOS)
+    if (this.attackType.equals(KademliaCommonConfig.ATTACK_TYPE_DOS)
         || this.attackType.equals(KademliaCommonConfig.ATTACK_TYPE_WAITING_TIME_SPAM)) {
       super.handleFind(m, myPid, dist);
       return;
@@ -465,6 +487,164 @@ public class Discv5EvilTicketProtocol extends Discv5TicketProtocol {
     sendMessage(response, m.src.getId(), myPid);
   }
 
+  public void sendTicketRequest(BigInteger dest, Topic t, int myPid) {
+    logger.info("Sending ticket request to " + dest + " for topic " + t.topic);
+    Message m;
+    TicketOperation top = new TicketOperation(this.node.getId(), CommonState.getTime(), t);
+    if (this.attackType.equals(KademliaCommonConfig.ATTACK_TYPE_TOPIC_SPAM) && !firstSpam) {
+      // Generate a ticket request for a random topic
+      Topic t_rand = Util.generateRandomTopic(urg);
+      top.body = t_rand;
+      m = new Message(Message.MSG_TICKET_REQUEST, t_rand);
+    } else {
+      top.body = t;
+      m = new Message(Message.MSG_TICKET_REQUEST, t);
+      firstSpam = false;
+    }
+    operations.put(top.operationId, top);
+
+    // Lookup the target address in the routing table
+    BigInteger[] neighbours = new BigInteger[] {dest};
+
+    top.elaborateResponse(neighbours);
+    top.available_requests = KademliaCommonConfig.ALPHA;
+
+    m.timestamp = CommonState.getTime();
+    // set message operation id
+    m.operationId = top.operationId;
+    m.src = this.node;
+
+    sendMessage(m, top.getNeighbour(), myPid);
+  }
+
+  /**
+   * Process a register response message.<br>
+   * The body should contain a ticket, which indicates whether registration is complete. In case it
+   * is not, schedule sending a new register request
+   *
+   * @param m Message received (contains the node to find)
+   * @param myPid the sender Pid
+   */
+  protected void handleRegisterResponse(Message m, int myPid) {
+    Ticket ticket = (Ticket) m.body;
+    Topic topic = ticket.getTopic();
+    if (!ticket.isRegistrationComplete()) {
+      logger.info(
+          "Unsuccessful Registration of topic: "
+              + ticket.getTopic().getTopic()
+              + " at node: "
+              + m.src.getId()
+              + " wait time: "
+              + ticket.getWaitTime()
+              + " "
+              + ticket.getCumWaitTime());
+      Message register = new Message(Message.MSG_REGISTER, ticket);
+      register.operationId = m.operationId;
+      register.body = m.body;
+
+      BackoffService backoff = registrationFailed.get(ticket);
+      if (backoff == null) {
+        backoff =
+            new BackoffService(
+                KademliaCommonConfig.AD_LIFE_TIME, KademliaCommonConfig.MAX_REGISTRATION_RETRIES);
+        backoff.registrationFailed();
+        registrationFailed.put(ticket, backoff);
+      } else {
+        backoff.registrationFailed();
+      }
+      logger.info(
+          "Registration failed "
+              + backoff.getTimesFailed()
+              + " backing off "
+              + +backoff.getTimeToWait()
+              + " "
+              + backoff.shouldRetry()
+              + " "
+              + ticket.getWaitTime());
+
+      if (backoff.shouldRetry()
+          && (ticket.getWaitTime() >= 0)
+          && (ticket.getCumWaitTime() <= KademliaCommonConfig.REG_TIMEOUT)) {
+        scheduleSendMessage(register, m.src.getId(), myPid, ticket.getWaitTime());
+      } else {
+        logger.info("Ticket request cumwaitingtime too big " + ticket.getCumWaitTime());
+        if (this.attackType.equals(KademliaCommonConfig.ATTACK_TYPE_TOPIC_SPAM)) {
+          ticketTables.get(this.targetTopic.getTopicID()).removeNeighbour(m.src.getId());
+        } else {
+          ticketTables.get(topic.getTopicID()).removeNeighbour(m.src.getId());
+        }
+        RetryTimeout timeout = new RetryTimeout(ticket.getTopic(), m.src.getId());
+        EDSimulator.add(
+            KademliaCommonConfig.AD_LIFE_TIME,
+            timeout,
+            Util.nodeIdtoNode(this.node.getId()),
+            myPid);
+
+        if (ticket.getCumWaitTime() > KademliaCommonConfig.REG_TIMEOUT)
+          KademliaObserver.reportOverThresholdWaitingTime(
+              topic.getTopic(), this.node.getId(), m.src.getId(), ticket.getWaitTime());
+      }
+
+    } else {
+      logger.warning(
+          "Registration succesful for topic "
+              + ticket.getTopic().topic
+              + " at node "
+              + m.src.getId()
+              + " at dist "
+              + Util.logDistance(m.src.getId(), ticket.getTopic().getTopicID())
+              + " "
+              + ticket.getCumWaitTime());
+      KademliaObserver.addAcceptedRegistration(
+          topic, this.node.getId(), m.src.getId(), ticket.getCumWaitTime(), this.node.is_evil);
+      KademliaObserver.reportActiveRegistration(ticket.getTopic(), this.node.is_evil);
+
+      Timeout timeout = new Timeout(ticket.getTopic(), m.src.getId());
+      // ticketTables.get(topic.getTopicID()).removeNeighbour(m.src.getId());
+
+      EDSimulator.add(
+          KademliaCommonConfig.AD_LIFE_TIME, timeout, Util.nodeIdtoNode(this.node.getId()), myPid);
+
+      if (this.removeAfterReg == 1) {
+        if (this.attackType.equals(KademliaCommonConfig.ATTACK_TYPE_TOPIC_SPAM)) {
+          ticketTables.get(this.targetTopic.getTopicID()).removeNeighbour(m.src.getId());
+        } else {
+          ticketTables.get(topic.getTopicID()).removeNeighbour(m.src.getId());
+        }
+      }
+
+      if (this.attackType.equals(KademliaCommonConfig.ATTACK_TYPE_TOPIC_SPAM)) {
+        ticketTables.get(this.targetTopic.getTopicID()).acceptedReg(m.src.getId());
+        logger.info(
+            "Active registrations "
+                + ticketTables.get(this.targetTopic.getTopicID()).bucketWithRegs());
+      } else {
+        ticketTables.get(ticket.getTopic().getTopicID()).acceptedReg(m.src.getId());
+        logger.info(
+            "Active registrations "
+                + ticketTables.get(ticket.getTopic().getTopicID()).bucketWithRegs());
+      }
+
+      /*if (KademliaCommonConfig.PARALLELREGISTRATIONS == 0) {
+
+      	ticketTables.get(ticket.getTopic().getTopicID()).increaseAvailableRequests();
+
+      	if (ticketTables.get(ticket.getTopic().getTopicID()).getAvailableRequests() > 0) {
+      		BigInteger nextNode = ticketTables.get(ticket.getTopic().getTopicID()).getNeighbour();
+      		if (nextNode != null) {
+      			sendTicketRequest(nextNode, ticket.getTopic(), myPid);
+      		}
+      	}
+      }*/
+
+    }
+
+    if (this.attackType.equals(KademliaCommonConfig.ATTACK_TYPE_TOPIC_SPAM)) {
+      if (printSearchTable) ticketTables.get(this.targetTopic.getTopicID()).print();
+    } else {
+      if (printSearchTable) ticketTables.get(ticket.getTopic().getTopicID()).print();
+    }
+  }
   /**
    * manage the peersim receiving of the events
    *
@@ -483,6 +663,7 @@ public class Discv5EvilTicketProtocol extends Discv5TicketProtocol {
       m.dest = this.node;
     }
 
+    TicketTable tt;
     // TODO we could simply let these "handle" calls made in the parent class
     switch (((SimpleEvent) event).getType()) {
       case Message.MSG_INIT_REGISTER:
@@ -495,6 +676,34 @@ public class Discv5EvilTicketProtocol extends Discv5TicketProtocol {
         handleTopicQuery(m, myPid);
         break;
 
+      case Timeout.REG_TIMEOUT:
+        logger.warning("Remove ticket table " + ((Timeout) event).nodeSrc);
+        KademliaObserver.reportExpiredRegistration(((Timeout) event).topic, this.node.is_evil);
+        if (this.attackType.equals(KademliaCommonConfig.ATTACK_TYPE_TOPIC_SPAM)) {
+
+          tt = ticketTables.get(this.targetTopic.getTopicID());
+        } else {
+          tt = ticketTables.get(((Timeout) event).topic.getTopicID());
+        }
+        // tt.removeNeighbour(((Timeout) event).nodeSrc);
+        // }
+        // ticketTables.get(((Timeout)event).topic.getTopicID()).removeRegisteredList(((Timeout)event).nodeSrc);
+        tt.removeRegisteredList(((Timeout) event).nodeSrc);
+        tt.expiredReg(((Timeout) event).nodeSrc);
+        if (this.removeAfterReg == 0) {
+          tt.removeNeighbour(((Timeout) event).nodeSrc);
+        }
+
+        break;
+      case RetryTimeout.RETRY:
+        logger.info("Remove ticket table " + ((RetryTimeout) event).nodeSrc);
+        if (this.attackType.equals(KademliaCommonConfig.ATTACK_TYPE_TOPIC_SPAM)) {
+          tt = ticketTables.get(this.targetTopic.getTopicID());
+        } else {
+          tt = ticketTables.get(((RetryTimeout) event).topic.getTopicID());
+        }
+        tt.removeRegisteredList(((RetryTimeout) event).nodeSrc);
+        break;
       default:
         super.processEvent(myNode, myPid, event);
     }

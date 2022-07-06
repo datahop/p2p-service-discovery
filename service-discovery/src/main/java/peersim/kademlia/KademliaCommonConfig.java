@@ -53,10 +53,14 @@ public class KademliaCommonConfig {
 
   // Attack Types:
   public static String ATTACK_TYPE_TOPIC_SPAM = "TopicSpam";
-  public static String ATTACK_TYPE_RANDOM_SPAM = "RandomSpam";
+  // TopicSpam: registers random topics, responds to queries with malicious peers and behaves as a
+  // malicious DHT node
+  public static String ATTACK_TYPE_HYBRID = "HybridAttacker";
+  // HybridAttacker: registers for a target topic, responds to queries with malicious peers and
+  // behaves as a malicious DHT node
+  // ***The attack types below are are not used
   public static String ATTACK_TYPE_MALICIOUS_REGISTRAR = "MaliciousRegistrar";
   public static String ATTACK_TYPE_DOS = "DosAttack";
-  public static String ATTACK_TYPE_HYBRID = "HybridAttacker";
   public static String ATTACK_TYPE_WAITING_TIME_SPAM = "WaitingTimeSpam";
 
   // TODO show the distribution of nodes discovered (do everyone discover the same? Or different?)

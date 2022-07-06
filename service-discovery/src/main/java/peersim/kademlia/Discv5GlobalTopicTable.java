@@ -14,11 +14,11 @@ public class Discv5GlobalTopicTable extends Discv5TicketTopicTable { // implemen
 
   protected static final int amplify = 1;
   // private static final double groupModifierExp = 1;
-  protected static final double topicModifierExp = 15;
+  protected static final double topicModifierExp = 10; // XXX old val 15;
   protected static final double ipModifierExp = 0.4;
   protected static final double idModifierExp = 0.4;
-  protected static final int occupancyPower = 4;
-  protected static final int baseMultiplier = 30;
+  protected static final int occupancyPower = 10; // XXX old val 4;
+  protected static final int baseMultiplier = 10; // XXX old val 30;
 
   protected HashMap<BigInteger, Integer> id_counter;
 
