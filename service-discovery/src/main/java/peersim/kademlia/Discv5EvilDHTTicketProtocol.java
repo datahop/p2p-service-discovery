@@ -482,7 +482,7 @@ public class Discv5EvilDHTTicketProtocol extends Discv5DHTTicketProtocol {
       KademliaObserver.reportActiveRegistration(ticket.getTopic(), this.node.is_evil);
 
       if (this.nRefresh == 1) {
-        
+
         if (this.attackType.equals(KademliaCommonConfig.ATTACK_TYPE_TOPIC_SPAM)) {
           if (scheduled.get(this.targetTopic.getTopic()) != null) {
             int sch = scheduled.get(this.targetTopic.getTopic()) + 1;
