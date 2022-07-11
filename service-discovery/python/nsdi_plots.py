@@ -11,6 +11,7 @@ import csv
 import scipy.stats as sp # for calculating standard error
 import os
 import seaborn as sns
+from pandas.api.types import CategoricalDtype
 from .header import *
 
 font = {'family' : 'normal',
@@ -260,13 +261,14 @@ def plotPerNodeStats(OUTDIR, simulation_type, graphType = GraphType.violin):
             ax.spines['top'].set_visible(False)
             if(graphType == GraphType.violin):
                 df = df[df['isMalicious'] == 0]
+                df = df[df['lookupOperations'] == 1]
                # print(df[graph][df['protocol']=='discv4'])
                 violin = sns.violinplot(ax = ax,
                                 data = df,
                                 x = feature,
                                 y = graph,
                                 hue = 'protocol',
-                                inner=None,#"point",  # Representation of the datapoints in the violin interior.
+                                inner=None,#"point",  # Representation of the datapoints in the violin interior.
                                 split = False, 
                                 scale = 'width', #make the width of each violin equal (by default it's the area)
                                 cut = 0, #cut = 0 limits the violin range within the range of the observed data 
@@ -413,4 +415,196 @@ def plotPerLookupOperation():
                 
             fig.savefig(OUTDIR + '/' + feature + "_" + graph)
 
+def plotRegistrationStatsSybil(INDIR,OUTDIR,attackTopic):
 
+    os.chdir(INDIR)
+
+    print("Reading bening:", os.getcwd(), "/benign/dfs.csv")
+    dfb = pd.read_csv('./benign/dfs.csv')
+
+    print("Reading attack:", os.getcwd(), "/attack/dfs.csv")
+    dfa = pd.read_csv('./attack/dfs.csv')   
+
+    defaults = {}
+    for feature in features:
+        if((features[feature]['type'] == 'attack')):
+            defaults[feature] = features[feature]['defaultAttack']    
+        else:
+            defaults[feature] = features[feature]['default']
+   # df = df[df['simulation_type']=='attack']
+        #filter the df so that we only have default values for non-primary features
+ #   for secondary_feature in features:
+ #       print(secondary_feature)
+ #       if(features[secondary_feature]['type'] != 'attack'):
+ #           df1 = df1[df1[secondary_feature] == defaults[secondary_feature]]
+ #       if(secondary_feature != feature):
+ #           df2 = df2[df2[secondary_feature] == defaults[secondary_feature]]
+ #           #for attack scenarios take into account uniquely results from nodes involved in the attacked topic
+
+    dfb = dfb[dfb['size'] == defaults['size']]
+    dfb = dfb[dfb['topic'] == defaults['topic']]
+ 
+    dfb['simulation_type'] = 'benign'
+
+    dfa['simulation_type'] = 'attack'
+
+
+    dfa = dfa[dfa['attackTopic'] == attackTopic]
+    dfa = dfa[dfa['percentEvil'] == defaults['percentEvil']]
+
+    dfa = dfa[dfa['nodeTopic'] == attackTopic]
+
+    dfb = dfb[dfb['nodeTopic'] == attackTopic]
+    #dfb = dfb[dfb['protocol'] == 'TOPDISC']
+
+    dfa = dfa[dfa['isMalicious'] == 0]
+    dfb = dfb[dfb['isMalicious'] == 0]
+
+    dfb['sybilSize'] = 1
+
+    df = pd.concat([dfb,dfa])
+
+    dfb['sybilSize'] = 10
+
+    df = pd.concat([df,dfb])        
+
+    dfb['sybilSize'] = 100
+
+    df = pd.concat([df,dfb])
+
+
+#    df2 = df2[df2['sybilSize'] == defaults['sybilSize']]
+
+
+    df['sybilSize'] = df['sybilSize'].apply(str)
+    df['protocolSybil'] = df[['protocol','sybilSize']].apply("-".join, axis=1)
+
+
+    protocol_sybil_order = CategoricalDtype(['DHT-1', 'DHTTicket-1', 'Discv4-1', 'TOPDISC-1','DHT-10', 'DHTTicket-10', 'Discv4-10', 'TOPDISC-10','DHT-100', 'DHTTicket-100', 'Discv4-100', 'TOPDISC-100'], ordered=True)
+    df['protocolSybil'] = df['protocolSybil'].astype(protocol_sybil_order)
+    df.sort_values(by=['protocolSybil'], inplace=True)
+
+    df.to_csv('dftest.csv')
+
+ #   df = df[df['nodeTopic'] == defaults['attackTopic']]
+ #   df = df[df['protocol'] == 'TOPDISC']
+    fig, ax = plt.subplots(figsize=(10, 4))
+
+    violin = sns.violinplot(ax = ax,
+                data = df,
+                x = 'protocolSybil',
+                y = 'regsPlaced',
+                hue = 'simulation_type',
+                inner=None,#"point",  # Representation of the datapoints in the violin interior.
+                split = True, 
+                scale = 'width', #make the width of each violin equal (by default it's the area)
+                cut = 0, #cut = 0 limits the violin range within the range of the observed data 
+                palette='colorblind'
+                ) 
+    ax.set_xlabel('Protocols - Sybil size')
+    ax.set_ylabel(titlePrettyText['regsPlaced'])
+    handles, labels = ax.get_legend_handles_labels()
+    labels=['no attack    ','attack']
+    ax.legend(handles=handles[0:], labels=labels[0:])
+    for tick in ax.get_xticklabels():
+        tick.set_rotation(45)
+    ax.set_xticklabels(ax.get_xticklabels(), fontsize=10)
+
+    fig.set_size_inches(9, 6.5)
+    fig.savefig(OUTDIR + '/regsplaced_Sybil_t'+str(attackTopic)+'.eps',format='eps',bbox_inches='tight')
+
+def plotRegistrationStatsPercent(INDIR,OUTDIR,attackTopic):
+    os.chdir(INDIR)
+
+    print("Reading bening:", os.getcwd(), "/benign/dfs.csv")
+    dfb = pd.read_csv('./benign/dfs.csv')
+
+    print("Reading attack:", os.getcwd(), "/attack/dfs.csv")
+    dfa = pd.read_csv('./attack/dfs.csv')   
+
+    defaults = {}
+    for feature in features:
+        if((features[feature]['type'] == 'attack')):
+            defaults[feature] = features[feature]['defaultAttack']    
+        else:
+            defaults[feature] = features[feature]['default']
+   # df = df[df['simulation_type']=='attack']
+        #filter the df so that we only have default values for non-primary features
+ #   for secondary_feature in features:
+ #       print(secondary_feature)
+ #       if(features[secondary_feature]['type'] != 'attack'):
+ #           df1 = df1[df1[secondary_feature] == defaults[secondary_feature]]
+ #       if(secondary_feature != feature):
+ #           df2 = df2[df2[secondary_feature] == defaults[secondary_feature]]
+ #           #for attack scenarios take into account uniquely results from nodes involved in the attacked topic
+
+    dfb = dfb[dfb['size'] == defaults['size']]
+    dfb = dfb[dfb['topic'] == defaults['topic']]
+ 
+    dfb['simulation_type'] = 'benign'
+
+    dfa['simulation_type'] = 'attack'
+
+    dfa = dfa[dfa['attackTopic'] == attackTopic]
+    dfa = dfa[dfa['sybilSize'] == defaults['sybilSize']]
+
+    dfa = dfa[dfa['nodeTopic'] == attackTopic]
+
+    dfb = dfb[dfb['nodeTopic'] == attackTopic]
+    #dfb = dfb[dfb['protocol'] == 'TOPDISC']
+
+    dfa = dfa[dfa['isMalicious'] == 0]
+    dfb = dfb[dfb['isMalicious'] == 0]
+
+    dfb['percentEvil'] = 0.01
+
+    df = pd.concat([dfb,dfa])
+
+    dfb['percentEvil'] = 0.02
+
+    df = pd.concat([df,dfb])        
+
+    dfb['percentEvil'] = 0.04
+
+    df = pd.concat([df,dfb])
+
+
+#    df2 = df2[df2['sybilSize'] == defaults['sybilSize']]
+
+
+    df['percentEvil'] = df['percentEvil'].apply(str)
+    df['protocolPercent'] = df[['protocol','percentEvil']].apply("-".join, axis=1)
+
+
+    protocol_sybil_order = CategoricalDtype(['DHT-0.01', 'DHTTicket-0.01', 'Discv4-0.01', 'TOPDISC-0.01','DHT-0.02', 'DHTTicket-0.02', 'Discv4-0.02', 'TOPDISC-0.02','DHT-0.04', 'DHTTicket-0.04', 'Discv4-0.04', 'TOPDISC-0.04'], ordered=True)
+    df['protocolPercent'] = df['protocolPercent'].astype(protocol_sybil_order)
+    df.sort_values(by=['protocolPercent'], inplace=True)
+
+    df.to_csv('dftest.csv')
+
+ #   df = df[df['nodeTopic'] == defaults['attackTopic']]
+ #   df = df[df['protocol'] == 'TOPDISC']
+    fig, ax = plt.subplots(figsize=(10, 4))
+
+    violin = sns.violinplot(ax = ax,
+                data = df,
+                x = 'protocolPercent',
+                y = 'regsPlaced',
+                hue = 'simulation_type',
+                inner=None,#"point",  # Representation of the datapoints in the violin interior.
+                split = True, 
+                scale = 'width', #make the width of each violin equal (by default it's the area)
+                cut = 0, #cut = 0 limits the violin range within the range of the observed data 
+                palette='colorblind'
+                ) 
+    ax.set_xlabel('Protocols - percentEvil')
+    ax.set_ylabel(titlePrettyText['regsPlaced'])
+    handles, labels = ax.get_legend_handles_labels()
+    labels=['no attack','attack']
+    ax.legend(handles=handles[0:], labels=labels[0:])
+    for tick in ax.get_xticklabels():
+        tick.set_rotation(45)
+    ax.set_xticklabels(ax.get_xticklabels(), fontsize=10)
+
+    fig.set_size_inches(9, 6.5)
+    fig.savefig(OUTDIR + '/regsplaced_percentEvil_t'+str(attackTopic)+'.eps',format='eps',bbox_inches='tight')
