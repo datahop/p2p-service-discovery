@@ -305,11 +305,7 @@ def plotPerNodeStats(OUTDIR, simulation_type, graphType = GraphType.violin):
 
                     #indicate the maximum values                    
                     groups = df.groupby('protocol')
-  #                  protocol_xpos = {'discv5' : -0.30,
-  #                               'dht' : -0.10,
-  #                               'discv4'    : 0.10,
-  #                               'dhtTicket': 0.30
-  #                              }
+
                     ax.set_ylim(-0.06, 1.06)
                     
                     for protocol, group in groups:
