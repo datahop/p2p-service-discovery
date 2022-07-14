@@ -19,7 +19,7 @@ OUTDIR_BASE = os.path.abspath(OUTDIR_BASE)
 #createPerLookupOperationStats(LOGDIR)
 #plotPerLookupOperation()
 #for simulation_type in ['benign', 'attack']:
-for simulation_type in ['attack']:
+for simulation_type in ['benign']:
     INDIR = INDIR_BASE + "/" + simulation_type + "/"
     OUTDIR = OUTDIR_BASE + "/" + simulation_type + "/"
     
@@ -32,5 +32,10 @@ for simulation_type in ['attack']:
 
     os.chdir(INDIR)
     
-    createPerNodeStats(".")
+ #   createPerNodeStats(".")
     plotPerNodeStats(OUTDIR, simulation_type)
+    
+plotRegistrationStatsSybil(INDIR_BASE,OUTDIR_BASE,0)
+#plotRegistrationStatsPercent(INDIR_BASE,OUTDIR_BASE,0)
+#plotRegistrationStatsSybil(INDIR_BASE,OUTDIR_BASE,149)
+#plotRegistrationStatsPercent(INDIR_BASE,OUTDIR_BASE,149)

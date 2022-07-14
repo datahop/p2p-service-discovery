@@ -11,6 +11,9 @@ import csv
 import scipy.stats as sp # for calculating standard error
 import os
 import seaborn as sns
+from matplotlib.collections import PolyCollection
+from matplotlib.colors import to_rgb
+import matplotlib as mpl
 from pandas.api.types import CategoricalDtype
 from .header import *
 
@@ -280,7 +283,8 @@ def plotPerNodeStats(OUTDIR, simulation_type, graphType = GraphType.violin):
                 #it also prints a max value as an annotation is its above the set y_lim
                 lim_key = graphType.name + "_" + feature + "_" + graph
 
-                x_pos = [-0.30, -0.10, 0.10, 0.30]
+        #        x_pos = [-0.30, -0.10, 0.10, 0.30]
+                x_pos = [-0.35, -0.15, 0.05, 0.25]
                 protocol_xpos = dict(zip(protocol_order, x_pos))
                 if(lim_key in y_lims):
                     y_lim = y_lims[lim_key]
@@ -299,7 +303,7 @@ def plotPerNodeStats(OUTDIR, simulation_type, graphType = GraphType.violin):
                             max_val = local_df[graph].max()
                             max_vals[protocol][x_val] = max_val
                             if(max_val > y_lim):
-                                violin.annotate("max:" + human_format(max_val), xy = (protocol_xpos[protocol]+i, 0.7*y_lim), horizontalalignment = 'center', color='red', rotation=90)
+                                violin.annotate("max:" + human_format(max_val), xy = (protocol_xpos[protocol]+i, 0.6*y_lim), horizontalalignment = 'center', color='red', rotation=90)
                             i += 1
                 if graph == 'percentageMaliciousDiscovered':
 
@@ -365,7 +369,8 @@ def plotPerNodeStats(OUTDIR, simulation_type, graphType = GraphType.violin):
             ax.spines['right'].set_visible(True)
             ax.spines['bottom'].set_visible(True)
             ax.spines['left'].set_visible(True)
-            ax.legend(bbox_to_anchor=(0.5, 1.1), loc='upper center', ncol=4)
+    #        ax.legend(bbox_to_anchor=(0.5, 1.1), loc='upper center', ncol=4)
+            ax.legend(bbox_to_anchor=(0.5, 1.15), loc='upper center', ncol=4)
             fig.set_size_inches(9, 6.5)
 
             try:
@@ -495,16 +500,44 @@ def plotRegistrationStatsSybil(INDIR,OUTDIR,attackTopic):
                 split = True, 
                 scale = 'width', #make the width of each violin equal (by default it's the area)
                 cut = 0, #cut = 0 limits the violin range within the range of the observed data 
-                palette='colorblind'
+                palette='colorblind',
+                split_palette = False
                 ) 
     ax.set_xlabel('Protocols - Sybil size')
     ax.set_ylabel(titlePrettyText['regsPlaced'])
     handles, labels = ax.get_legend_handles_labels()
-    labels=['no attack    ','attack']
+    labels=['no attack','attack']
     ax.legend(handles=handles[0:], labels=labels[0:])
     for tick in ax.get_xticklabels():
         tick.set_rotation(45)
     ax.set_xticklabels(ax.get_xticklabels(), fontsize=10)
+
+    colors = sns.color_palette('colorblind')
+
+
+
+    for ind, violin in enumerate(ax.findobj(PolyCollection)):
+ #   for ind in range(12):
+        print(ind)
+        dht = [2,3,6,7,10,11]
+        topdisc = [0,1,4,5,8,9]
+        if ind in topdisc:
+            rgb = to_rgb(colors[1])
+        if ind in dht:
+            rgb = to_rgb(colors[3])
+  #      if i % 2 != 0:
+  #          rgb = 0.5 + 0.5 * np.array(rgb)  # make whiter
+
+        violin.set_facecolor(rgb)
+
+
+    for i, violin in enumerate(ax.findobj(mpl.collections.PolyCollection)):
+        if i % 2:
+            violin.set_hatch("//")
+
+    ax.legend_.findobj(mpl.patches.Rectangle)[0].set_color('none')
+    ax.legend_.findobj(mpl.patches.Rectangle)[1].set_hatch("///")
+    ax.legend_.findobj(mpl.patches.Rectangle)[1].set_color('none')
 
     fig.set_size_inches(9, 6.5)
     fig.savefig(OUTDIR + '/regsplaced_Sybil_t'+str(attackTopic)+'.eps',format='eps',bbox_inches='tight')
