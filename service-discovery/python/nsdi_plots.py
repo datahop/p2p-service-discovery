@@ -380,7 +380,10 @@ def plotPerNodeStats(OUTDIR, simulation_type, graphType = GraphType.violin):
                 print("ticksPrettyText not found")
             #ax.set_title(titlePrettyText[graph])
             fig.tight_layout()
-            fig.savefig(OUTDIR + '/' + graphType.name + "_" + feature + "_" + graph+"_t"+str(defaults['attackTopic'])+".eps",format='eps')
+            if simulation_type == 'attack':
+                fig.savefig(OUTDIR + '/' + graphType.name + "_" + feature + "_" + graph+"_t"+str(defaults['attackTopic'])+".eps",format='eps')
+            else:
+                fig.savefig(OUTDIR + '/' + graphType.name + "_" + feature + "_" + graph+".eps",format='eps')
 
             #quit()
 
