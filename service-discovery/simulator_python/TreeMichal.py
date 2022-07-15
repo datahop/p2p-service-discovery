@@ -1,3 +1,4 @@
+from re import L
 import sys
 
 class TreeMichalNode:
@@ -84,6 +85,11 @@ class TreeMichal:
         max_score = 32
         score = 0
         rootCounter = self.root.getCounter()
+
+        if(modifyTree == True):
+            self.score_dump = {}
+            self.traverse(self.root, 0)
+
         for depth in range(0, self.max_depth):
             parent = current
             expected = rootCounter/(2**depth)
@@ -136,7 +142,26 @@ class TreeMichal:
             return 0
         #print("score:", score, "max_score:", max_score)
         assert (0 <= score/max_score <= 1), "score must be between 0 and 1"
+        if(modifyTree == True):
+            return (score/max_score, effBound, self.score_dump) 
         return (score/max_score, effBound)
+
+    
+    def traverse (self, node, depth):
+        rootCounter = self.root.getCounter()
+        expected = rootCounter/(2**depth)
+
+        if (node.zero is not None):
+            self.traverse(node.zero, depth + 1)
+    
+        #print("Visited node ad depth", depth, "and counter:", node.counter)
+        if(depth not in self.score_dump):
+            self.score_dump[depth] = []
+        self.score_dump[depth].append(abs(node.getCounter() - expected))
+
+        if (node.one is not None):
+            self.traverse (node.one, depth + 1)
+
 
     # remove the nodes with zero count and propagate their lower bound
     # state upwards and store at first node with count > 0

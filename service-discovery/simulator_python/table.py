@@ -41,6 +41,7 @@ class Table(metaclass=abc.ABCMeta):
         self.per_topic_occupancies = {}
         self.per_topic_occupancies_by_attackers = {}
         self.returns = []
+        self.score_dumps = {}
         
         self.req_counter = 0
         self.pending_req = {}
@@ -203,7 +204,7 @@ class Table(metaclass=abc.ABCMeta):
         axis[0, 3].set_xticklabels(topics)
         print('Topics: ', topics, ' per_topic_normal: ', self.per_topic_occupancies, ' per_topic attacker: ', self.per_topic_occupancies_by_attackers)
 
-        figure, ax = plt.subplots()
+        _, ax = plt.subplots()
         ax.plot(list(self.honest_in.keys()), list(self.honest_in.values()), c='g')
         ax.plot(list(self.malicious_in.keys()), list(self.malicious_in.values()), c='r')
         ax.set_title("Percentage of overal requests in the table")
@@ -213,6 +214,14 @@ class Table(metaclass=abc.ABCMeta):
 
         print("Occupancy_total", self.extract_total(self.occupancies))
         print("Malicious total", self.extract_total(self.occupancies_by_attackers))
+
+        _, ax = plt.subplots()
+        for i in range(0, 33):
+            y = [x[i] for x in self.score_dumps.values()]
+            ax.plot(list(self.score_dumps.keys()), y, label=i)
+        ax.set_title("Score dumps")
+        ax.legend()
+        plt.legend()
 
     #reporting helper
     def add_stats(self, delay, stats):
@@ -233,8 +242,9 @@ class Table(metaclass=abc.ABCMeta):
             labels.append(val)
             sizes.append(sum(interval))
         total = 0
-        for i in range(0, len(sizes)):
-            total += labels[i] * (sizes[i] / sum(sizes))
+        #FIXME temporaly disable - doesn't work without an attack
+        #for i in range(0, len(sizes)):
+        #    total += labels[i] * (sizes[i] / sum(sizes))
         return total
     
     #reporting helper
@@ -345,7 +355,11 @@ class Table(metaclass=abc.ABCMeta):
                 self.id_counter[req['id']]['timestamp'] = 0
             self.id_counter[req['id']]['counter'] += 1
 
-            self.tree.add(req['ip'])
+            _, _, score_dump = self.tree.add(req['ip'])
+            for i in range(0, 33):
+                score_dump[i] = sum(score_dump[i])/len(score_dump[i])
+            self.score_dumps[self.env.now] = score_dump
+
             if(req['ip'] not in self.ip_counter):
                 self.ip_counter[req['ip']] = {}
                 self.ip_counter[req['ip']]['wtime'] = 0
