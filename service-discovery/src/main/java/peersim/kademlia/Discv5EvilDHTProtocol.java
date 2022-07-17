@@ -210,9 +210,8 @@ public class Discv5EvilDHTProtocol extends Discv5DHTProtocol {
     Topic t = (Topic) m.body;
     TopicRegistration[] registrations = new TopicRegistration[0];
 
-    if (this.attackType.equals(KademliaCommonConfig.ATTACK_TYPE_TOPIC_SPAM)
-        || this.attackType.endsWith(KademliaCommonConfig.ATTACK_TYPE_DOS)
-        || this.attackType.endsWith(KademliaCommonConfig.ATTACK_TYPE_WAITING_TIME_SPAM)) {
+    if (this.attackType.equals(KademliaCommonConfig.ATTACK_TYPE_DOS)
+        || this.attackType.equals(KademliaCommonConfig.ATTACK_TYPE_WAITING_TIME_SPAM)) {
       // if only a spammer than follow the normal protocol
       super.handleTopicQuery(m, myPid);
     } else {
@@ -326,8 +325,7 @@ public class Discv5EvilDHTProtocol extends Discv5DHTProtocol {
   protected void handleFind(Message m, int myPid, int dist) {
 
     logger.warning("Handle find evil");
-    if (this.attackType.equals(KademliaCommonConfig.ATTACK_TYPE_TOPIC_SPAM)
-        || this.attackType.equals(KademliaCommonConfig.ATTACK_TYPE_DOS)
+    if (this.attackType.equals(KademliaCommonConfig.ATTACK_TYPE_DOS)
         || this.attackType.equals(KademliaCommonConfig.ATTACK_TYPE_WAITING_TIME_SPAM)) {
       super.handleFind(m, myPid, dist);
       return;

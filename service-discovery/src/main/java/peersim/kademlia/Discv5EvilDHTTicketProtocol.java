@@ -516,8 +516,7 @@ public class Discv5EvilDHTTicketProtocol extends Discv5DHTTicketProtocol {
    */
   protected void handleFind(Message m, int myPid, int dist) {
 
-    if (this.attackType.equals(KademliaCommonConfig.ATTACK_TYPE_TOPIC_SPAM)
-        || this.attackType.equals(KademliaCommonConfig.ATTACK_TYPE_DOS)
+    if (this.attackType.equals(KademliaCommonConfig.ATTACK_TYPE_DOS)
         || this.attackType.equals(KademliaCommonConfig.ATTACK_TYPE_WAITING_TIME_SPAM)) {
       super.handleFind(m, myPid, dist);
       return;

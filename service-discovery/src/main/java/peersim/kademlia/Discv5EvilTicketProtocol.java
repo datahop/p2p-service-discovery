@@ -216,6 +216,7 @@ public class Discv5EvilTicketProtocol extends Discv5TicketProtocol {
     // close to the random topic
     if (this.attackType.equals(KademliaCommonConfig.ATTACK_TYPE_TOPIC_SPAM)) {
       Message mFind = generateFindNodeMessage(t);
+      handleInitFind(mFind, myPid);
     }
 
     /*
@@ -259,9 +260,8 @@ public class Discv5EvilTicketProtocol extends Discv5TicketProtocol {
     Topic t = (Topic) m.body;
     TopicRegistration[] registrations = new TopicRegistration[0];
 
-    if (this.attackType.equals(KademliaCommonConfig.ATTACK_TYPE_TOPIC_SPAM)
-        || this.attackType.endsWith(KademliaCommonConfig.ATTACK_TYPE_DOS)
-        || this.attackType.endsWith(KademliaCommonConfig.ATTACK_TYPE_WAITING_TIME_SPAM)) {
+    if (this.attackType.equals(KademliaCommonConfig.ATTACK_TYPE_DOS)
+        || this.attackType.equals(KademliaCommonConfig.ATTACK_TYPE_WAITING_TIME_SPAM)) {
       // if only a spammer than follow the normal protocol
       super.handleTopicQuery(m, myPid);
     } else {
