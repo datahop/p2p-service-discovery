@@ -18,24 +18,25 @@ OUTDIR_BASE = os.path.abspath(OUTDIR_BASE)
 
 #createPerLookupOperationStats(LOGDIR)
 #plotPerLookupOperation()
-#for simulation_type in ['benign', 'attack']:
-for simulation_type in ['benign']:
-    INDIR = INDIR_BASE + "/" + simulation_type + "/"
-    OUTDIR = OUTDIR_BASE + "/" + simulation_type + "/"
+# for simulation_type in ['benign', 'attack']:
+# #for simulation_type in ['benign']:
+#     INDIR = INDIR_BASE + "/" + simulation_type + "/"
+#     OUTDIR = OUTDIR_BASE + "/" + simulation_type + "/"
     
-    print("#######################" + simulation_type + "#######################")
-    print('Will read logs from', INDIR)
-    print('Plots will be saved in ', OUTDIR)
+#     print("#######################" + simulation_type + "#######################")
+#     print('Will read logs from', INDIR)
+#     print('Plots will be saved in ', OUTDIR)
 
-    if not os.path.exists(OUTDIR):
-        os.makedirs(OUTDIR)
+#     if not os.path.exists(OUTDIR):
+#         os.makedirs(OUTDIR)
 
-    os.chdir(INDIR)
+#     os.chdir(INDIR)
     
- #   createPerNodeStats(".")
-    plotPerNodeStats(OUTDIR, simulation_type)
+#     createPerNodeStats(".")
+#     plotPerNodeStats(OUTDIR, simulation_type)
     
-plotRegistrationStatsSybil(INDIR_BASE,OUTDIR_BASE,0)
+plotPerNodeStatsSplit(INDIR_BASE,OUTDIR_BASE+"/split/")
+#plotRegistrationStatsSybil(INDIR_BASE,OUTDIR_BASE,0)
 #plotRegistrationStatsPercent(INDIR_BASE,OUTDIR_BASE,0)
 #plotRegistrationStatsSybil(INDIR_BASE,OUTDIR_BASE,149)
 #plotRegistrationStatsPercent(INDIR_BASE,OUTDIR_BASE,149)
