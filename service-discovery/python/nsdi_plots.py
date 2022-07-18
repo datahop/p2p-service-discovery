@@ -378,6 +378,8 @@ def plotPerNodeStats(OUTDIR, simulation_type, graphType = GraphType.violin):
                 ax.set_xticklabels(ticksPrettyText[feature])
             except KeyError:
                 print("ticksPrettyText not found")
+            except ValueError:
+                print("Wrong ticks")
             #ax.set_title(titlePrettyText[graph])
             fig.tight_layout()
             if simulation_type == 'attack':
@@ -640,3 +642,176 @@ def plotRegistrationStatsPercent(INDIR,OUTDIR,attackTopic):
 
     fig.set_size_inches(9, 6.5)
     fig.savefig(OUTDIR + '/regsplaced_percentEvil_t'+str(attackTopic)+'.eps',format='eps',bbox_inches='tight')
+
+
+
+def plotPerNodeStatsSplit(INDIR,OUTDIR):
+    #pd.set_option('display.max_rows', None)
+
+    os.chdir(INDIR)
+
+    if not os.path.exists(OUTDIR):
+        os.makedirs(OUTDIR)
+
+    print("Reading bening:", os.getcwd(), "/benign/dfs.csv")
+    dfb = pd.read_csv('./benign/dfs.csv')
+
+    dfb['simulation_type'] = 'benign'
+
+    print("Reading attack:", os.getcwd(), "/attack/dfs.csv")
+    dfa = pd.read_csv('./attack/dfs.csv')   
+    
+    dfa['simulation_type'] = 'attack'
+
+    dfs = pd.concat([dfb,dfa])
+
+#    protocol_order = list(protocolPrettyText.keys())
+    #features = ['size']
+    #default values for all the features
+    defaults = {}
+    for feature in features:
+            defaults[feature] = features[feature]['default']
+
+    print("############# Features:", features)
+    print("############# Defaults:", defaults)
+
+
+    #x-axis
+    for feature in features:
+        if(features[feature]['type'] != 'benign'):
+            continue
+        #make sure we don't modify the initial df
+        df = dfs.copy(deep=True)
+        #filter the df so that we only have default values for non-primary features
+        for secondary_feature in features:
+            if(features[secondary_feature]['type'] != 'benign'):
+                continue
+            if(secondary_feature != feature):
+                print("Secondary Feature:",secondary_feature)
+                df = df[df[secondary_feature] == defaults[secondary_feature]]
+                #for attack scenarios take into account uniquely results from nodes involved in the attacked topic
+        
+        print("Feature:",feature)
+
+        y_vals = benign_y_vals
+
+        
+        df[feature] = df[feature].apply(str)
+        df['protocolFeature'] = df[['protocol',feature]].apply("-".join, axis=1)
+
+
+        for graph in y_vals:
+            fig, ax = plt.subplots(figsize=(10, 4))
+            print("Plotting y-axis:", graph, "x-axis", feature)
+
+            ax.spines['right'].set_visible(False)
+            ax.spines['top'].set_visible(False)
+            df = df[df['isMalicious'] == 0]
+            df = df[df['lookupOperations'] == 1]
+            # print(df[graph][df['protocol']=='discv4'])
+
+
+ #           print(df['protocolFeature'].unique())
+
+            # if feature == 'size':
+            #     my_pal = {"DHT-5000": (0.00392156862745098, 0.45098039215686275, 0.6980392156862745), "DHTicket-5000": (0.8705882352941177, 0.5607843137254902, 0.0196078431372549), "DISCv4-5000": (0.00784313725490196, 0.6196078431372549, 0.45098039215686275), "TOPDISC-5000":(0.8352941176470589, 0.3686274509803922, 0.0)}
+            # else :
+            #     my_pal = {"versicolor": "g", "setosa": "b", "virginica": "m"}
+
+
+            if feature == 'size':
+                protocol_order = CategoricalDtype(['DHT-5000', 'DHTTicket-5000', 'DISCv4-5000', 'TOPDISC-5000','DHT-25000', 'DHTTicket-25000', 'DISCv4-25000', 'TOPDISC-25000','DHT-50000', 'DHTTicket-50000', 'DISCv4-50000', 'TOPDISC-50000'], ordered=True)
+            if feature == 'topic':
+                protocol_order = CategoricalDtype(['DHT-100', 'DHTTicket-100', 'DISCv4-100', 'TOPDISC-100','DHT-300', 'DHTTicket-300', 'DISCv4-300', 'TOPDISC-300','DHT-600', 'DHTTicket-600', 'DISCv4-600', 'TOPDISC-600'], ordered=True)
+
+            
+            df['protocolFeature'] = df['protocolFeature'].astype(protocol_order)
+
+            violin = sns.violinplot(ax = ax,
+                            data = df,
+                            x = 'protocolFeature',
+                            y = graph,
+                            hue = 'simulation_type',
+                            inner=None,#"point",  # Representation of the datapoints in the violin interior.
+                            split = True, 
+                            scale = 'width', #make the width of each violin equal (by default it's the area)
+                            cut = 0, #cut = 0 limits the violin range within the range of the observed data 
+                            ) 
+            
+            #the below set the y_lim from header.py to make graphs more readible
+            #it also prints a max value as an annotation is its above the set y_lim
+            lim_key = 'violin_'+feature + "_" + graph
+
+    #        x_pos = [-0.35, -0.15, 0.05, 0.25]
+    #        protocol_order = list(protocol_order)
+    #        protocol_xpos = dict(zip(protocol_order, x_pos))
+            if(lim_key in y_lims):
+                y_lim = y_lims[lim_key]
+                ax.set_ylim(0, y_lim)
+                #indicate the maximum values                    
+                groups = df.groupby('protocolFeature')
+                max_vals = {}   
+                i = 0
+                for protocol, group in groups:
+                    print(protocol)
+                    if(protocol not in max_vals):
+                        max_vals[protocol] = {}
+
+                    max_val = df[graph][df['protocolFeature'] == protocol].max()
+                    if(max_val > y_lim):
+                       violin.annotate("max:" + human_format(max_val), xy = (1*i-0.15, 0.55*y_lim), horizontalalignment = 'center', color='red', rotation=90)
+                    i += 1
+                            
+            ax.set_xlabel(titlePrettyText[feature])
+            ax.set_ylabel(titlePrettyText[graph])
+            ax.spines['top'].set_visible(True)
+            ax.spines['right'].set_visible(True)
+            ax.spines['bottom'].set_visible(True)
+            ax.spines['left'].set_visible(True)
+    #        ax.legend(bbox_to_anchor=(0.5, 1.1), loc='upper center', ncol=4)
+            ax.legend(bbox_to_anchor=(0.5, 1.15), loc='upper center', ncol=4)
+            fig.set_size_inches(9, 6.5)
+
+            try:
+ #               print(ticksPrettyText[feature])
+                ax.set_xticklabels(ticksPrettyText[feature])
+            except KeyError:
+                print("ticksPrettyText not found")
+            for tick in ax.get_xticklabels():
+                tick.set_rotation(45)
+            ax.set_xticklabels(ax.get_xticklabels(), fontsize=10)                
+            #ax.set_title(titlePrettyText[graph])
+
+
+            colors = sns.color_palette('colorblind')
+
+            i=0
+            for ind, violin in enumerate(ax.findobj(PolyCollection)):
+        #   for ind in range(12):
+
+                rgb = to_rgb(colors[i])
+                if ind % 2 != 0:
+                    i = i +1
+                if i==4:
+                    i=0
+                if 'reg' in graph and i==2:
+                    i=3
+                    
+        #      if i % 2 != 0:
+        #          rgb = 0.5 + 0.5 * np.array(rgb)  # make whiter
+
+                violin.set_facecolor(rgb)
+
+
+            for i, violin in enumerate(ax.findobj(mpl.collections.PolyCollection)):
+                if i % 2:
+                    violin.set_hatch("//")
+
+            ax.legend_.findobj(mpl.patches.Rectangle)[0].set_color('none')
+            ax.legend_.findobj(mpl.patches.Rectangle)[1].set_hatch("///")
+            ax.legend_.findobj(mpl.patches.Rectangle)[1].set_color('none')
+
+            fig.tight_layout()
+            fig.savefig(OUTDIR + '/' + feature + "_" + graph+".eps",format='eps')
+
+            #quit()
