@@ -156,8 +156,7 @@ public class Discv5EvilTicketProtocol extends Discv5TicketProtocol {
     }
     if (first
         && (this.attackType.equals(KademliaCommonConfig.ATTACK_TYPE_HYBRID)
-            || this.attackType.equals(KademliaCommonConfig.ATTACK_TYPE_MALICIOUS_REGISTRAR)
-            || this.attackType.equals(KademliaCommonConfig.ATTACK_TYPE_TOPIC_SPAM))) {
+            || this.attackType.equals(KademliaCommonConfig.ATTACK_TYPE_MALICIOUS_REGISTRAR))) {
       first = false;
       logger.warning("Filling up the topic table with malicious entries");
       for (int i = 0; i < Network.size(); i++) {
@@ -261,7 +260,8 @@ public class Discv5EvilTicketProtocol extends Discv5TicketProtocol {
     TopicRegistration[] registrations = new TopicRegistration[0];
 
     if (this.attackType.equals(KademliaCommonConfig.ATTACK_TYPE_DOS)
-        || this.attackType.equals(KademliaCommonConfig.ATTACK_TYPE_WAITING_TIME_SPAM)) {
+        || this.attackType.equals(KademliaCommonConfig.ATTACK_TYPE_WAITING_TIME_SPAM) 
+        || this.attackType.equals(KademliaCommonConfig.ATTACK_TYPE_TOPIC_SPAM)) {
       // if only a spammer than follow the normal protocol
       super.handleTopicQuery(m, myPid);
     } else {
@@ -300,7 +300,8 @@ public class Discv5EvilTicketProtocol extends Discv5TicketProtocol {
   protected void handleTicketRequest(Message m, int myPid) {
 
     logger.warning("Handle ticket request EVIL");
-    if (this.attackType.endsWith(KademliaCommonConfig.ATTACK_TYPE_WAITING_TIME_SPAM)) {
+    if (this.attackType.endsWith(KademliaCommonConfig.ATTACK_TYPE_WAITING_TIME_SPAM)
+        || this.attackType.equals(KademliaCommonConfig.ATTACK_TYPE_TOPIC_SPAM)) {
       super.handleTicketRequest(m, myPid);
       return;
     }
@@ -461,7 +462,8 @@ public class Discv5EvilTicketProtocol extends Discv5TicketProtocol {
   protected void handleFind(Message m, int myPid, int dist) {
 
     if (this.attackType.equals(KademliaCommonConfig.ATTACK_TYPE_DOS)
-        || this.attackType.equals(KademliaCommonConfig.ATTACK_TYPE_WAITING_TIME_SPAM)) {
+        || this.attackType.equals(KademliaCommonConfig.ATTACK_TYPE_WAITING_TIME_SPAM) 
+        || this.attackType.equals(KademliaCommonConfig.ATTACK_TYPE_TOPIC_SPAM)) {
       super.handleFind(m, myPid, dist);
       return;
     }
