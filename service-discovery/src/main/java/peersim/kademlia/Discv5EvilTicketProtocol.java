@@ -141,11 +141,6 @@ public class Discv5EvilTicketProtocol extends Discv5TicketProtocol {
                 prefix + "." + PAR_TICKET_TABLE_BUCKET_SIZE,
                 KademliaCommonConfig.TICKET_BUCKET_SIZE));
 
-    if (this.attackType.endsWith(KademliaCommonConfig.ATTACK_TYPE_DOS)) {
-      // if only a spammer than follow the normal protocol
-      // super.handleInitRegisterTopic(m, myPid);
-      return;
-    }
     if (this.attackType.endsWith(KademliaCommonConfig.ATTACK_TYPE_WAITING_TIME_SPAM)) {
       HashMap<BigInteger, Long> init = new HashMap<BigInteger, Long>();
       initTicketRequestTime.put(t, init);
@@ -174,21 +169,20 @@ public class Discv5EvilTicketProtocol extends Discv5TicketProtocol {
           }
         }
       }
-    }
 
-    // Fill the evilRoutingTable only with other malicious nodes
-    this.evilRoutingTable.setNodeId(this.node.getId());
-    for (int i = 0; i < Network.size(); i++) {
-      Node n = Network.get(i);
-      KademliaProtocol prot = (KademliaProtocol) n.getKademliaProtocol();
-      if (this.getNode().equals(prot.getNode())) continue;
-      if (prot.getNode().is_evil) {
-        this.evilRoutingTable.addNeighbour(prot.getNode().getId());
+      // Fill the evilRoutingTable only with other malicious nodes
+      this.evilRoutingTable.setNodeId(this.node.getId());
+      for (int i = 0; i < Network.size(); i++) {
+        Node n = Network.get(i);
+        KademliaProtocol prot = (KademliaProtocol) n.getKademliaProtocol();
+        if (this.getNode().equals(prot.getNode())) continue;
+        if (prot.getNode().is_evil) {
+          this.evilRoutingTable.addNeighbour(prot.getNode().getId());
+        }
       }
     }
 
-    // super.handleInitRegisterTopic(m, myPid);
-
+    //TODO check if we are using activeTopics
     activeTopics.add(t.getTopic());
 
     TicketTable tt =
@@ -208,42 +202,16 @@ public class Discv5EvilTicketProtocol extends Discv5TicketProtocol {
       tt.addNeighbour(neighbours);
     }
 
-    // TODO if the attack type is topic spam (i.e., spam random topics)
-    // we should do a FIND request to the existing topic (say t1) that is attacked
+    // if the attack type is TOPIC_SPAM (i.e., spam random topics)
+    // we should do a FIND request to the target topic (say t1) that is attacked
     // in order to populate the ticket table with neighbors close to t1.
-    // Otherwise, ticket requests with random topics populate the ticket table with only the peers
-    // close to the random topic
+    // Otherwise, ticket requests with random topics populate the ticket table 
+    // with only the peers close to the random topic
     if (this.attackType.equals(KademliaCommonConfig.ATTACK_TYPE_TOPIC_SPAM)) {
       Message mFind = generateFindNodeMessage(t);
       handleInitFind(mFind, myPid);
     }
 
-    /*
-    if (this.attackType.equals(KademliaCommonConfig.ATTACK_TYPE_TOPIC_SPAM) || this.attackType.equals(KademliaCommonConfig.ATTACK_TYPE_HYBRID) ) {
-
-        if(!ticketTables.containsKey(t.getTopicID())) {
-            KademliaObserver.addTopicRegistration(t, this.node.getId());
-            int k = (int) Math.ceil((double) this.targetNumOfRegistrations / KademliaCommonConfig.NBUCKETS);
-    	    TicketTable rou = new TicketTable(KademliaCommonConfig.NBUCKETS,k,10,this,t,myPid,false);
-            rou.setNodeId(t.getTopicID());
-            ticketTables.put(t.getTopicID(),rou);
-
-            for(int i = 0; i<= KademliaCommonConfig.BITS;i++) {
-                BigInteger[] neighbours = routingTable.getNeighbours(i);
-                //if(neighbours.length!=0)logger.warning("Bucket at distance "+i+" with "+neighbours.length+" nodes");
-                //else logger.warning("Bucket at distance "+i+" empty");
-                this.numOfRegistrations += 1;
-                rou.addNeighbour(neighbours);
-            }
-        }
-        if (this.numOfRegistrations < this.targetNumOfRegistrations) {
-            logger.warning("Failed to send " + this.targetNumOfRegistrations + " registrations - only sent " + this.numOfRegistrations);
-        }
-        //sendLookup(t,myPid);
-    }
-    else {
-        super.handleInitRegisterTopic(m, myPid);
-    }*/
   }
 
   /**
@@ -300,7 +268,8 @@ public class Discv5EvilTicketProtocol extends Discv5TicketProtocol {
   protected void handleTicketRequest(Message m, int myPid) {
 
     logger.warning("Handle ticket request EVIL");
-    if (this.attackType.endsWith(KademliaCommonConfig.ATTACK_TYPE_WAITING_TIME_SPAM)
+    if (this.attackType.equals(KademliaCommonConfig.ATTACK_TYPE_DOS)
+        || this.attackType.equals(KademliaCommonConfig.ATTACK_TYPE_WAITING_TIME_SPAM)
         || this.attackType.equals(KademliaCommonConfig.ATTACK_TYPE_TOPIC_SPAM)) {
       super.handleTicketRequest(m, myPid);
       return;
