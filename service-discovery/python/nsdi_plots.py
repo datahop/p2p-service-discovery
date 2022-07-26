@@ -273,7 +273,7 @@ def plotPerNodeStats(OUTDIR, simulation_type, graphType = GraphType.violin):
                                 hue = 'protocol',
                                 inner=None,#"point",  # Representation of the datapoints in the violin interior.
                                 split = False, 
-                                scale = 'width', #make the width of each violin equal (by default it's the area)
+                                scale = 'count', #'width',  #make the width of each violin equal (by default it's the area)
                                 cut = 0, #cut = 0 limits the violin range within the range of the observed data 
                                 palette='colorblind',
                                 hue_order = protocol_order #make protocols appears in the same order
@@ -503,7 +503,7 @@ def plotRegistrationStatsSybil(INDIR,OUTDIR,attackTopic):
                 hue = 'simulation_type',
                 inner=None,#"point",  # Representation of the datapoints in the violin interior.
                 split = True, 
-                scale = 'width', #make the width of each violin equal (by default it's the area)
+                scale = 'count', #'width', #make the width of each violin equal (by default it's the area)
                 cut = 0, #cut = 0 limits the violin range within the range of the observed data 
                 palette='colorblind',
                 split_palette = False
@@ -627,7 +627,7 @@ def plotRegistrationStatsPercent(INDIR,OUTDIR,attackTopic):
                 hue = 'simulation_type',
                 inner=None,#"point",  # Representation of the datapoints in the violin interior.
                 split = True, 
-                scale = 'width', #make the width of each violin equal (by default it's the area)
+                scale = 'count', #'width', #make the width of each violin equal (by default it's the area)
                 cut = 0, #cut = 0 limits the violin range within the range of the observed data 
                 palette='colorblind'
                 ) 
@@ -734,7 +734,7 @@ def plotPerNodeStatsSplit(INDIR,OUTDIR):
                             hue = 'simulation_type',
                             inner=None,#"point",  # Representation of the datapoints in the violin interior.
                             split = True, 
-                            scale = 'width', #make the width of each violin equal (by default it's the area)
+                            scale = 'count', #'width', #make the width of each violin equal (by default it's the area)
                             cut = 0, #cut = 0 limits the violin range within the range of the observed data 
                             ) 
             
