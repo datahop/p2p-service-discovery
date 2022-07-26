@@ -121,7 +121,7 @@ def createPerNodeStats(dir):
                 df['percentageMaliciousDiscovered'] = np.where(df['discovered'] == 0, 0, df['maliciousDiscovered']/df['discovered'])
                 df['percentageEclipsedLookups'] = np.where(df['lookupOperations'] == 0, 0, df['eclipsedLookupOperations']/df['lookupOperations'])
 
-                if(protocol == 'discv4'):
+                if(protocol == 'DISCv4'):
                     #should be all 0 in discv4, but including anyway for sanity check
                     reg_cols = ['MSG_REGISTER', 'MSG_TICKET_REQUEST', 'MSG_TICKET_RESPONSE', 'MSG_REGISTER_RESPONSE']
                     df['registrationMsgs'] = df[reg_cols].sum(axis=1)
@@ -789,6 +789,8 @@ def plotPerNodeStatsSplit(INDIR,OUTDIR):
             for ind, violin in enumerate(ax.findobj(PolyCollection)):
         #   for ind in range(12):
 
+                if 'regsPlaced' in graph and i==0:
+                    i=1
                 rgb = to_rgb(colors[i])
                 if ind % 2 != 0:
                     i = i +1

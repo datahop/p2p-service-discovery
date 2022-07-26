@@ -33,7 +33,7 @@ OUTDIR_BASE = os.path.abspath(OUTDIR_BASE)
 #     os.chdir(INDIR)
     
 #     createPerNodeStats(".")
-#     plotPerNodeStats(OUTDIR, simulation_type)
+#   #  plotPerNodeStats(OUTDIR, simulation_type)
     
 plotPerNodeStatsSplit(INDIR_BASE,OUTDIR_BASE+"/split/")
 #plotRegistrationStatsSybil(INDIR_BASE,OUTDIR_BASE,0)

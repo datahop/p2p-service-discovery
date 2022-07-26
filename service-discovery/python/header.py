@@ -2,11 +2,11 @@ features = {
             'size': {'type': 'benign', 'default': 25000,'defaultAttack': 25000, 'keyword': 'SIZE', 'vals':[5000,25000,50000]},
             'topic': {'type': 'benign', 'default': 300,'defaultAttack': 300, 'keyword': ['control.0traffic.maxtopicnum', 'init.1uniqueNodeID.topicnum'], 'vals':[100,300,600]},
             'discv5regs': {'type': 'attack', 'default': 3, 'defaultAttack': 3, 'keyword': 'protocol.3kademlia.TICKET_TABLE_BUCKET_SIZE', 'vals':[3]},
-            'idDistribution': {'type': 'attack', 'default': 'uniform', 'defaultAttack': 'uniform', 'keyword': 'init.1uniqueNodeID.idDistribution', 'vals':['uniform','nonUniform']},
+  #          'idDistribution': {'type': 'attack', 'default': 'uniform', 'defaultAttack': 'uniform', 'keyword': 'init.1uniqueNodeID.idDistribution', 'vals':['uniform','nonUniform']},
             'idDistribution': {'type': 'attack', 'default': 'uniform', 'defaultAttack': 'uniform', 'keyword': 'init.1uniqueNodeID.idDistribution', 'vals':['uniform']},
             'sybilSize': {'type': 'attack', 'default': 0, 'defaultAttack': 10, 'keyword': 'init.1uniqueNodeID.iPSize', 'vals':[10]},
             'attackTopic': {'type': 'attack', 'default': 0, 'defaultAttack': "ALL", 'keyword': 'init.1uniqueNodeID.attackTopic', 'vals':["ALL"]},
-            'attackType' : {'type': 'attack', 'default': "TopicSpam", 'defaultAttack':"TopicSpam", 'keyword':'protocol.4kademlia.attackType', 'vals':["TopicSpam"]},
+  #          'attackType' : {'type': 'attack', 'default': "TopicSpam", 'defaultAttack':"TopicSpam", 'keyword':'protocol.4kademlia.attackType', 'vals':["TopicSpam"]},
             'percentEvil': {'type': 'attack', 'default': 0, 'defaultAttack': 0.5, 'keyword':'init.1uniqueNodeID.percentEvilTopic', 'vals':[0.5]}}
 
 benign_y_vals = ['totalMsg','registrationMsgs', 'lookupMsgs', 'discovered', 'wasDiscovered', 'regsPlaced', 'regsAccepted', 'lookupAskedNodes']
@@ -64,13 +64,14 @@ protocolPrettyText = {'DHT':'DHT',
 ticksPrettyText = {'percentEvil':['250','500','1000']}
 
 y_lims = {#'violin_size_discovered': 100,
-          'violin_size_lookupMsgs': 500,
+          'violin_size_lookupMsgs': 1000,
           'violin_size_registrationMsgs': 5000,
-          'violin_size_regsAccepted': 2000,
-          'violin_topic_lookupMsgs': 500,
+          'violin_size_regsAccepted': 200,
+          'violin_size_wasDiscovered': 250,
+          'violin_topic_lookupMsgs': 1000,
           'violin_topic_registrationMsgs': 5000,
-          'violin_topic_regsAccepted': 2000,
-          'violin_topic_wasDiscovered': 100,
+          'violin_topic_regsAccepted': 200,
+          'violin_topic_wasDiscovered': 250,
           'violin_topic_totalMsg':2000,
           'violin_size_totalMsg':2000
           }
