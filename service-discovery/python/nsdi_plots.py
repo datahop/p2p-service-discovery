@@ -3,6 +3,7 @@ import pandas as pd
 import matplotlib
 from matplotlib import pyplot as plt
 from matplotlib.lines import Line2D
+from matplotlib.patches import Patch
 from numpy import genfromtxt
 import numpy as np
 import array
@@ -37,7 +38,9 @@ class GraphType(Enum):
 
 
 def human_format(num):
-    num = float('{:.1f}'.format(num))
+    num = float(f'{num:.3g}')
+    
+    #num = float('{:.2f}'.format(num))
     magnitude = 0
     while abs(num) >= 1000:
         magnitude += 1
@@ -494,7 +497,7 @@ def plotRegistrationStatsSybil(INDIR,OUTDIR,attackTopic):
 
  #   df = df[df['nodeTopic'] == defaults['attackTopic']]
  #   df = df[df['protocol'] == 'TOPDISC']
-    fig, ax = plt.subplots(figsize=(10, 4))
+    fig, ax = plt.subplots(figsize=(9,5.5))
 
     violin = sns.violinplot(ax = ax,
                 data = df,
@@ -618,7 +621,7 @@ def plotRegistrationStatsPercent(INDIR,OUTDIR,attackTopic):
 
  #   df = df[df['nodeTopic'] == defaults['attackTopic']]
  #   df = df[df['protocol'] == 'TOPDISC']
-    fig, ax = plt.subplots(figsize=(10, 4))
+    fig, ax = plt.subplots(figsize=(9,5.5))
 
     violin = sns.violinplot(ax = ax,
                 data = df,
@@ -701,7 +704,7 @@ def plotPerNodeStatsSplit(INDIR,OUTDIR):
 
 
         for graph in y_vals:
-            fig, ax = plt.subplots(figsize=(10, 4))
+            fig, ax = plt.subplots(figsize=(9,5.5))
             print("Plotting y-axis:", graph, "x-axis", feature)
 
             ax.spines['right'].set_visible(False)
@@ -762,8 +765,8 @@ def plotPerNodeStatsSplit(INDIR,OUTDIR):
                     max_val_attack = df_prot[graph][df_prot['simulation_type'] == 'attack'].max()
 
                     ##if(max_val > y_lim):
-                    violin.annotate("max:" + human_format(max_val), xy = (1*i-0.15, 0.55*y_lim), horizontalalignment = 'center', color='blue', rotation=90)
-                    violin.annotate("max:" + human_format(max_val_attack), xy = (1*i+0.18, 0.55*y_lim), horizontalalignment = 'center', color='red', rotation=90)
+                    violin.annotate("max:" + human_format(max_val), xy = (1*i-0.15, 0.65*y_lim), horizontalalignment = 'center', color='blue', rotation=90)
+                    violin.annotate("max:" + human_format(max_val_attack), xy = (1*i+0.19, 0.65*y_lim), horizontalalignment = 'center', color='red', rotation=90)
 
                     i += 1
                             
@@ -774,8 +777,7 @@ def plotPerNodeStatsSplit(INDIR,OUTDIR):
             ax.spines['bottom'].set_visible(True)
             ax.spines['left'].set_visible(True)
     #        ax.legend(bbox_to_anchor=(0.5, 1.1), loc='upper center', ncol=4)
-            ax.legend(bbox_to_anchor=(0.5, 1.15), loc='upper center', ncol=4)
-            fig.set_size_inches(9, 6.5)
+ #           fig.set_size_inches(9, 5.5)
 
             try:
  #               print(ticksPrettyText[feature])
@@ -814,13 +816,39 @@ def plotPerNodeStatsSplit(INDIR,OUTDIR):
 
             for i, violin in enumerate(ax.findobj(mpl.collections.PolyCollection)):
                 if i % 2:
-                    violin.set_hatch("//")
+                    violin.set_hatch("///")
 
-            ax.legend_.findobj(mpl.patches.Rectangle)[0].set_color('none')
-            ax.legend_.findobj(mpl.patches.Rectangle)[1].set_hatch("///")
-            ax.legend_.findobj(mpl.patches.Rectangle)[1].set_color('none')
 
-            fig.tight_layout()
-            fig.savefig(OUTDIR + '/' + feature + "_" + graph+".eps",format='eps')
+            labels=['DHT','DHTTicket','DISCv4','TOPDISC']
+#            ax.legend(bbox_to_anchor=(0.5, 1.15), loc='upper center', ncol=4,labels=labels[0:])
+            elements = [Patch(facecolor='none', label='no attack'),
+                        Patch(facecolor='none', label='attack')
+                        ]  
+            legend1 = plt.legend(handles=elements, loc='upper center', ncol=2,bbox_to_anchor=(0.5, 1.25))
+            ax.add_artist(legend1)
+            colors = sns.color_palette('colorblind')
+
+            elements = [Patch(facecolor=colors[0], label=labels[0],edgecolor='black'),
+                        Patch(facecolor=colors[1], label=labels[1],edgecolor='black'),
+                        Patch(facecolor=colors[2], label=labels[2],edgecolor='black'),
+                        Patch(facecolor=colors[3], label=labels[3],edgecolor='black')
+                         ]
+
+            ax.legend(bbox_to_anchor=(0.5, 1.15), loc='upper center', ncol=4,handles=elements)
+
+ #           print(handles)
+ #           print(labels)
+ #           ax.legend_.findobj(mpl.patches.Rectangle)[0].set_color('none')
+            legend1.findobj(mpl.patches.Rectangle)[1].set_hatch("///")
+
+            colors = ['blue','red']
+            i=0
+            for h, t in zip(legend1.legendHandles, legend1.get_texts()):
+                t.set_color(colors[i])
+                i=i+1
+ #           ax.legend_.findobj(mpl.patches.Rectangle)[1].set_color('none')
+
+    #        fig.tight_layout()
+            fig.savefig(OUTDIR + '/' + feature + "_" + graph+".eps",format='eps',bbox_inches='tight')
 
             #quit()
