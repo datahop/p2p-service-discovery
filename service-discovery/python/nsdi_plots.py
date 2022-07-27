@@ -753,13 +753,18 @@ def plotPerNodeStatsSplit(INDIR,OUTDIR):
                 max_vals = {}   
                 i = 0
                 for protocol, group in groups:
-                    print(protocol)
+                    #print(protocol)
                     if(protocol not in max_vals):
                         max_vals[protocol] = {}
 
-                    max_val = df[graph][df['protocolFeature'] == protocol].max()
-                    if(max_val > y_lim):
-                       violin.annotate("max:" + human_format(max_val), xy = (1*i-0.15, 0.55*y_lim), horizontalalignment = 'center', color='red', rotation=90)
+                    df_prot = df[df['protocolFeature'] == protocol]
+                    max_val = df_prot[graph][df_prot['simulation_type'] == 'benign'].max()
+                    max_val_attack = df_prot[graph][df_prot['simulation_type'] == 'attack'].max()
+
+                    ##if(max_val > y_lim):
+                    violin.annotate("max:" + human_format(max_val), xy = (1*i-0.15, 0.55*y_lim), horizontalalignment = 'center', color='blue', rotation=90)
+                    violin.annotate("max:" + human_format(max_val_attack), xy = (1*i+0.18, 0.55*y_lim), horizontalalignment = 'center', color='red', rotation=90)
+
                     i += 1
                             
             ax.set_xlabel(titlePrettyText[feature])
@@ -774,12 +779,14 @@ def plotPerNodeStatsSplit(INDIR,OUTDIR):
 
             try:
  #               print(ticksPrettyText[feature])
+                ax.xaxis.set_major_locator(plt.MaxNLocator(len(ticksPrettyText[feature])))
+                ax.set_xticks([1.5, 5.5, 9.5])
                 ax.set_xticklabels(ticksPrettyText[feature])
             except KeyError:
                 print("ticksPrettyText not found")
-            for tick in ax.get_xticklabels():
-                tick.set_rotation(45)
-            ax.set_xticklabels(ax.get_xticklabels(), fontsize=10)                
+            #for tick in ax.get_xticklabels():
+            #    tick.set_rotation(45)
+            #ax.set_xticklabels(ax.get_xticklabels(), fontsize=10)                
             #ax.set_title(titlePrettyText[graph])
 
 

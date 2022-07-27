@@ -61,7 +61,9 @@ protocolPrettyText = {'DHT':'DHT',
                       }
 
 #ticksPrettyText = {}
-ticksPrettyText = {'percentEvil':['250','500','1000']}
+ticksPrettyText = {'percentEvil':['250','500','1000'],
+                    'size':['5000','25000','50000'],
+                    'topic':['100','300','600']}
 
 y_lims = {#'violin_size_discovered': 100,
           'violin_size_lookupMsgs': 1000,
@@ -74,4 +76,4 @@ y_lims = {#'violin_size_discovered': 100,
           'violin_topic_wasDiscovered': 250,
           'violin_topic_totalMsg':2000,
           'violin_size_totalMsg':2000
-          }
+          } 
