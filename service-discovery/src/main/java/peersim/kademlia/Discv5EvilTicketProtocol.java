@@ -182,7 +182,7 @@ public class Discv5EvilTicketProtocol extends Discv5TicketProtocol {
       }
     }
 
-    //TODO check if we are using activeTopics
+    // TODO check if we are using activeTopics
     activeTopics.add(t.getTopic());
 
     TicketTable tt =
@@ -205,13 +205,12 @@ public class Discv5EvilTicketProtocol extends Discv5TicketProtocol {
     // if the attack type is TOPIC_SPAM (i.e., spam random topics)
     // we should do a FIND request to the target topic (say t1) that is attacked
     // in order to populate the ticket table with neighbors close to t1.
-    // Otherwise, ticket requests with random topics populate the ticket table 
+    // Otherwise, ticket requests with random topics populate the ticket table
     // with only the peers close to the random topic
     if (this.attackType.equals(KademliaCommonConfig.ATTACK_TYPE_TOPIC_SPAM)) {
       Message mFind = generateFindNodeMessage(t);
       handleInitFind(mFind, myPid);
     }
-
   }
 
   /**
@@ -228,7 +227,7 @@ public class Discv5EvilTicketProtocol extends Discv5TicketProtocol {
     TopicRegistration[] registrations = new TopicRegistration[0];
 
     if (this.attackType.equals(KademliaCommonConfig.ATTACK_TYPE_DOS)
-        || this.attackType.equals(KademliaCommonConfig.ATTACK_TYPE_WAITING_TIME_SPAM) 
+        || this.attackType.equals(KademliaCommonConfig.ATTACK_TYPE_WAITING_TIME_SPAM)
         || this.attackType.equals(KademliaCommonConfig.ATTACK_TYPE_TOPIC_SPAM)) {
       // if only a spammer than follow the normal protocol
       super.handleTopicQuery(m, myPid);
@@ -431,7 +430,7 @@ public class Discv5EvilTicketProtocol extends Discv5TicketProtocol {
   protected void handleFind(Message m, int myPid, int dist) {
 
     if (this.attackType.equals(KademliaCommonConfig.ATTACK_TYPE_DOS)
-        || this.attackType.equals(KademliaCommonConfig.ATTACK_TYPE_WAITING_TIME_SPAM) 
+        || this.attackType.equals(KademliaCommonConfig.ATTACK_TYPE_WAITING_TIME_SPAM)
         || this.attackType.equals(KademliaCommonConfig.ATTACK_TYPE_TOPIC_SPAM)) {
       super.handleFind(m, myPid, dist);
       return;

@@ -143,8 +143,8 @@ public class Discv5EvilDHTTicketProtocol extends Discv5DHTTicketProtocol {
       // super.handleInitRegisterTopic(m, myPid);
     }
     if (first
-            && (this.attackType.equals(KademliaCommonConfig.ATTACK_TYPE_HYBRID)
-                || this.attackType.equals(KademliaCommonConfig.ATTACK_TYPE_MALICIOUS_REGISTRAR))) { 
+        && (this.attackType.equals(KademliaCommonConfig.ATTACK_TYPE_HYBRID)
+            || this.attackType.equals(KademliaCommonConfig.ATTACK_TYPE_MALICIOUS_REGISTRAR))) {
       first = false;
       logger.warning("Filling up the topic table with malicious entries");
       for (int i = 0; i < Network.size(); i++) {
@@ -175,7 +175,6 @@ public class Discv5EvilDHTTicketProtocol extends Discv5DHTTicketProtocol {
       }
     }
     super.handleInitRegister(m, myPid);
-
   }
 
   protected void startRegistration(RegisterOperation rop, int myPid) {
@@ -490,7 +489,7 @@ public class Discv5EvilDHTTicketProtocol extends Discv5DHTTicketProtocol {
   protected void handleFind(Message m, int myPid, int dist) {
 
     if (this.attackType.equals(KademliaCommonConfig.ATTACK_TYPE_DOS)
-        || this.attackType.equals(KademliaCommonConfig.ATTACK_TYPE_WAITING_TIME_SPAM) 
+        || this.attackType.equals(KademliaCommonConfig.ATTACK_TYPE_WAITING_TIME_SPAM)
         || this.attackType.equals(KademliaCommonConfig.ATTACK_TYPE_TOPIC_SPAM)) {
       super.handleFind(m, myPid, dist);
       return;

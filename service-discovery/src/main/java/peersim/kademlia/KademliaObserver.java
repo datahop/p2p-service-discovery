@@ -313,9 +313,11 @@ public class KademliaObserver implements Control {
     for (int msgType = 0; msgType < numMsgTypes; msgType++) {
       String msgTypeString = new Message(msgType).messageTypetoString();
       msgStats.put(msgTypeString, 0);
+      msgStats.put(msgTypeString + "_evil", 0);
     }
     // init counters for all other features
     msgStats.put("numMsg", 0);
+    msgStats.put("numMsg_evil", 0);
     msgStats.put("discovered", 0);
     msgStats.put("wasDiscovered", 0);
     msgStats.put("regsPlaced", 0);
@@ -597,8 +599,13 @@ public class KademliaObserver implements Control {
       else registerOverhead.put(topic.getTopic(), count + 1);
     }
 
-    increaseNodeStatsBy(m.dest.getId(), m.messageTypetoString(), 1);
-    increaseNodeStatsBy(m.dest.getId(), "numMsg", 1);
+    if (m.src.is_evil) {
+      increaseNodeStatsBy(m.dest.getId(), m.messageTypetoString() + "_evil", 1);
+      increaseNodeStatsBy(m.dest.getId(), "numMsg_evil", 1);
+    } else {
+      increaseNodeStatsBy(m.dest.getId(), m.messageTypetoString(), 1);
+      increaseNodeStatsBy(m.dest.getId(), "numMsg", 1);
+    }
   }
 
   private void write_waiting_times() {
