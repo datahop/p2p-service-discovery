@@ -163,7 +163,7 @@ public class ZipfReader extends Discv5ZipfTrafficGenerator {
     if (registerMessage != null)
       EDSimulator.add(time, registerMessage, start, start.getKademliaProtocol().getProtocolID());
     // start lookup messages later
-    if (lookupMessage != null)
+    if (lookupMessage != null && !start.getKademliaProtocol().getNode().is_evil)
       EDSimulator.add(
           2 * KademliaCommonConfig.AD_LIFE_TIME + time,
           lookupMessage,
