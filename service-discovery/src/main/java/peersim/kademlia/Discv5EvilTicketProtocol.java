@@ -227,8 +227,9 @@ public class Discv5EvilTicketProtocol extends Discv5TicketProtocol {
     TopicRegistration[] registrations = new TopicRegistration[0];
 
     if (this.attackType.equals(KademliaCommonConfig.ATTACK_TYPE_DOS)
-        || this.attackType.equals(KademliaCommonConfig.ATTACK_TYPE_WAITING_TIME_SPAM)
-        || this.attackType.equals(KademliaCommonConfig.ATTACK_TYPE_TOPIC_SPAM)) {
+        || this.attackType.equals(KademliaCommonConfig.ATTACK_TYPE_WAITING_TIME_SPAM))
+ //       || this.attackType.equals(KademliaCommonConfig.ATTACK_TYPE_TOPIC_SPAM)) 
+    {
       // if only a spammer than follow the normal protocol
       super.handleTopicQuery(m, myPid);
     } else {
@@ -250,6 +251,10 @@ public class Discv5EvilTicketProtocol extends Discv5TicketProtocol {
       BigInteger[] neighbours =
           this.evilRoutingTable.getNeighbours(Util.logDistance(t.getTopicID(), this.node.getId()));
 
+      if(this.attackType.equals(KademliaCommonConfig.ATTACK_TYPE_TOPIC_SPAM)) {
+    	  final_results =  new TopicRegistration[0];  
+      }
+      
       Message.TopicLookupBody body = new Message.TopicLookupBody(final_results, neighbours);
       Message response = new Message(Message.MSG_TOPIC_QUERY_REPLY, body);
       response.operationId = m.operationId;

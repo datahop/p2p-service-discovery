@@ -765,8 +765,8 @@ def plotPerNodeStatsSplit(INDIR,OUTDIR):
                     max_val_attack = df_prot[graph][df_prot['simulation_type'] == 'attack'].max()
 
                     ##if(max_val > y_lim):
-                    violin.annotate("max:" + human_format(max_val), xy = (1*i-0.15, 0.65*y_lim), horizontalalignment = 'center', color='blue', rotation=90)
-                    violin.annotate("max:" + human_format(max_val_attack), xy = (1*i+0.19, 0.65*y_lim), horizontalalignment = 'center', color='red', rotation=90)
+                    violin.annotate(human_format(max_val), xy = (1*i-0.15, 0.85*y_lim), horizontalalignment = 'center', color='blue', rotation=90,size=14)
+                    violin.annotate(human_format(max_val_attack), xy = (1*i+0.19, 0.85*y_lim), horizontalalignment = 'center', color='red', rotation=90,size=14)
 
                     i += 1
                             

@@ -105,7 +105,7 @@ public class Discv4EvilProtocol extends Discv4Protocol {
 
     // BigInteger[] neighbours = this.evilRoutingTable.getNeighbours(dist);
     BigInteger[] neighbours = new BigInteger[0];
-    while (neighbours.length < 16 && dist < 256) {
+    /*while (neighbours.length < 16 && dist < 256) {
       neighbours = this.evilRoutingTable.getNeighbours(dist);
       dist++;
     }
@@ -121,7 +121,7 @@ public class Discv4EvilProtocol extends Discv4Protocol {
     // remove the source of message m from the results
     // List<BigInteger> tempList = new ArrayList<BigInteger>(Arrays.asList(neighbours));
     tempList.remove(m.src.getId());
-    neighbours = tempList.toArray(new BigInteger[0]);
+    neighbours = tempList.toArray(new BigInteger[0]);*/
     // create a response message containing the neighbours (with the same id of the request)
     Message response = new Message(Message.MSG_RESPONSE, neighbours);
     response.operationId = m.operationId;
