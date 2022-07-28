@@ -62,16 +62,19 @@ popt, pcov = curve_fit(target_func, X, y, maxfev=1000000)
 print('popt: ', popt, ' pcov: ', pcov)
 
 #fig, ax = 
-plt.figure(figsize=(10, 5))
-plt.plot(X, target_func(X, *popt), '--', color='black', label = 'zipf distribution')
-plt.plot(X, y, 'ro', color='tab:blue', label = 'Ethereum subnetworks')
+plt.figure(figsize=(10, 4))
+plt.plot(X, target_func(X, *popt), '--', color='black', label = 'Zipf distribution')
+plt.plot(X, y, 'ro', color='tab:blue', label = 'Ethereum sub-networks')
 plt.legend()
 plt.ylabel('#Nodes')
+plt.xlabel('Rank')
 plt.semilogy()
 for i in range(0, len(labels)):
     x_pos = X[i] + 5
     y_pos = y[i]
+    if(labels[i] == 'rinkeby'):
+        y_pos -= 150
     if(labels[i] == 'goerly'):
-        y_pos -= 100
+        y_pos -= 400
     plt.annotate(labels[i] , xy = (x_pos, y_pos), horizontalalignment = 'left', color='black')
 plt.show()
