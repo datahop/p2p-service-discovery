@@ -14,7 +14,8 @@ class TreeMichalNode:
         return self.counter
 
     def getBound(self):
-        return self.bound
+        return 0
+        #return self.bound
 
     def getTimestamp(self):
         return self.timestamp
@@ -48,6 +49,7 @@ class TreeMichal:
     # find the node corresponding to the  most similar (i.e., longest-prefix match) 
     # ip address in the Trie and update/store the lower-bound state at that node.
     def updateBound(self, addr, bound, currTime):
+        return
         current = self.root
         prev = None
         traversed = ''
@@ -96,7 +98,7 @@ class TreeMichal:
             #print("depth:", depth, "counter:", current.getCounter(), "expected:", expected, "root counter:", rootCounter, "2^depth:", 2**depth)
             if(current.getCounter() > expected):
                 score += 1
-                #print("adding penalty point")
+                print("adding penalty point at depth", depth)
             
             if(modifyTree):
                 current.increment()
@@ -145,6 +147,7 @@ class TreeMichal:
         if(modifyTree == True):
             return (score/max_score, effBound, self.score_dump) 
         return (score/max_score, effBound)
+        
 
     
     def traverse (self, node, depth):
