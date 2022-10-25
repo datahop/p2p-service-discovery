@@ -405,10 +405,11 @@ public class Discv5TicketProtocol extends Discv5Protocol {
       for (BigInteger node : body.neighbours) routingTable.addNeighbour(node);
 
       if (tt != null) {
-        tt.addNeighbour(body.neighbours);
+        tt.addNeighboursOnePerBucketLimit(body.neighbours);
       }
       SearchTable st = searchTables.get(topic.getTopicID());
-      if (st != null) st.addNeighbour(body.neighbours);
+      if (st != null) 
+        st.addNeighboursOnePerBucketLimit(body.neighbours);
     }
 
     if (ticket.getWaitTime() == -1 || ticket.getCumWaitTime() > KademliaCommonConfig.REG_TIMEOUT) {
@@ -591,12 +592,16 @@ public class Discv5TicketProtocol extends Discv5Protocol {
     /*for (SearchTable st : searchTables.values()) {
       st.addNeighbour(neighbours);
     }*/
+    for (SearchTable st : searchTables.values()) {
+      st.addNeighboursOnePerBucketLimit(neighbours);
+    }
 
     for (BigInteger neighbour : neighbours) {
       routingTable.addNeighbour(neighbour);
 
-      for (TicketTable tt : ticketTables.values()) tt.addNeighbour(neighbour);
     }
+    for (TicketTable tt : ticketTables.values()) //tt.addNeighbour(neighbour);
+      tt.addNeighboursOnePerBucketLimit(neighbours);
 
     if (m.src.is_evil) lop.increaseMaliciousQueries();
 
