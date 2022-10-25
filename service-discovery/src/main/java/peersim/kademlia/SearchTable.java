@@ -78,6 +78,20 @@ public class SearchTable extends RoutingTable {
     }
   }
 
+  public void addNeighboursOnePerBucketLimit(BigInteger[] nodes) {
+
+    HashSet<KBucket> bucketsUsed = new HashSet<>(); // java initializes to all false values
+    for (BigInteger node : nodes) {
+      if (node.compareTo(nodeId) == 0) continue;
+
+      if (!bucketsUsed.contains(getBucket(node))) {
+        if (addNeighbour(node)) {
+          bucketsUsed.add(getBucket(node));
+        }
+      }
+    }
+  }
+
   // remove a neighbour from the correct k-bucket
   public void removeNeighbour(BigInteger node) {
 

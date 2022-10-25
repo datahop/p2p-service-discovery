@@ -3,6 +3,7 @@ package peersim.kademlia;
 import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 // import java.util.Random;
 import java.util.logging.Logger;
@@ -105,6 +106,20 @@ public class TicketTable extends RoutingTable {
   public void addNeighbour(BigInteger[] nodes) {
     for (BigInteger node : nodes) {
       addNeighbour(node);
+    }
+  }
+
+  public void addNeighboursOnePerBucketLimit(BigInteger[] nodes) {
+
+    HashSet<KBucket> bucketsUsed = new HashSet<>(); // java initializes to all false values
+    for (BigInteger node : nodes) {
+      if (node.compareTo(nodeId) == 0) continue;
+
+      if (!bucketsUsed.contains(getBucket(node))) {
+        if (addNeighbour(node)) {
+          bucketsUsed.add(getBucket(node));
+        }
+      }
     }
   }
 

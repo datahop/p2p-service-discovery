@@ -1,9 +1,6 @@
 package peersim.kademlia;
 
 import java.math.BigInteger;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
 import peersim.core.CommonState;
 import peersim.core.Network;
 import peersim.core.Node;

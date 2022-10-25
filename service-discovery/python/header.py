@@ -1,13 +1,13 @@
 features = {
-            'size': {'type': 'benign', 'default': 25000,'defaultAttack': 25000, 'keyword': 'SIZE', 'vals':[5000,25000,50000]},
-            'topic': {'type': 'benign', 'default': 300,'defaultAttack': 300, 'keyword': ['control.0traffic.maxtopicnum', 'init.1uniqueNodeID.topicnum'], 'vals':[100,300,600]},
+            'size': {'type': 'attack', 'default': 25000,'defaultAttack': 25000, 'keyword': 'SIZE', 'vals':[25000]},
+            'topic': {'type': 'attack', 'default': 300,'defaultAttack': 300, 'keyword': ['control.0traffic.maxtopicnum', 'init.1uniqueNodeID.topicnum'], 'vals':[300]},
             'discv5regs': {'type': 'attack', 'default': 3, 'defaultAttack': 3, 'keyword': 'protocol.3kademlia.TICKET_TABLE_BUCKET_SIZE', 'vals':[3]},
   #          'idDistribution': {'type': 'attack', 'default': 'uniform', 'defaultAttack': 'uniform', 'keyword': 'init.1uniqueNodeID.idDistribution', 'vals':['uniform','nonUniform']},
             'idDistribution': {'type': 'attack', 'default': 'uniform', 'defaultAttack': 'uniform', 'keyword': 'init.1uniqueNodeID.idDistribution', 'vals':['uniform']},
-            'sybilSize': {'type': 'attack', 'default': 0, 'defaultAttack': 10, 'keyword': 'init.1uniqueNodeID.iPSize', 'vals':[10]},
-            'attackTopic': {'type': 'attack', 'default': 0, 'defaultAttack': "ALL", 'keyword': 'init.1uniqueNodeID.attackTopic', 'vals':["ALL"]},
-  #          'attackType' : {'type': 'attack', 'default': "TopicSpam", 'defaultAttack':"TopicSpam", 'keyword':'protocol.4kademlia.attackType', 'vals':["TopicSpam"]},
-            'percentEvil': {'type': 'attack', 'default': 0, 'defaultAttack': 0.5, 'keyword':'init.1uniqueNodeID.percentEvilTopic', 'vals':[0.5]}}
+            'sybilSize': {'type': 'attack', 'default': 0, 'defaultAttack': 10, 'keyword': 'init.1uniqueNodeID.iPSize', 'vals':[10,100,1000]},
+            'attackTopic': {'type': 'attack', 'default': 0, 'defaultAttack': 0, 'keyword': 'init.1uniqueNodeID.attackTopic', 'vals':[0]},
+            'percentEvil': {'type': 'attack', 'default': 0, 'defaultAttack': 0.05, 'keyword':'init.1uniqueNodeID.percentEvilTopic', 'vals':[0.01,0.05,0.1]}}
+
 
 benign_y_vals = ['totalMsg','registrationMsgs', 'lookupMsgs', 'discovered', 'wasDiscovered', 'regsPlaced', 'regsAccepted', 'lookupAskedNodes']
 
@@ -15,14 +15,14 @@ attack_y_vals = ['percentageMaliciousDiscovered', 'percentageEclipsedLookups', '
 
 
 #protocols to test
-config_files = {'TOPDISC': './config/discv5ticket.cfg', 
-                'DHTTicket': './config/discv5dhtticket.cfg', 
-                'DHT': './config/discv5dhtnoticket.cfg', 
-                'DISCv4' : './config/noattackdiscv4.cfg',
- #               'attackTOPDISC' :  './config/attack_configs/discv5ticketattack.cfg',
- #               'attackDHTTicket' : './config/attack_configs/discv5dhtticket_topicattack.cfg',
- #               'attackDHT' : './config/attack_configs/discv5dhtnoticket_topicattack.cfg',
- #               'attackDISCv4' : './config/attack_configs/discv4_topicattack.cfg'
+config_files = {#'TOPDISC': './config/discv5ticket.cfg', 
+                #'DHTTicket': './config/discv5dhtticket.cfg', 
+                #'DHT': './config/discv5dhtnoticket.cfg', 
+                #'DISCv4' : './config/noattackdiscv4.cfg',
+                'attackTOPDISC' :  './config/attack_configs/discv5ticketattack.cfg',
+#                'attackDHTTicket' : './config/attack_configs/discv5dhtticket_topicattack.cfg',
+#                'attackDHT' : './config/attack_configs/discv5dhtnoticket_topicattack.cfg',
+                'attackDISCv4' : './config/attack_configs/discv4_topicattack.cfg'
  }
 
 #security

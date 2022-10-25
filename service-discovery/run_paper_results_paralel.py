@@ -94,7 +94,7 @@ def main() -> int:
                         run = run + 1
                     else:
                         run_sim(out_config)
-                        run = 0
+                        run = 1
                     #run_sim(out_config)
 
 if __name__ == '__main__':

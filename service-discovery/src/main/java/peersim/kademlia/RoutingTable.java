@@ -71,17 +71,16 @@ public class RoutingTable implements Cloneable {
   }
 
   public void addNeighboursOnePerBucketLimit(BigInteger[] nodes) {
-    
-    boolean bucketsAdded[] = new boolean[nBuckets]; // java initializes to all false values
+
+    HashSet<KBucket> bucketsUsed = new HashSet<>(); // java initializes to all false values
     for (BigInteger node : nodes) {
-        if (node.compareTo(nodeId) == 0) 
-            continue;
-        int bucket = getBucketNum(node);
-        if (bucketsAdded[bucket] == false) {
-            if (getBucket(node).addNeighbour(node)) {
-                bucketsAdded[bucket] = true;
-            }
+      if (node.compareTo(nodeId) == 0) continue;
+
+      if (!bucketsUsed.contains(getBucket(node))) {
+        if (getBucket(node).addNeighbour(node)) {
+          bucketsUsed.add(getBucket(node));
         }
+      }
     }
   }
 
