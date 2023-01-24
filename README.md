@@ -50,8 +50,8 @@ The project is organised in three main milestones of the project together with t
   * Deadline: 21/7/2021
   
 * Objective 6: Evaluation on a real testbed
-  * [ ] Task: Evaluate the service discovery mechanism using production software in a real testbed.
-  * Deliverable: Testbed instructions and evaluation report using final parameters (TBC)
+  * [X] Task: Evaluate the service discovery mechanism using production software in a real [testbed](https://github.com/datahop/go-ethereum).
+  * Deliverable: Testbed instructions and evaluation report using final parameters ([Paper](https://github.com/harnen/service-discovery-paper)).
   * Deadline: 30/7/2021
 
 ## Discv5 Service Discovery Requirements
